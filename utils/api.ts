@@ -1,19 +1,24 @@
 import axios from "axios";
+import _ from "lodash";
 const config = require("../../../settings.json");
 
 export default (e: any) => {
   let url = e.url;
+  const headers = {
+    "content-type": "application/json",
+    ..._.get(e, "headers", {})
+  };
   if (e.url.indexOf("http") !== 0) {
     url = `${config.backend.protocol}://${config.backend.host}:${config.backend.port}${e.url}`;
   }
-  let onError = null;
+  let onError = (a: any) => {};
   if (e.onError) {
     onError = e.onError;
   }
 
   return new Promise(async (resolve, reject) => {
     try {
-      const res = await axios({ ...e, url });
+      const res = await axios({ ...e, url, headers });
       if (res.status >= 200 && res.status < 300) {
         if (res.data) resolve(res.data);
         else resolve(res);

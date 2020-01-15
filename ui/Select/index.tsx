@@ -22,7 +22,7 @@ export interface SelectItemProps {
 export interface SelectProps {
   value?: any;
   placeholder?: string;
-  items: (SelectItemProps | string)[];
+  items: (SelectItemProps | string | any)[];
   onSelect?: (item: any) => void;
   style?: any;
   theme?: ThemeProps;

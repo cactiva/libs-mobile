@@ -17,7 +17,7 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
     ..._.get(options, "headers", {})
   };
 
-  if (_.get(options, "auth", false) && session && session.jwt) {
+  if (_.get(options, "auth", true) && session && session.jwt) {
     headers["Authorization"] = `Bearer ${session.jwt}`;
   }
 
@@ -26,6 +26,7 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
     if (config.hasura.host) {
       url = `${config.hasura.host}/v1/graphql`;
     }
+
     const res: any = await api({
       url,
       method: "post",
@@ -44,8 +45,10 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
         e => e.indexOf("insert_") === 0 || e.indexOf("update_") === 0
       );
       if (mutate.length > 0) {
-        if (res.data[mutate[0]].returning) {
+        if (res.data[mutate[0]].returning.length === 1) {
           return res.data[mutate[0]].returning[0];
+        } else if (res.data[mutate[0]].returning) {
+          return res.data[mutate[0]].returning;
         } else {
           return res.data[mutate[0]];
         }
