@@ -17,15 +17,15 @@ import _ from "lodash";
 
 interface CustomViewProps
   extends ViewProps,
-  ScrollViewProps,
-  SafeAreaViewProps,
-  KeyboardAvoidingViewProps {
+    ScrollViewProps,
+    SafeAreaViewProps,
+    KeyboardAvoidingViewProps {
   type?:
-  | "View"
-  | "SafeAreaView"
-  | "AnimatedView"
-  | "ScrollView"
-  | "KeyboardAvoidingView";
+    | "View"
+    | "SafeAreaView"
+    | "AnimatedView"
+    | "ScrollView"
+    | "KeyboardAvoidingView";
   source?: any;
   shadow?: boolean;
 }
@@ -58,15 +58,22 @@ export default (props: CustomViewProps) => {
           : _.get(props, "style.paddingTop", undefined)
     };
   }
+  console.log(props.style);
 
-  if (type === "SafeAreaView") return <SafeAreaView {...props} style={style} />;
+  if (type === "SafeAreaView")
+    return (
+      <SafeAreaView
+        {...props}
+        style={StyleSheet.flatten([{ backgroundColor: "#fff" }, style])}
+      />
+    );
   if (type === "AnimatedView")
     return <Animated.View {...props} style={style} />;
   if (type === "ScrollView") {
     const p = { ...props };
     delete p.style;
     const cstyle = {} as any;
-    if (typeof style !== 'number') {
+    if (typeof style !== "number") {
       if (style.alignItems) {
         cstyle.alignItems = style.alignItems;
         delete style.alignItems;
@@ -76,7 +83,6 @@ export default (props: CustomViewProps) => {
         delete style.justifyContent;
       }
     }
-
 
     return (
       <ScrollView
