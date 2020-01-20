@@ -11,7 +11,7 @@ export default (e: any) => {
   if (e.url.indexOf("http") !== 0) {
     url = `${config.backend.protocol}://${config.backend.host}:${config.backend.port}${e.url}`;
   }
-  let onError = (a: any) => {};
+  let onError;
   if (e.onError) {
     onError = e.onError;
   }
@@ -25,11 +25,13 @@ export default (e: any) => {
       } else {
         if (res.data) onError(res.data);
         else onError(res);
+        resolve();
       }
     } catch (e) {
       if (onError) {
         if (e.response && e.response.data) onError(e.response.data);
         else onError(e.response);
+        resolve();
       } else {
         if (e.response && e.response.data) resolve(e.response.data);
         else resolve(e.response);

@@ -18,6 +18,7 @@ import { dateToString } from "../../utils";
 import Icon from "../Icon";
 import Input from "../Input";
 import { dateFormat, dateParse } from "@src/libs/utils/date";
+import DatePicker from "../DatePicker";
 
 export interface DateTimeProps {
   onChange?: (value: any) => void;
@@ -289,7 +290,7 @@ const DatePickerModal = observer((props: any) => {
       meta.isShown = false;
       return null;
     }
-  } else {
+  } else if (Platform.OS === "ios") {
     return (
       <Modal
         animationType="slide"
@@ -345,6 +346,7 @@ const DatePickerModal = observer((props: any) => {
         </TouchableWithoutFeedback>
       </Modal>
     );
-  }
+  } else if (Platform.OS === "web")
+    return <DatePicker onChange={onChangePicker} />;
   return null;
 });

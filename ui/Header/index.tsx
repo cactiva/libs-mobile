@@ -94,7 +94,7 @@ export default observer((props: UIHeaderProps) => {
               source={"AntDesign"}
               name={"arrowleft"}
               color={theme.primary}
-              size={24}
+              size={30}
               style={{
                 margin: 5
               }}
@@ -124,7 +124,7 @@ export default observer((props: UIHeaderProps) => {
                 style={{
                   // color: theme.primary,
                   margin: 0,
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: "bold",
                   fontFamily: _.get(Theme, "fontFamily", undefined),
                   overflow: "hidden",
@@ -137,8 +137,8 @@ export default observer((props: UIHeaderProps) => {
                 {title}
               </Text>
             ) : (
-                typeof title === "object" && React.isValidElement(title) && title
-              )}
+              typeof title === "object" && React.isValidElement(title) && title
+            )}
           </View>
         )}
         {children}

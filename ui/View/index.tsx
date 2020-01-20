@@ -58,7 +58,6 @@ export default (props: CustomViewProps) => {
           : _.get(props, "style.paddingTop", undefined)
     };
   }
-  console.log(props.style);
 
   if (type === "SafeAreaView")
     return (

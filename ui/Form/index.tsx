@@ -31,7 +31,7 @@ export default observer((props: FormProps) => {
 
   useEffect(() => {
     validateCheck(children);
-  }, []);
+  }, [data]);
 
   const validateCheck = child => {
     if (child) {
@@ -58,7 +58,9 @@ export default observer((props: FormProps) => {
       type={"KeyboardAvoidingView"}
       style={{
         flexGrow: 1,
-        flexShrink: 1
+        flexShrink: 1,
+        alignItems: "stretch",
+        ...(style || {})
       }}
     >
       <View
@@ -66,11 +68,14 @@ export default observer((props: FormProps) => {
         keyboardShouldPersistTaps={"handled"}
         keyboardDismissMode={"on-drag"}
         style={{
-          flexGrow: 1,
-          flexShrink: 1
+          flexGrow: 0
         }}
       >
-        <View style={style}>
+        <View
+          style={{
+            padding: 15
+          }}
+        >
           {children && Array.isArray(children) ? (
             children.map((el: any) => {
               return (
@@ -120,16 +125,14 @@ const RenderChild = observer((props: any) => {
     return child;
   }
   const onPress = e => {
-    let valid = true;
     let i = 0;
     Object.keys(meta.validate).map(e => {
       if (!meta.validate[e]) {
-        valid = false;
         ++i;
       }
     });
     meta.initError = i;
-    if (i === 0 && valid && onSubmit) {
+    if (i === 0 && onSubmit) {
       onSubmit(data);
     }
   };

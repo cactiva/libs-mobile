@@ -22,6 +22,7 @@ export interface SelectItemProps {
 export interface SelectProps {
   value?: any;
   placeholder?: string;
+  placeholderColor?: string;
   items: (SelectItemProps | string | any)[];
   onSelect?: (item: any) => void;
   style?: any;
@@ -56,7 +57,7 @@ const processData = (props: SelectProps) => {
 };
 
 export default observer((props: SelectProps) => {
-  const { value, placeholder, readonly } = props;
+  const { value, placeholder, readonly, placeholderColor } = props;
   const meta = useObservable({
     isShown: false,
     value: null,
@@ -102,9 +103,10 @@ export default observer((props: SelectProps) => {
           ...style
         }}
         disabled={readonly}
-        onPress={() =>
-          (meta.isShown = items && items.length > 0 ? true : false)
-        }
+        onPress={() => {
+          meta.isShown = items && items.length > 0 ? true : false;
+          if (items.length === 0) alert("No item to display.");
+        }}
       >
         <Text
           style={{
@@ -114,7 +116,11 @@ export default observer((props: SelectProps) => {
             marginTop: Platform.OS === "ios" ? 5 : 4,
             marginBottom: Platform.OS === "ios" ? 5 : 3,
             fontSize: Theme.fontSize,
-            color: value ? "#3a3a3a" : "#757575",
+            color: placeholderColor
+              ? placeholderColor
+              : value
+              ? "#3a3a3a"
+              : "#757575",
             overflow: "hidden",
             ...tStyle
           }}

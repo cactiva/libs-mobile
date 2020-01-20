@@ -58,6 +58,7 @@ export interface FieldProps {
   isValid?: (status: boolean) => void;
   isFocus?: Boolean;
   validate?: (value: any) => void;
+  enableBorder?: boolean;
 }
 
 export default observer((props: FieldProps) => {
@@ -77,7 +78,8 @@ export default observer((props: FieldProps) => {
     isLabel,
     isValidate,
     isValid,
-    isFocus
+    isFocus,
+    enableBorder
   } = props;
   let field = props.field;
   const dim = useDimensions().window;
@@ -253,7 +255,7 @@ export default observer((props: FieldProps) => {
             : meta.focus && isFocus
             ? theme.primary
             : theme.light,
-          borderBottomWidth: 1,
+          borderBottomWidth: enableBorder || meta.error ? 1 : 0,
           flexDirection: "row",
           alignItems: "stretch",
           paddingRight: 2,

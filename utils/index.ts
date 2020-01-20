@@ -1,6 +1,10 @@
 import { Dimensions } from "react-native";
 import _ from "lodash";
-
+const config = require("../../../settings.json");
+const globalSettings = {
+  backend: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/`,
+  repo: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/api/repo/`
+};
 const { width, height } = Dimensions.get("window");
 
 //Guideline sizes are based on standard ~5" screen mobile device
@@ -31,13 +35,13 @@ const deepFind = (object: object, path: string, defaultValue?: any) =>
 const findLargestSmallest = (a: string, b: string) =>
   a.length > b.length
     ? {
-      largest: a,
-      smallest: b
-    }
+        largest: a,
+        smallest: b
+      }
     : {
-      largest: b,
-      smallest: a
-    };
+        largest: b,
+        smallest: a
+      };
 const fuzzyMatch = (strA: string, strB: string, fuzziness = 0) => {
   if (strA === "" || strB === "") {
     return false;
