@@ -249,13 +249,13 @@ export default observer((props: FieldProps) => {
       )}
       <View
         style={{
-          borderStyle: "solid",
-          borderColor: meta.error
+          borderBottomStyle: "solid",
+          borderBottomColor: meta.error
             ? theme.danger
             : meta.focus && isFocus
             ? theme.primary
             : theme.light,
-          borderBottomWidth: enableBorder || meta.error ? 1 : 0,
+          borderBottomWidth: enableBorder != false || meta.error ? 1 : 0,
           flexDirection: "row",
           alignItems: "stretch",
           paddingRight: 2,

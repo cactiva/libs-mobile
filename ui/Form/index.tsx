@@ -16,10 +16,18 @@ export interface FormProps extends ScrollViewProps {
   theme?: ThemeProps;
   onSubmit?: (data?: any) => void;
   onFieldFunction?: (data?: any) => void;
+  keyboardAvoidingView?: boolean;
 }
 
 export default observer((props: FormProps) => {
-  const { children, data, setValue, onSubmit, onFieldFunction } = props;
+  const {
+    children,
+    data,
+    setValue,
+    onSubmit,
+    onFieldFunction,
+    keyboardAvoidingView
+  } = props;
   const dim = useDimensions().window;
   const meta = useObservable({
     validate: {},
@@ -52,15 +60,44 @@ export default observer((props: FormProps) => {
       }
     }
   };
+  if (keyboardAvoidingView === false) {
+    return (
+      <>
+        {children && Array.isArray(children) ? (
+          children.map((el: any) => {
+            return (
+              <RenderChild
+                data={data}
+                setValue={setValue}
+                child={el}
+                key={uuid()}
+                meta={meta}
+                onFieldFunction={onFieldFunction}
+                onSubmit={onSubmit}
+              />
+            );
+          })
+        ) : (
+          <RenderChild
+            data={data}
+            setValue={setValue}
+            child={children}
+            key={uuid()}
+            meta={meta}
+            onFieldFunction={onFieldFunction}
+            onSubmit={onSubmit}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <View
       type={"KeyboardAvoidingView"}
       style={{
         flexGrow: 1,
-        flexShrink: 1,
-        alignItems: "stretch",
-        ...(style || {})
+        flexShrink: 1
       }}
     >
       <View
@@ -68,40 +105,39 @@ export default observer((props: FormProps) => {
         keyboardShouldPersistTaps={"handled"}
         keyboardDismissMode={"on-drag"}
         style={{
-          flexGrow: 0
+          flexGrow: 1,
+          flexShrink: 1
+        }}
+        contentContainerStyle={{
+          padding: 15,
+          ...(style || {})
         }}
       >
-        <View
-          style={{
-            padding: 15
-          }}
-        >
-          {children && Array.isArray(children) ? (
-            children.map((el: any) => {
-              return (
-                <RenderChild
-                  data={data}
-                  setValue={setValue}
-                  child={el}
-                  key={uuid()}
-                  meta={meta}
-                  onFieldFunction={onFieldFunction}
-                  onSubmit={onSubmit}
-                />
-              );
-            })
-          ) : (
-            <RenderChild
-              data={data}
-              setValue={setValue}
-              child={children}
-              key={uuid()}
-              meta={meta}
-              onFieldFunction={onFieldFunction}
-              onSubmit={onSubmit}
-            />
-          )}
-        </View>
+        {children && Array.isArray(children) ? (
+          children.map((el: any) => {
+            return (
+              <RenderChild
+                data={data}
+                setValue={setValue}
+                child={el}
+                key={uuid()}
+                meta={meta}
+                onFieldFunction={onFieldFunction}
+                onSubmit={onSubmit}
+              />
+            );
+          })
+        ) : (
+          <RenderChild
+            data={data}
+            setValue={setValue}
+            child={children}
+            key={uuid()}
+            meta={meta}
+            onFieldFunction={onFieldFunction}
+            onSubmit={onSubmit}
+          />
+        )}
       </View>
     </View>
   );

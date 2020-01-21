@@ -71,7 +71,7 @@ export default (props: CustomViewProps) => {
   if (type === "ScrollView") {
     const p = { ...props };
     delete p.style;
-    const cstyle = {} as any;
+    const cstyle = p.contentContainerStyle as any;
     if (typeof style !== "number") {
       if (style.alignItems) {
         cstyle.alignItems = style.alignItems;
