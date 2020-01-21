@@ -51,12 +51,12 @@ export default observer((props: FormProps) => {
             validateCheck(el.props.children);
           } else {
             if (el.props && el.props.isRequired && el.props.path)
-              meta.validate[el.props.path] = !!data[el.props.path];
+              meta.validate[el.props.path] = !!_.get(data, el.props.path);
           }
         });
       } else {
         if (child.props && child.props.isRequired && child.props.path)
-          meta.validate[child.props.path] = !!data[child.props.path];
+          meta.validate[child.props.path] = !!_.get(data, child.props.path);
       }
     }
   };

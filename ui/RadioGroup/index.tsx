@@ -11,10 +11,11 @@ export interface RadioGroupProps {
   style?: any;
   children?: any;
   option?: RadioProps[];
+  editable?: boolean;
 }
 
 export default observer((props: RadioGroupProps) => {
-  const { onChange, value, style, mode, children, option } = props;
+  const { onChange, value, style, mode, children, option, editable } = props;
   let cusstomChildren = [];
   if (!!children) cusstomChildren = [...children];
 
@@ -30,7 +31,9 @@ export default observer((props: RadioGroupProps) => {
         return (
           <RenderChild
             onPress={v => {
-              onChange && onChange(el.props.value || el.props.text);
+              editable !== false &&
+                onChange &&
+                onChange(el.props.value || el.props.text);
             }}
             checked={
               (el.props.value === value || el.props.text === value) && !!value
