@@ -6,38 +6,22 @@ import Spinner from "../Spinner";
 import View from "../View";
 
 const errorSource = require("@src/assets/images/404.png");
+const loadingSource = require("@src/assets/images/loading.png");
 export interface ImageProps extends ImagePropsOrigin {
   loadingSize?: "small" | "large";
 }
 
 export default observer((props: ImageProps) => {
-  const meta = useObservable({
-    status: "init"
-  });
   const style: any = _.get(props, "style", {});
 
   return (
-    <>
-      {meta.status !== "error" && (
-        <Image
-          {...props}
-          onLoad={() => {
-            meta.status = "ready";
-          }}
-          onLoadStart={() => {
-            meta.status = "loading";
-          }}
-          onError={e => {
-            meta.status = "error";
-          }}
-          style={{
-            ...style,
-            opacity: meta.status === "ready" ? 1 : 0
-          }}
-        />
-      )}
-      <RenderImage imgProps={props} meta={meta} />
-    </>
+    <Image
+      {...props}
+      loadingIndicatorSource={loadingSource}
+      style={{
+        ...style
+      }}
+    />
   );
 });
 
