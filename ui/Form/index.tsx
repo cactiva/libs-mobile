@@ -17,6 +17,7 @@ export interface FormProps extends ScrollViewProps {
   onSubmit?: (data?: any) => void;
   onFieldFunction?: (data?: any) => void;
   keyboardAvoidingView?: boolean;
+  reinitValidate?: () => boolean;
 }
 
 export default observer((props: FormProps) => {
@@ -38,6 +39,7 @@ export default observer((props: FormProps) => {
   };
 
   useEffect(() => {
+    meta.validate = {};
     validateCheck(children);
   }, [data]);
 

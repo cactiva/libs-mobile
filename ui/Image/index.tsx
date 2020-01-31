@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { observer, useObservable } from "mobx-react-lite";
-import React, { useEffect } from "react";
+import { observer } from "mobx-react-lite";
+import React, { useState } from "react";
 import { Image, ImageProps as ImagePropsOrigin } from "react-native";
 import Spinner from "../Spinner";
 import View from "../View";
@@ -12,16 +12,39 @@ export interface ImageProps extends ImagePropsOrigin {
 }
 
 export default observer((props: ImageProps) => {
-  const style: any = _.get(props, "style", {});
+  const [error, setError] = useState(false);
+  const { source } = props;
+  let csource = source;
+  if (typeof csource === "object") {
+    csource = {
+      cache: "force-cache",
+      ...(source as any)
+    };
+  }
 
   return (
-    <Image
-      {...props}
-      loadingIndicatorSource={loadingSource}
-      style={{
-        ...style
-      }}
-    />
+    <>
+      {!error ? (
+        <Image
+          defaultSource={loadingSource}
+          resizeMode={"contain"}
+          {...props}
+          source={csource}
+          onError={e => {
+            if (_.get(e, "nativeEvent.error", "")) {
+              setError(true);
+            }
+          }}
+        />
+      ) : (
+        <Image
+          defaultSource={errorSource}
+          resizeMode={"contain"}
+          source={errorSource}
+          style={props.style}
+        />
+      )}
+    </>
   );
 });
 

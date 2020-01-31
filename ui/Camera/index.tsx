@@ -155,6 +155,7 @@ const ModalCamera = observer((props: any) => {
       onRequestClose={() => {
         meta.isShown = false;
         meta.resnap = false;
+        meta.snap = false;
       }}
     >
       <View
@@ -189,7 +190,10 @@ const ModalCamera = observer((props: any) => {
               alignItems: "center",
               width: 40
             }}
-            onPress={() => (meta.isShown = false)}
+            onPress={() => {
+              meta.snap = false;
+              meta.isShown = false;
+            }}
           >
             <Icon source="AntDesign" name="arrowleft" color="white" size={24} />
           </TouchableOpacity>

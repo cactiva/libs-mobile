@@ -1,17 +1,17 @@
 import Theme from "@src/theme.json";
+import _ from "lodash";
 import { observer } from "mobx-react-lite";
 import React from "react";
 import {
+  Platform,
   StatusBar,
   Text,
   TouchableOpacity,
-  View,
-  Platform
+  View
 } from "react-native";
 import { useNavigation } from "react-navigation-hooks";
 import { DefaultTheme } from "../../theme";
 import Icon from "../Icon";
-import _ from "lodash";
 
 export interface UIHeaderProps {
   backBtn?: boolean;
@@ -73,7 +73,7 @@ export default observer((props: UIHeaderProps) => {
         marginTop: safeAreaView ? -statusbar : 0,
         paddingTop: safeAreaView ? statusbar : 5,
         // borderBottomWidth: 1,
-        // backgroundColor: "#fff",
+        backgroundColor: "#fff",
         // borderColor: "#f0eff4",
         // borderStyle: "solid",
         ...style,

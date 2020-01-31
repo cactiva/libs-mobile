@@ -104,7 +104,14 @@ const truncateStr = (text: string, length: number) => {
   let string = text.replace(/(\r\n|\n|\r)/gm, "");
   return string.length > length ? string.substr(0, length - 1) + "..." : string;
 };
+
+const formatMoney = (number: string | number, prefix: string = "") => {
+  let val = typeof number == "string" ? parseFloat(number) : number;
+  let res = val.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,");
+  return `${prefix}${res}`;
+};
 export {
+  formatMoney,
   scale,
   verticalScale,
   moderateScale,

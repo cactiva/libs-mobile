@@ -182,6 +182,7 @@ const ModalItems = observer((props: any) => {
           safeAreaView={true}
           backBtn={true}
           onPressBackBtn={() => (meta.isShown = false)}
+          shadow
           title={
             <Input
               placeholder={props.placeholder || "Search..."}
@@ -278,8 +279,8 @@ const RenderItemRow = observer((props: any) => {
         meta.value = item;
       }}
       style={{
-        paddingRight: 10,
-        paddingLeft: 10,
+        paddingRight: 20,
+        paddingLeft: 20,
         minHeight: 40,
         display: "flex",
         justifyContent: "center",

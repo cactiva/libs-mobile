@@ -7,18 +7,15 @@ import {
   Modal,
   Platform,
   Text,
+  TimePickerAndroid,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  ViewStyle,
-  TimePickerAndroid
+  ViewStyle
 } from "react-native";
 import { DefaultTheme, ThemeProps } from "../../theme";
-import { dateToString } from "../../utils";
 import Icon from "../Icon";
 import Input from "../Input";
-import { dateFormat, dateParse } from "@src/libs/utils/date";
-import DatePicker from "../DatePicker";
 
 export interface DateTimeProps {
   onChange?: (value: any) => void;
@@ -212,30 +209,32 @@ export default observer((props: DateTimeProps) => {
             </>
           )}
         </View>
-        <TouchableOpacity
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingLeft: 5,
-            paddingRight: 5
-          }}
-          onPress={e => {
-            e.stopPropagation();
-            e.preventDefault();
-            meta.isShown = !meta.isShown;
-            if (Platform.OS === "ios") {
-              onChangePicker(meta.value);
-            }
-          }}
-        >
-          <Icon
-            source="Ionicons"
-            name={"ios-calendar"}
-            color={theme.dark}
-            size={24}
-          />
-        </TouchableOpacity>
+        {Platform.OS !== "web" && (
+          <TouchableOpacity
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingLeft: 5,
+              paddingRight: 5
+            }}
+            onPress={e => {
+              e.stopPropagation();
+              e.preventDefault();
+              meta.isShown = !meta.isShown;
+              if (Platform.OS === "ios") {
+                onChangePicker(meta.value);
+              }
+            }}
+          >
+            <Icon
+              source="Ionicons"
+              name={"ios-calendar"}
+              color={theme.dark}
+              size={24}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       <DatePickerModal meta={meta} {...props} onChangePicker={onChangePicker} />
     </>
@@ -346,7 +345,6 @@ const DatePickerModal = observer((props: any) => {
         </TouchableWithoutFeedback>
       </Modal>
     );
-  } else if (Platform.OS === "web")
-    return <DatePicker onChange={onChangePicker} />;
+  }
   return null;
 });
