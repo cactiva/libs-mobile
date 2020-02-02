@@ -48,6 +48,12 @@ export default observer((props: DateTimeProps) => {
     ...DefaultTheme,
     ..._.get(props, "theme", {})
   };
+
+  // const getTimeZone = (date) => {
+  //   let offset = date.getTimezoneOffset(), o = Math.abs(offset);
+  //   return (offset < 0 ? "+" : "-") + ("00" + Math.floor(o / 60)).slice(-2) + ":" + ("00" + (o % 60)).slice(-2);
+  // }
+
   const onChangeDateString = (v, p) => {
     if (p === "dd") {
       v = v > 31 ? 31 : v < 0 ? 0 : v;
@@ -82,26 +88,25 @@ export default observer((props: DateTimeProps) => {
     }
   };
   const onChangePicker = date => {
-    let nDate = new Date(date);
-    nDate.setHours(nDate.getHours() + 7);
-    meta.value = new Date(nDate);
-    meta.dateString.dd = ("0" + meta.value.getDate()).slice(-2);
-    meta.dateString.mm = ("0" + (meta.value.getMonth() + 1)).slice(-2);
-    meta.dateString.yyyy = `${meta.value.getFullYear()}`;
-    meta.dateString.HH = ("0" + meta.value.getHours()).slice(-2);
-    meta.dateString.MM = ("0" + meta.value.getMinutes()).slice(-2);
+    meta.dateString.dd = ("0" + date.getDate()).slice(-2);
+    meta.dateString.mm = ("0" + (date.getMonth() + 1)).slice(-2);
+    meta.dateString.yyyy = `${date.getFullYear()}`;
+    meta.dateString.HH = ("0" + date.getHours()).slice(-2);
+    meta.dateString.MM = ("0" + date.getMinutes()).slice(-2);
+    meta.value = date;
     onChange && onChange(meta.value);
   };
+
   useEffect(() => {
     if (value) {
-      let newDate;
-      if (typeof value === "string") newDate = new Date(value);
-      meta.value = newDate;
-      meta.dateString.dd = ("0" + meta.value.getDate()).slice(-2);
-      meta.dateString.mm = ("0" + (meta.value.getMonth() + 1)).slice(-2);
-      meta.dateString.yyyy = `${meta.value.getFullYear()}`;
-      meta.dateString.HH = ("0" + meta.value.getHours()).slice(-2);
-      meta.dateString.MM = ("0" + meta.value.getMinutes()).slice(-2);
+      let date;
+      if (typeof value === "string") date = new Date(value);
+      meta.value = date;
+      meta.dateString.dd = ("0" + date.getDate()).slice(-2);
+      meta.dateString.mm = ("0" + (date.getMonth() + 1)).slice(-2);
+      meta.dateString.yyyy = `${date.getFullYear()}`;
+      meta.dateString.HH = ("0" + date.getHours()).slice(-2);
+      meta.dateString.MM = ("0" + date.getMinutes()).slice(-2);
     }
   }, [value]);
   useEffect(() => {
