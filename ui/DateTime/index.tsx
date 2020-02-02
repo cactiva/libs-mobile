@@ -69,24 +69,28 @@ export default observer((props: DateTimeProps) => {
         0
       ).getDate();
       if (parseInt(meta.dateString.dd) > day) meta.dateString.dd = `${day}`;
-      meta.value = new Date(
+      let nDate = new Date(
         parseInt(meta.dateString.yyyy),
         parseInt(meta.dateString.mm) - 1,
         parseInt(meta.dateString.dd),
         parseInt(meta.dateString.HH),
         parseInt(meta.dateString.MM)
       );
+      nDate.setHours(nDate.getHours() + 7);
+      meta.value = new Date(nDate);
       onChange && onChange(meta.value);
     }
   };
   const onChangePicker = date => {
-    meta.value = date;
+    let nDate = new Date(date);
+    nDate.setHours(nDate.getHours() + 7);
+    meta.value = new Date(nDate);
     meta.dateString.dd = ("0" + meta.value.getDate()).slice(-2);
     meta.dateString.mm = ("0" + (meta.value.getMonth() + 1)).slice(-2);
     meta.dateString.yyyy = `${meta.value.getFullYear()}`;
     meta.dateString.HH = ("0" + meta.value.getHours()).slice(-2);
     meta.dateString.MM = ("0" + meta.value.getMinutes()).slice(-2);
-    onChange && onChange(date);
+    onChange && onChange(meta.value);
   };
   useEffect(() => {
     if (value) {
