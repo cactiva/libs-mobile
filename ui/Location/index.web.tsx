@@ -1,6 +1,6 @@
 import React from "react";
 import { Text } from "react-native";
-import { DefaultTheme } from "../../theme";
+import { DefaultTheme } from "../../themes";
 
 export default () => {
   return (

@@ -1,3 +1,3 @@
 export * from "./ui";
 export * from "./utils";
-export * from "./theme";
+export * from "./themes";

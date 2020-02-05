@@ -8,7 +8,7 @@ import Icon from "../Icon";
 import TableColumn from "./TableColumn";
 import TableHead, { IHeadProps } from "./TableHead";
 import TableRow, { IRowProps } from "./TableRow";
-import { DefaultTheme } from "@src/libs/theme";
+import { DefaultTheme } from "@src/libs/themes";
 
 import Theme from "@src/theme.json";
 import { uuid } from "@src/libs/utils";
@@ -55,13 +55,13 @@ export default observer((props: ITableProps) => {
     style,
     children,
     onEndReached,
-    onSort,
+    onSort
   } = props;
   const propsConfig = props.config;
 
-  if (!keyPath) keyPath = 'id';
+  if (!keyPath) keyPath = "id";
   if (!data) data = [];
-  if (!columnMode) columnMode = 'auto';
+  if (!columnMode) columnMode = "auto";
 
   const generateColumns = () => {
     return Object.keys(data[0]).map(e => ({
@@ -82,7 +82,7 @@ export default observer((props: ITableProps) => {
     tableWidth: 0,
     sortField: "",
     sortMode: "asc",
-    ...propsConfig,
+    ...propsConfig
   });
   const length = data && data.length;
   const watchChild = children => {
@@ -90,17 +90,20 @@ export default observer((props: ITableProps) => {
       let props = { ...children.props };
       if (children) delete props.children;
       meta.headerProps = props;
-      meta.headerCells = _.castArray(_.get(children, "props.children", [])).map((e) => {
-        return {
-          ...e, props: {
-            style: {
-              ...e.props.style,
-              overflow: 'hidden'
-            },
-            ...e.props,
-          }
+      meta.headerCells = _.castArray(_.get(children, "props.children", [])).map(
+        e => {
+          return {
+            ...e,
+            props: {
+              style: {
+                ...e.props.style,
+                overflow: "hidden"
+              },
+              ...e.props
+            }
+          };
         }
-      });
+      );
     } else if (children.type === TableRow) {
       let props = { ...children.props };
       if (children) delete props.children;
@@ -159,7 +162,12 @@ export default observer((props: ITableProps) => {
           )}
           renderItem={({ item, index, separators }) => {
             return (
-              <RenderItem item={item} rowNumber={index} meta={meta} config={config}></RenderItem>
+              <RenderItem
+                item={item}
+                rowNumber={index}
+                meta={meta}
+                config={config}
+              ></RenderItem>
             );
           }}
           ItemSeparatorComponent={() => (
@@ -207,7 +215,7 @@ export default observer((props: ITableProps) => {
               return uuid();
             }
 
-            if (typeof item[keyPath] !== 'string') {
+            if (typeof item[keyPath] !== "string") {
               return item[keyPath].toString();
             }
             return item[keyPath];
@@ -217,8 +225,8 @@ export default observer((props: ITableProps) => {
           }}
         ></FlatList>
       ) : (
-          <View />
-        )}
+        <View />
+      )}
     </View>
   );
 });
@@ -234,25 +242,25 @@ const RenderHeader = observer((props: any) => {
     <TableHead {..._.get(meta, "headerProps", {})} style={headerStyle}>
       {meta.headerCells.length > 0
         ? meta.headerCells.map((child, key: number) => {
-          return (
-            <RenderHeaderCell
-              key={key}
-              component={child}
-              config={config}
-              onSort={onSort}
-            ></RenderHeaderCell>
-          );
-        })
+            return (
+              <RenderHeaderCell
+                key={key}
+                component={child}
+                config={config}
+                onSort={onSort}
+              ></RenderHeaderCell>
+            );
+          })
         : meta.cells.map((child, key: number) => {
-          return (
-            <RenderHeaderCell
-              key={key}
-              component={child}
-              config={config}
-              onSort={onSort}
-            ></RenderHeaderCell>
-          );
-        })}
+            return (
+              <RenderHeaderCell
+                key={key}
+                component={child}
+                config={config}
+                onSort={onSort}
+              ></RenderHeaderCell>
+            );
+          })}
     </TableHead>
   );
 });
@@ -265,13 +273,13 @@ const RenderHeaderCell = observer((props: any) => {
       onPress = () => {
         const cell = component.props;
         if (config.sortField === cell.path) {
-          if (config.sortMode === 'asc') {
-            config.sortMode = 'desc';
-          } else if (config.sortMode === 'desc') {
-            config.sortMode = '';
-            config.sortField = '';
+          if (config.sortMode === "asc") {
+            config.sortMode = "desc";
+          } else if (config.sortMode === "desc") {
+            config.sortMode = "";
+            config.sortField = "";
           } else {
-            config.sortMode = 'asc';
+            config.sortMode = "asc";
           }
         } else {
           config.sortMode = "asc";
@@ -289,7 +297,7 @@ const RenderHeaderCell = observer((props: any) => {
       flexDirection: "row",
       borderRadius: 0,
       backgroundColor: "transparent",
-      alignItems: 'center',
+      alignItems: "center",
       justifyContent: "flex-start",
       ..._.get(compProps, "style", {})
     };
@@ -342,7 +350,7 @@ const DefaultHeaderCell = observer((props: any) => {
   const { cell, onSort, config, onPress, compProps } = props;
 
   if (onSort) {
-    let children = <Text>{cell.title}</Text>
+    let children = <Text>{cell.title}</Text>;
     if (compProps && compProps.children) {
       children = compProps.children;
     }
@@ -354,7 +362,7 @@ const DefaultHeaderCell = observer((props: any) => {
         }}
         onPress={onPress}
       >
-        {cell.path === config.sortField &&
+        {cell.path === config.sortField && (
           <View
             style={{
               marginRight: 5,
@@ -388,7 +396,7 @@ const DefaultHeaderCell = observer((props: any) => {
               }}
             />
           </View>
-        }
+        )}
         {children}
       </TouchableOpacity>
     );
@@ -402,8 +410,8 @@ const DefaultHeaderCell = observer((props: any) => {
           path: "title"
         })
       ) : (
-          <Text>{cell.title}</Text>
-        )}
+        <Text>{cell.title}</Text>
+      )}
     </>
   );
 });
@@ -425,25 +433,25 @@ const RenderItem = observer((props: any) => {
     <TableRow {...rowProps} onPress={onPress} style={rowStyle}>
       {meta.rows
         ? meta.rows.map((child, key: number) => {
-          return (
-            <RenderCell
-              key={key}
-              item={item}
-              component={child}
-              config={config}
-            ></RenderCell>
-          );
-        })
+            return (
+              <RenderCell
+                key={key}
+                item={item}
+                component={child}
+                config={config}
+              ></RenderCell>
+            );
+          })
         : meta.cells.map((child, key: number) => {
-          return (
-            <RenderCell
-              key={key}
-              item={item}
-              component={child}
-              config={config}
-            ></RenderCell>
-          );
-        })}
+            return (
+              <RenderCell
+                key={key}
+                item={item}
+                component={child}
+                config={config}
+              ></RenderCell>
+            );
+          })}
     </TableRow>
   );
 });
@@ -453,7 +461,8 @@ const RenderCell = observer((props: any) => {
   if (config.mode === "manual") {
     const compProps = component.props;
     const rawValue = _.get(item, compProps.path);
-    let value = typeof rawValue === 'object' ? JSON.stringify(rawValue) : rawValue;
+    let value =
+      typeof rawValue === "object" ? JSON.stringify(rawValue) : rawValue;
     const customWidth = compProps.width;
     const cellStyle = {
       justifyContent: "center",
@@ -463,14 +472,21 @@ const RenderCell = observer((props: any) => {
       ..._.get(compProps, "style", {})
     };
     if (compProps.children) {
-      const child = typeof compProps.children === 'function' ?
-        compProps.children(rawValue, { ...compProps, item }) :
-        compProps.children;
-      return <TableColumn style={cellStyle}>
-        {compProps.onPress ? <TouchableOpacity onPress={compProps.onPress}>
-          {child}
-        </TouchableOpacity> : child}
-      </TableColumn>
+      const child =
+        typeof compProps.children === "function"
+          ? compProps.children(rawValue, { ...compProps, item })
+          : compProps.children;
+      return (
+        <TableColumn style={cellStyle}>
+          {compProps.onPress ? (
+            <TouchableOpacity onPress={compProps.onPress}>
+              {child}
+            </TouchableOpacity>
+          ) : (
+            child
+          )}
+        </TableColumn>
+      );
     } else if (compProps.onPress) {
       return (
         <TableColumn {...compProps} style={cellStyle}>
@@ -499,9 +515,14 @@ const RenderCell = observer((props: any) => {
       flexGrow: 1,
       flexBasis: config.width
     } as ViewStyle;
-    const value = typeof item[component.path] === 'object' ? JSON.stringify(item[component.path]) : item[component.path];
-    return <TableColumn style={cellStyle}>
-      <Text>{value}</Text>
-    </TableColumn>
+    const value =
+      typeof item[component.path] === "object"
+        ? JSON.stringify(item[component.path])
+        : item[component.path];
+    return (
+      <TableColumn style={cellStyle}>
+        <Text>{value}</Text>
+      </TableColumn>
+    );
   }
 });

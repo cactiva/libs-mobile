@@ -1,4 +1,4 @@
-import { DefaultTheme } from "@src/libs/theme";
+import { DefaultTheme } from "@src/libs/themes";
 import Theme from "@src/theme.json";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";

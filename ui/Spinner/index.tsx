@@ -2,7 +2,7 @@ import Theme from "@src/theme.json";
 import { observer } from "mobx-react-lite";
 import React from "react";
 import { ActivityIndicator, ActivityIndicatorProps } from "react-native";
-import { DefaultTheme } from "../../theme";
+import { DefaultTheme } from "../../themes";
 
 export default observer((props: ActivityIndicatorProps) => {
   const theme = {

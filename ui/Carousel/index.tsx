@@ -1,5 +1,3 @@
-import { DefaultTheme } from "@src/libs/theme";
-import Theme from "@src/theme.json";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
@@ -9,6 +7,7 @@ import Carousel, {
 } from "react-native-snap-carousel";
 import View from "../View";
 import { ViewStyle } from "react-native";
+import Theme from "@src/libs/theme";
 
 export interface CarouselProps {
   data: any[];
@@ -99,10 +98,6 @@ export interface PaginationProps {
 }
 
 export const Pagination = observer((props: PaginationProps) => {
-  const theme = {
-    ...DefaultTheme,
-    ...Theme.colors
-  };
   return (
     <PaginationOrigin
       dotsLength={0}
@@ -115,7 +110,7 @@ export const Pagination = observer((props: PaginationProps) => {
         height: 8,
         width: 8,
         borderRadius: 20,
-        backgroundColor: theme.primary
+        backgroundColor: Theme.UIColors.primary
       }}
       dotContainerStyle={{
         marginLeft: 3,

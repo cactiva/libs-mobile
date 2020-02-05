@@ -10,7 +10,7 @@ import {
   View
 } from "react-native";
 import { useNavigation } from "react-navigation-hooks";
-import { DefaultTheme } from "../../theme";
+import { DefaultTheme } from "../../themes";
 import Icon from "../Icon";
 
 export interface UIHeaderProps {

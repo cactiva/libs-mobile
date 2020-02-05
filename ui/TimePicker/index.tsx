@@ -11,7 +11,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import { DefaultTheme, ThemeProps } from "../../theme";
+import { DefaultTheme, ThemeProps } from "../../themes";
 import { dateToString } from "../../utils";
 import Icon from "../Icon";
 import Input from "../Input";

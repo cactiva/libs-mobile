@@ -1,12 +1,6 @@
 import { createAppContainer } from "react-navigation";
-import { createStackNavigator } from "react-navigation-stack";
-import components, { initialRouteName } from "@src/components";
+import routes from "../routes";
 
 export const AppContainer = () => {
-  return createAppContainer(
-    createStackNavigator(components, {
-      headerMode: "none",
-      initialRouteName
-    })
-  );
+  return createAppContainer(routes);
 };

@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite";
 import { TextProps, Text } from "react-native";
 import _ from "lodash";
 import Theme from "@src/theme.json";
-import { DefaultTheme } from "../../theme";
+import { DefaultTheme } from "../../themes";
 
 export default observer((props: TextProps) => {
   const theme = {
@@ -12,7 +12,7 @@ export default observer((props: TextProps) => {
   };
   let style = null;
 
-  if (typeof props.style === 'number') {
+  if (typeof props.style === "number") {
     style = props.style;
   } else {
     style = {

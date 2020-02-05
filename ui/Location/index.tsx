@@ -1,4 +1,4 @@
-import { DefaultTheme, ThemeProps } from "@src/libs/theme";
+import { DefaultTheme, ThemeProps } from "@src/libs/themes";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import * as Permissions from "expo-permissions";

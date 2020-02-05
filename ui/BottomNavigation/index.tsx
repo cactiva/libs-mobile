@@ -3,7 +3,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useNavigation } from "react-navigation-hooks";
 import Icon from "../Icon";
-import { DefaultTheme, ThemeProps } from "../../theme";
+import { DefaultTheme, ThemeProps } from "../../themes";
 import { scale, uuid } from "../../utils";
 import { IconProps } from "../Icon";
 

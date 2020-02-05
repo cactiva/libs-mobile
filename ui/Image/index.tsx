@@ -1,89 +1,55 @@
-import _ from "lodash";
-import { observer } from "mobx-react-lite";
 import React, { useState } from "react";
-import { Image, ImageProps as ImagePropsOrigin } from "react-native";
-import Spinner from "../Spinner";
-import View from "../View";
+import {
+  Image,
+  ImageProps as OriginImageProps,
+  StyleSheet,
+  ImageStyle
+} from "react-native";
+import _ from "lodash";
+import Theme from "../../theme";
 
-const errorSource = require("@src/assets/images/404.png");
-const loadingSource = require("@src/assets/images/loading.png");
-export interface ImageProps extends ImagePropsOrigin {
-  loadingSize?: "small" | "large";
-}
+export interface IImageProps extends OriginImageProps {}
 
-export default observer((props: ImageProps) => {
+export default (props: IImageProps) => {
+  const { style, source } = props;
   const [error, setError] = useState(false);
-  const { source } = props;
-  let csource = source;
-  if (typeof csource === "object") {
+  const baseStyle: ImageStyle = {
+    margin: 4,
+    width: 300,
+    height: 150
+  };
+  const cstyle = StyleSheet.flatten([baseStyle, style]);
+  let csource: any = source;
+  if (typeof source === "object") {
     csource = {
-      cache: "force-cache",
-      ...(source as any)
+      ...source,
+      cache: "force-cache"
     };
   }
 
   return (
     <>
-      {!error ? (
+      {error ? (
         <Image
-          defaultSource={loadingSource}
           resizeMode={"contain"}
+          defaultSource={Theme.UIImageLoading}
           {...props}
           source={csource}
+          style={cstyle}
           onError={e => {
-            if (_.get(e, "nativeEvent.error", "")) {
-              setError(true);
-            }
+            const err = _.get(e, "mativeEvent.error", "");
+            if (!!err) setError(true);
           }}
         />
       ) : (
         <Image
-          defaultSource={errorSource}
           resizeMode={"contain"}
-          source={errorSource}
-          style={props.style}
+          defaultSource={Theme.UIImageLoading}
+          {...props}
+          source={csource}
+          style={cstyle}
         />
       )}
     </>
   );
-});
-
-const RenderImage = observer((props: any) => {
-  const { imgProps, meta } = props;
-  if (meta.status === "init" || meta.status === "ready") {
-    return null;
-  }
-  return (
-    <>
-      {meta.status === "loading" ? (
-        <View
-          style={{
-            ..._.get(imgProps, "style", {}),
-            justifyContent: "center",
-            alignItems: "center",
-            position: "absolute",
-            top: 0
-          }}
-        >
-          <Spinner
-            size={imgProps.loadingSize ? imgProps.loadingSize : "large"}
-          />
-        </View>
-      ) : (
-        <View
-          style={{
-            ..._.get(imgProps, "style", {}),
-            justifyContent: "center",
-            alignItems: "center"
-          }}
-        >
-          <Image
-            resizeMode={"contain"}
-            source={errorSource}
-            style={_.get(imgProps, "style", {})}
-          />
-        </View>
-      )}
-    </>
-  );
-});
+};

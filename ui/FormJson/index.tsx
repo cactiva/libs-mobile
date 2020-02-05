@@ -88,7 +88,7 @@ const RenderChild = observer((props: any) => {
       if (data) {
         _.set(data, path, value);
       } else {
-        console.error("Failed to set value: Form data props is undefined");
+        alert("Failed to set value: Form data props is undefined");
       }
     }
     if (meta.initError) meta.initError = false;
