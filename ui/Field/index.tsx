@@ -250,7 +250,7 @@ export default observer((props: FieldProps) => {
       <View
         style={{
           borderBottomStyle: "solid",
-          borderBottomColor: meta.error
+          borderColor: meta.error
             ? theme.danger
             : meta.focus && isFocus
             ? theme.primary
@@ -258,11 +258,12 @@ export default observer((props: FieldProps) => {
           borderBottomWidth: enableBorder != false || meta.error ? 1 : 0,
           flexDirection: "row",
           alignItems: "stretch",
-          paddingRight: 2,
-          paddingLeft: 2,
+          paddingRight: 10,
+          paddingLeft: 10,
           padding: 4,
           justifyContent: "flex-start",
           display: "flex",
+          ..._.get(Theme, "fieldStyle", {}),
           ...((styles && styles.field) || {})
         }}
         className={Platform.OS === "web" ? "cactiva-field-input" : undefined}

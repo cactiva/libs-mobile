@@ -78,7 +78,7 @@ export default observer((props: UIHeaderProps) => {
         // borderStyle: "solid",
         ...style,
         ...(styles ? styles.root : {}),
-        ...(shadow ? styleShadow : {})
+        ...(shadow != false ? styleShadow : {})
       }}
     >
       <View

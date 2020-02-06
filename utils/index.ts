@@ -1,5 +1,6 @@
 import { Dimensions } from "react-native";
 import _ from "lodash";
+import session from "@src/stores/session";
 const config = require("../../../settings.json");
 const globalSettings = {
   backend: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/`,
@@ -110,8 +111,17 @@ const formatMoney = (number: string | number, prefix: string = "") => {
   let res = val.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,");
   return `${prefix}${res}`;
 };
+const getAsset = uri => {
+  return {
+    uri,
+    headers: {
+      Authorization: `Bearer ${session.jwt}`
+    }
+  };
+};
 export {
   formatMoney,
+  getAsset,
   scale,
   verticalScale,
   moderateScale,
