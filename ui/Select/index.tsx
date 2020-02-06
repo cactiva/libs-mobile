@@ -31,6 +31,7 @@ export interface SelectProps {
   readonly?: boolean;
   labelPath?: ((item: any) => any) | string;
   valuePath?: ((item: any) => any) | string;
+  icon?: boolean;
 }
 
 const parsePath = (item, path) => {
@@ -133,7 +134,7 @@ export default observer((props: SelectProps) => {
               : meta.value.label
             : placeholder}
         </Text>
-        {!readonly && (
+        {!readonly && (props.icon === undefined || props.icon) && (
           <View
             style={{
               display: "flex",

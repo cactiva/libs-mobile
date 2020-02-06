@@ -5,12 +5,10 @@ import React, { useRef } from "react";
 import { TextInput, TextInputProps } from "react-native";
 import { DefaultTheme } from "../../theme";
 import Text from "../Text";
-import NumericInput from "@wwdrew/react-native-numeric-textinput";
 
 export type InputType =
   | "text"
   | "number"
-  | "money"
   | "password"
   | "decimal"
   | "multiline"
@@ -36,9 +34,7 @@ export default observer((props: InputProps) => {
         v = parseFloat(e);
         break;
       case "currency":
-        if (!!props.editable) {
-          v = e;
-        }
+        v = parseInt(e.replace(/,/g, "") || "0").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         break;
     }
 
@@ -60,10 +56,16 @@ export default observer((props: InputProps) => {
 
   const cprops = { ...props, onChangeText: setValue };
 
-  if (typeof value === "number" && type !== "number" && type !== "decimal") {
+  if (typeof value === "number" && type !== "number" && type !== "decimal" && type !== "currency") {
     originalType.current = "number";
     value = !!value ? String(value) : "";
   }
+
+  if (type === "currency") {
+    if (value !== undefined)
+      value = value.toString().replace(/,/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
   let ComponentProps: TextInputProps = {
     returnKeyType: "next",
     ...cprops,
@@ -75,6 +77,7 @@ export default observer((props: InputProps) => {
   if (!!value && typeof value === "object") {
     return <Text>{JSON.stringify(value)}</Text>;
   }
+
   let Component = TextInput;
 
   switch (type) {
@@ -113,10 +116,11 @@ export default observer((props: InputProps) => {
       // break;
       ComponentProps = {
         keyboardType: "number-pad",
-        ...ComponentProps,
-        value: !!value ? String(value) : ""
+        ...ComponentProps
+        // value: !!value ? String(value) : ""
       };
       break;
   }
+
   return <Component {...ComponentProps} />;
 });
