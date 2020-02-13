@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { DefaultTheme, ThemeProps } from "../../theme";
+import { DefaultTheme, ThemeProps } from "../../themes";
 import Icon from "../Icon";
 
 export type RadioModeType = "default" | "checkbox";

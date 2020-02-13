@@ -1,9 +1,8 @@
-import Theme from "@src/theme.json";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import { Platform } from "react-native";
-import { DefaultTheme, ThemeProps } from "../../theme";
+import { DefaultTheme, ThemeProps } from "../../themes";
 import { fuzzyMatch, textStyle, uuid } from "../../utils";
 import Button from "../Button";
 import FlatList from "../FlatList";
@@ -13,6 +12,9 @@ import Input from "../Input";
 import Modal from "../Modal";
 import Text from "../Text";
 import View from "../View";
+import Screen from "../Screen";
+import TopBar from "../TopBar";
+import Theme from "@src/libs/theme";
 
 export interface SelectItemProps {
   label: any;
@@ -72,11 +74,6 @@ export default observer((props: SelectProps) => {
 
   const items = meta.items;
 
-  const theme = {
-    ...DefaultTheme,
-    ...Theme.colors
-  };
-
   const tStyle: any = textStyle(props.style);
   const style = { ...props.style };
   if (!!style)
@@ -95,12 +92,11 @@ export default observer((props: SelectProps) => {
     <>
       <Button
         style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "stretch",
-          justifyContent: "flex-start",
+          minHeight: 30,
+          margin: 0,
           backgroundColor: "transparent",
-          padding: 0,
+          paddingLeft: 0,
+          paddingRight: 0,
           ...style
         }}
         disabled={readonly}
@@ -114,9 +110,7 @@ export default observer((props: SelectProps) => {
             flex: 1,
             minHeight: 22,
             paddingLeft: 5,
-            marginTop: Platform.OS === "ios" ? 5 : 4,
-            marginBottom: Platform.OS === "ios" ? 5 : 3,
-            fontSize: Theme.fontSize,
+            fontSize: Theme.UIFontSize,
             color: placeholderColor
               ? placeholderColor
               : value
@@ -147,19 +141,22 @@ export default observer((props: SelectProps) => {
             <Icon
               source="Entypo"
               name={meta.isShown ? "chevron-up" : "chevron-down"}
-              color={tStyle.color || theme.dark}
+              color={tStyle.color || "black"}
               size={20}
+              style={{
+                margin: 0
+              }}
             />
           </View>
         )}
       </Button>
-      <ModalItems meta={meta} {...props} items={items} theme={theme} />
+      <ModalItems meta={meta} {...props} items={items} />
     </>
   );
 });
 
 const ModalItems = observer((props: any) => {
-  const { meta, theme, items } = props;
+  const { meta, items } = props;
   const onSearch = value => {
     meta.filter = value;
   };
@@ -172,100 +169,85 @@ const ModalItems = observer((props: any) => {
       onRequestClose={() => (meta.isShown = false)}
     >
       <View
-        type={"SafeAreaView"}
         style={{
-          backgroundColor: "#fff",
           flexGrow: 1,
-          flexShrink: 1
+          flexShrink: 1,
+          backgroundColor: Theme.UIColors.background
         }}
       >
-        <Header
-          safeAreaView={true}
-          backBtn={true}
-          onPressBackBtn={() => (meta.isShown = false)}
-          shadow
-          title={
-            <Input
-              placeholder={props.placeholder || "Search..."}
-              value={meta.filter}
-              onChangeText={onSearch}
-              autoFocus={true}
-              style={{
-                padding: 10
-              }}
-            />
-          }
-          style={{
-            paddingTop: 0
-          }}
-        ></Header>
-        <RenderItem {...props} meta={meta} theme={theme} items={items} />
+        <TopBar
+          backButton={true}
+          actionBackButton={() => (meta.isShown = false)}
+          enableShadow
+        >
+          <Input
+            placeholder={props.placeholder || "Search..."}
+            value={meta.filter}
+            onChangeText={onSearch}
+            autoFocus={true}
+            style={{
+              padding: 10
+            }}
+          />
+        </TopBar>
+        <RenderItem {...props} meta={meta} items={items} />
       </View>
     </Modal>
   );
 });
 
 const RenderItem = observer((props: any) => {
-  const { meta, items, value, onSelect, theme } = props;
+  const { meta, items, value, onSelect } = props;
   return (
-    <View
-      type={"ScrollView"}
-      style={{
-        flexGrow: 1,
-        flexShrink: 1
-      }}
-    >
-      <FlatList
-        keyboardShouldPersistTaps={"handled"}
-        data={items.filter((item: any) => {
-          if (meta.filter.length > 0)
-            return fuzzyMatch(
-              meta.filter.toLowerCase(),
-              item.label.toLowerCase()
-            );
-          return true;
-        })}
-        keyExtractor={(item: any) => {
-          return `${uuid()}-${typeof item === "string" ? item : item.value}`;
-        }}
-        ItemSeparatorComponent={() => (
-          <View
-            style={{
-              borderBottomWidth: 1,
-              borderStyle: "solid",
-              borderColor: theme.light,
-              borderWidth: 0
-            }}
-          />
-        )}
-        ListEmptyComponent={() => (
-          <Text
-            style={{
-              margin: 10,
-              textAlign: "center"
-            }}
-          >
-            No item to display.
-          </Text>
-        )}
-        renderItem={({ item }) => {
-          return (
-            <RenderItemRow
-              item={item}
-              value={value}
-              meta={meta}
-              onSelect={onSelect}
-              theme={theme}
-            ></RenderItemRow>
+    <FlatList
+      keyboardShouldPersistTaps={"handled"}
+      data={items.filter((item: any) => {
+        if (meta.filter.length > 0)
+          return fuzzyMatch(
+            meta.filter.toLowerCase(),
+            item.label.toLowerCase()
           );
-        }}
-      />
-    </View>
+        return true;
+      })}
+      keyExtractor={(item: any) => {
+        return `${uuid()}-${typeof item === "string" ? item : item.value}`;
+      }}
+      ItemSeparatorComponent={() => (
+        <View
+          style={{
+            borderBottomWidth: 1,
+            borderStyle: "solid",
+            borderColor: "#e4e4e4",
+            borderWidth: 0
+          }}
+        />
+      )}
+      ListEmptyComponent={() => (
+        <Text
+          style={{
+            margin: 10,
+            textAlign: "center"
+          }}
+        >
+          No item to display.
+        </Text>
+      )}
+      renderItem={({ item }) => {
+        return (
+          <RenderItemRow
+            item={item}
+            value={value}
+            meta={meta}
+            onSelect={onSelect}
+          ></RenderItemRow>
+        );
+      }}
+    />
   );
 });
 
 const RenderItemRow = observer((props: any) => {
-  const { item, value, meta, onSelect, theme } = props;
+  const { item, value, meta, onSelect } = props;
   const textLabel = typeof item === "string" ? item : item.label;
   const textValue = typeof item === "string" ? item : item.value;
   let active = false;
@@ -280,18 +262,13 @@ const RenderItemRow = observer((props: any) => {
         meta.value = item;
       }}
       style={{
-        paddingRight: 20,
-        paddingLeft: 20,
-        minHeight: 40,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
-        backgroundColor: active ? theme.primary : "#fff"
+        justifyContent: "flex-start",
+        backgroundColor: active ? Theme.UIColors.primary : "transparent"
       }}
     >
       <Text
         style={{
-          color: active ? "#fff" : theme.dark
+          color: active ? "#fff" : "black"
         }}
       >
         {textLabel}

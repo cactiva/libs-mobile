@@ -111,13 +111,14 @@ const formatMoney = (number: string | number, prefix: string = "") => {
   let res = val.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,");
   return `${prefix}${res}`;
 };
-const getAsset = uri => {
-  return {
-    uri,
+const getAsset = async uri => {
+  return await fetch(uri, {
     headers: {
       Authorization: `Bearer ${session.jwt}`
     }
-  };
+  })
+    .then(response => response.blob())
+    .then(images => URL.createObjectURL(images));
 };
 export {
   formatMoney,

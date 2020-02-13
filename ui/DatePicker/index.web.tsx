@@ -2,7 +2,7 @@ import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import { Text, View } from "react-native";
 import { DateTimeProps } from ".";
-import { DefaultTheme } from "../../theme";
+import { DefaultTheme } from "../../themes";
 import { dateToString } from "../../utils";
 import Input from "../Input";
 

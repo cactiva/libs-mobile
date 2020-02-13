@@ -1,10 +1,11 @@
-import Theme from "@src/theme.json";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useRef } from "react";
 import { TextInput, TextInputProps } from "react-native";
-import { DefaultTheme } from "../../theme";
+import { DefaultTheme } from "../../themes";
 import Text from "../Text";
+import Theme from "../../theme";
+import { scale } from "../../utils";
 
 export type InputType =
   | "text"
@@ -34,36 +35,42 @@ export default observer((props: InputProps) => {
         v = parseFloat(e);
         break;
       case "currency":
-        v = parseInt(e.replace(/,/g, "") || "0").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        v = parseInt(e.replace(/,/g, "") || "0")
+          .toString()
+          .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         break;
     }
 
     onChangeText && onChangeText(v);
   };
-  const theme = {
-    ...DefaultTheme,
-    ...Theme.colors
-  };
   let style = {
     minWidth: 10,
     borderWidth: 0,
     margin: 0,
-    color: theme.dark,
+    color: Theme.UIColors.text,
     minHeight: 30,
-    fontSize: Theme.fontSize,
+    fontSize: scale(Theme.UIFontSize),
     ...(_.get(props, "style", {}) as any)
   };
 
   const cprops = { ...props, onChangeText: setValue };
 
-  if (typeof value === "number" && type !== "number" && type !== "decimal" && type !== "currency") {
+  if (
+    typeof value === "number" &&
+    type !== "number" &&
+    type !== "decimal" &&
+    type !== "currency"
+  ) {
     originalType.current = "number";
     value = !!value ? String(value) : "";
   }
 
   if (type === "currency") {
     if (value !== undefined)
-      value = value.toString().replace(/,/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      value = value
+        .toString()
+        .replace(/,/g, "")
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
   let ComponentProps: TextInputProps = {

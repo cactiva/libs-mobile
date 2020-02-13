@@ -1,10 +1,9 @@
-import Theme from "@src/theme.json";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import { Text, View as ViewNative, Platform } from "react-native";
 import { useDimensions } from "react-native-hooks";
-import { DefaultTheme, ThemeProps } from "../../theme";
+import { DefaultTheme, ThemeProps } from "../../themes";
 import { textStyle, uuid } from "../../utils";
 import Camera, { CameraProps } from "../Camera";
 import { CheckboxProps } from "../Checkbox";
@@ -18,6 +17,7 @@ import RadioGroup, { RadioGroupProps } from "../RadioGroup";
 import Select, { SelectProps } from "../Select";
 import DateTime from "../DateTime";
 import { toJS } from "mobx";
+import Theme from "@src/libs/theme";
 
 interface StylesFieldProps {
   root?: any;
@@ -95,10 +95,6 @@ export default observer((props: FieldProps) => {
     !!iconStart && !!iconStart.source && !!iconStart.name ? true : false;
   const isIconEnd =
     !!iconEnd && !!iconEnd.source && !!iconEnd.name ? true : false;
-  const theme = {
-    ...DefaultTheme,
-    ...Theme.colors
-  };
   const placeholder =
     !meta.error && !meta.focus ? _.get(children, "props.placeholder", "") : "";
 
@@ -238,7 +234,7 @@ export default observer((props: FieldProps) => {
         <Text
           style={{
             fontSize: 14,
-            color: theme.primary,
+            color: Theme.UIColors.secondary,
             marginBottom: 5,
             ...((styles && styles.label) || {}),
             ...tStyle
@@ -251,10 +247,10 @@ export default observer((props: FieldProps) => {
         style={{
           borderBottomStyle: "solid",
           borderColor: meta.error
-            ? theme.danger
+            ? Theme.UIColors.danger
             : meta.focus && isFocus
-            ? theme.primary
-            : theme.light,
+            ? Theme.UIColors.primary
+            : "#e4e4e4",
           borderBottomWidth: enableBorder != false || meta.error ? 1 : 0,
           flexDirection: "row",
           alignItems: "stretch",
@@ -279,7 +275,7 @@ export default observer((props: FieldProps) => {
           >
             <Icon
               size={24}
-              color={theme.primary}
+              color={Theme.UIColors.primary}
               style={{ marginRight: 10 }}
               {...iconStart}
             />
@@ -297,7 +293,7 @@ export default observer((props: FieldProps) => {
           >
             <Icon
               size={24}
-              color={theme.primary}
+              color={Theme.UIColors.primary}
               style={{ marginLeft: 10 }}
               {...iconEnd}
             />
@@ -312,7 +308,7 @@ export default observer((props: FieldProps) => {
             style={{
               paddingTop: 5,
               fontSize: 12,
-              color: theme.danger
+              color: Theme.UIColors.danger
             }}
           >
             *{message}

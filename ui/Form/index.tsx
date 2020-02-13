@@ -3,7 +3,7 @@ import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import { ScrollViewProps } from "react-native";
 import { useDimensions } from "react-native-hooks";
-import { ThemeProps } from "../../theme";
+import { ThemeProps } from "../../themes";
 import { uuid } from "../../utils";
 import Field from "../Field";
 import View from "../View";
@@ -62,85 +62,33 @@ export default observer((props: FormProps) => {
       }
     }
   };
-  if (keyboardAvoidingView === false) {
-    return (
-      <>
-        {children && Array.isArray(children) ? (
-          children.map((el: any) => {
-            return (
-              <RenderChild
-                data={data}
-                setValue={setValue}
-                child={el}
-                key={uuid()}
-                meta={meta}
-                onFieldFunction={onFieldFunction}
-                onSubmit={onSubmit}
-              />
-            );
-          })
-        ) : (
-          <RenderChild
-            data={data}
-            setValue={setValue}
-            child={children}
-            key={uuid()}
-            meta={meta}
-            onFieldFunction={onFieldFunction}
-            onSubmit={onSubmit}
-          />
-        )}
-      </>
-    );
-  }
-
   return (
-    <View
-      type={"KeyboardAvoidingView"}
-      style={{
-        flexGrow: 1,
-        flexShrink: 1
-      }}
-    >
-      <View
-        type={"ScrollView"}
-        keyboardShouldPersistTaps={"handled"}
-        keyboardDismissMode={"on-drag"}
-        style={{
-          flexGrow: 1,
-          flexShrink: 1
-        }}
-        contentContainerStyle={{
-          padding: 15,
-          ...(style || {})
-        }}
-      >
-        {children && Array.isArray(children) ? (
-          children.map((el: any) => {
-            return (
-              <RenderChild
-                data={data}
-                setValue={setValue}
-                child={el}
-                key={uuid()}
-                meta={meta}
-                onFieldFunction={onFieldFunction}
-                onSubmit={onSubmit}
-              />
-            );
-          })
-        ) : (
-          <RenderChild
-            data={data}
-            setValue={setValue}
-            child={children}
-            key={uuid()}
-            meta={meta}
-            onFieldFunction={onFieldFunction}
-            onSubmit={onSubmit}
-          />
-        )}
-      </View>
+    <View style={style}>
+      {children && Array.isArray(children) ? (
+        children.map((el: any) => {
+          return (
+            <RenderChild
+              data={data}
+              setValue={setValue}
+              child={el}
+              key={uuid()}
+              meta={meta}
+              onFieldFunction={onFieldFunction}
+              onSubmit={onSubmit}
+            />
+          );
+        })
+      ) : (
+        <RenderChild
+          data={data}
+          setValue={setValue}
+          child={children}
+          key={uuid()}
+          meta={meta}
+          onFieldFunction={onFieldFunction}
+          onSubmit={onSubmit}
+        />
+      )}
     </View>
   );
 });
@@ -181,7 +129,7 @@ const RenderChild = observer((props: any) => {
       if (data) {
         _.set(data, path, value);
       } else {
-        console.error("Failed to set value: Form data props is undefined");
+        alert("Failed to set value: Form data props is undefined");
       }
     }
   };

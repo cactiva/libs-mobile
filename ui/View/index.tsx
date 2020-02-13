@@ -3,20 +3,17 @@ import {
   Animated,
   KeyboardAvoidingView,
   KeyboardAvoidingViewProps,
-  Platform,
-  SafeAreaView,
-  ScrollView,
   ScrollViewProps,
-  StatusBar,
   StyleSheet,
   View,
-  ViewProps
+  ViewProps as OriViewProps
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaViewProps } from "react-navigation";
-import _ from "lodash";
+import Theme from "../../theme";
 
-interface CustomViewProps
-  extends ViewProps,
+export interface IViewProps
+  extends OriViewProps,
     ScrollViewProps,
     SafeAreaViewProps,
     KeyboardAvoidingViewProps {
@@ -26,82 +23,38 @@ interface CustomViewProps
     | "AnimatedView"
     | "ScrollView"
     | "KeyboardAvoidingView";
-  source?: any;
   shadow?: boolean;
+  childRef?: any;
 }
 
-export default (props: CustomViewProps) => {
-  const { type, shadow } = props;
-  const statusbar = StatusBar.currentHeight || 0;
-  const styleShadow = {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
+export default (props: IViewProps) => {
+  const { type, shadow, style, childRef } = props;
+  const shadowStyle = !!shadow ? Theme.UIShadow : {};
+  let cstyle = StyleSheet.flatten([shadowStyle, style]);
 
-    elevation: 6
-  };
-
-  let style = null;
-  if (typeof props.style === "number") {
-    style = props.style;
-  } else {
-    style = {
-      ...(_.get(props, "style", {}) as any),
-      ...(shadow ? styleShadow : {}),
-      paddingTop:
-        type === "SafeAreaView" && Platform.OS === "android"
-          ? statusbar
-          : _.get(props, "style.paddingTop", undefined)
-    };
+  switch (type) {
+    case "AnimatedView":
+      return <Animated.View ref={childRef} {...props} style={cstyle} />;
+    case "ScrollView":
+      return (
+        <ScrollView
+          {...props}
+          ref={childRef}
+          keyboardShouldPersistTaps={"handled"}
+          style={cstyle}
+        />
+      );
+    case "KeyboardAvoidingView":
+      return (
+        <KeyboardAvoidingView
+          behavior="padding"
+          enabled
+          {...props}
+          ref={childRef}
+          style={cstyle}
+        />
+      );
+    default:
+      return <View {...props} style={cstyle} ref={childRef} />;
   }
-
-  if (type === "SafeAreaView")
-    return (
-      <SafeAreaView
-        {...props}
-        style={StyleSheet.flatten([{ backgroundColor: "#fff" }, style])}
-      />
-    );
-  if (type === "AnimatedView")
-    return <Animated.View {...props} style={style} />;
-  if (type === "ScrollView") {
-    const p = { ...props };
-    delete p.style;
-    const cstyle = p.contentContainerStyle as any;
-    if (typeof style !== "number") {
-      if (style.alignItems) {
-        cstyle.alignItems = style.alignItems;
-        delete style.alignItems;
-      }
-      if (style.justifyContent) {
-        cstyle.justifyContent = style.justifyContent;
-        delete style.justifyContent;
-      }
-    }
-
-    return (
-      <ScrollView
-        {...p}
-        keyboardShouldPersistTaps={"handled"}
-        contentContainerStyle={cstyle}
-        style={style}
-      />
-    );
-  }
-  if (type === "KeyboardAvoidingView") {
-    return (
-      <KeyboardAvoidingView
-        behavior="padding"
-        enabled
-        {...props}
-        style={style}
-      />
-    );
-  }
-
-  return <View {...props} style={style} />;
 };

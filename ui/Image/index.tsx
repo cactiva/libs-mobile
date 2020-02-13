@@ -1,29 +1,37 @@
-import _ from "lodash";
-import { observer } from "mobx-react-lite";
 import React, { useState } from "react";
-import { Image, ImageProps as ImagePropsOrigin } from "react-native";
-import Spinner from "../Spinner";
-import View from "../View";
-import Modal from "../Modal";
+import {
+  Image,
+  ImageProps as OriginImageProps,
+  StyleSheet,
+  ImageStyle
+} from "react-native";
+import _ from "lodash";
+import Theme from "../../theme";
 import Button from "../Button";
+import Modal from "../Modal";
 import Icon from "../Icon";
+import View from "../View";
 
-const errorSource = require("@src/assets/images/404.png");
-const loadingSource = require("@src/assets/images/loading.png");
-export interface ImageProps extends ImagePropsOrigin {
+export interface IImageProps extends OriginImageProps {
   loadingSize?: "small" | "large";
   preview?: boolean;
 }
 
-export default observer((props: ImageProps) => {
+export default (props: IImageProps) => {
+  const { style, source, preview } = props;
   const [error, setError] = useState(false);
   const [show, setShow] = useState(false);
-  const { source, preview } = props;
-  let csource = source;
-  if (typeof csource === "object") {
+  const baseStyle: ImageStyle = {
+    margin: 4,
+    width: 300,
+    height: 150
+  };
+  const cstyle = StyleSheet.flatten([baseStyle, style]);
+  let csource: any = source;
+  if (typeof source === "object") {
     csource = {
-      cache: "force-cache",
-      ...(source as any)
+      ...source,
+      cache: "force-cache"
     };
   }
 
@@ -49,23 +57,24 @@ export default observer((props: ImageProps) => {
           onPress={onPress}
         >
           <Image
-            defaultSource={loadingSource}
             resizeMode={"contain"}
+            defaultSource={Theme.UIImageLoading}
             {...props}
             source={csource}
+            style={cstyle}
             onError={e => {
-              if (_.get(e, "nativeEvent.error", "")) {
-                setError(true);
-              }
+              const err = _.get(e, "mativeEvent.error", "");
+              if (!!err) setError(true);
             }}
           />
         </Button>
       ) : (
         <Image
-          defaultSource={errorSource}
           resizeMode={"contain"}
-          source={errorSource}
-          style={props.style}
+          defaultSource={Theme.UIImageLoading}
+          {...props}
+          source={csource}
+          style={cstyle}
         />
       )}
       {!!show && (
@@ -73,9 +82,9 @@ export default observer((props: ImageProps) => {
       )}
     </>
   );
-});
+};
 
-const PreviewImage = observer((props: any) => {
+const PreviewImage = (props: any) => {
   const { show, setShow, imgProps } = props;
   const onRequestClose = () => {
     setShow(!show);
@@ -127,44 +136,4 @@ const PreviewImage = observer((props: any) => {
       </View>
     </Modal>
   );
-});
-
-const RenderImage = observer((props: any) => {
-  const { imgProps, meta } = props;
-  if (meta.status === "init" || meta.status === "ready") {
-    return null;
-  }
-  return (
-    <>
-      {meta.status === "loading" ? (
-        <View
-          style={{
-            ..._.get(imgProps, "style", {}),
-            justifyContent: "center",
-            alignItems: "center",
-            position: "absolute",
-            top: 0
-          }}
-        >
-          <Spinner
-            size={imgProps.loadingSize ? imgProps.loadingSize : "large"}
-          />
-        </View>
-      ) : (
-        <View
-          style={{
-            ..._.get(imgProps, "style", {}),
-            justifyContent: "center",
-            alignItems: "center"
-          }}
-        >
-          <Image
-            resizeMode={"contain"}
-            source={errorSource}
-            style={_.get(imgProps, "style", {})}
-          />
-        </View>
-      )}
-    </>
-  );
-});
+};

@@ -1,53 +1,59 @@
-import Theme from "@src/theme.json";
-import _ from "lodash";
-import { observer } from "mobx-react-lite";
 import React from "react";
-import { TouchableOpacity, TouchableOpacityProps } from "react-native";
-import { DefaultTheme } from "../../theme";
+import {
+  TouchableOpacity,
+  TouchableOpacityProps,
+  StyleSheet,
+  ViewStyle
+} from "react-native";
+import Theme from "../../theme";
 
-interface ButtonStyles {
-  wrapper?: any;
-  label?: any;
-}
-
-export interface ButtonProps extends TouchableOpacityProps {
+export interface IButtonProps extends TouchableOpacityProps {
   shadow?: Boolean;
-  type?: "submit" | string;
+  type?: "Submit" | string;
   children?: any;
+  mode?: "contained" | "outlined" | "clean";
 }
 
-export default observer((props: ButtonProps) => {
-  const { disabled, shadow } = props;
-  const theme = {
-    ...DefaultTheme,
-    ...Theme.colors
+export default (props: IButtonProps) => {
+  const { disabled, shadow, style, mode = "contained" } = props;
+  const disabledStyle = {
+    opacity: !!disabled ? 0.5 : 1
   };
-  const styleShadow = {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-
-    elevation: 6
+  const shadowStyle = !!shadow ? Theme.UIShadow : {};
+  const baseStyle: ViewStyle = {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 4,
+    minWidth: 64,
+    minHeight: 44,
+    paddingLeft: 16,
+    paddingRight: 16,
+    padding: 4,
+    margin: 4
   };
-  return (
-    <TouchableOpacity
-      {...props}
-      style={{
-        backgroundColor: theme.primary,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        opacity: disabled ? 0.7 : 1,
-        borderRadius: 4,
-        minWidth: 30,
-        padding: 10,
-        ...(_.get(props, "style", {}) as any),
-        ...(shadow ? styleShadow : {})
-      }}
-    ></TouchableOpacity>
-  );
-});
+  const containedStyle: ViewStyle = {
+    backgroundColor: Theme.UIColors.primary
+  };
+  const outlinedStyle: ViewStyle = {
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: Theme.UIColors.primary,
+    backgroundColor: "#fff"
+  };
+  const cleanStyle: ViewStyle = {
+    backgroundColor: "#fff"
+  };
+  const cstyle = StyleSheet.flatten([
+    baseStyle,
+    disabledStyle,
+    shadowStyle,
+    mode === "outlined"
+      ? outlinedStyle
+      : mode === "clean"
+      ? cleanStyle
+      : containedStyle,
+    style
+  ]);
+  return <TouchableOpacity activeOpacity={0.6} {...props} style={cstyle} />;
+};

@@ -4,7 +4,7 @@ import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import { useDimensions } from "react-native-hooks";
-import { DefaultTheme, ThemeProps } from "../../theme";
+import { DefaultTheme, ThemeProps } from "../../themes";
 import Icon from "../Icon";
 import Spinner from "../Spinner";
 
