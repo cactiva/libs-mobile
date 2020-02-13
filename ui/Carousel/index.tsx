@@ -1,12 +1,11 @@
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
-import { useDimensions } from "react-native-hooks";
 import Carousel, {
   Pagination as PaginationOrigin
 } from "react-native-snap-carousel";
 import View from "../View";
-import { ViewStyle } from "react-native";
+import { ViewStyle, Dimensions } from "react-native";
 import Theme from "@src/libs/theme";
 
 export interface CarouselProps {
@@ -36,7 +35,7 @@ export default observer((props: CarouselProps) => {
   delete carouselProps.style;
   delete carouselProps.data;
   const ref = useRef(null);
-  const dim = useDimensions().window;
+  const dim = Dimensions.get("window");
   const meta = useObservable({
     activeSlide: 0,
     dataLength: 0,

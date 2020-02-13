@@ -2,7 +2,6 @@ import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import { ScrollViewProps } from "react-native";
-import { useDimensions } from "react-native-hooks";
 import { ThemeProps } from "../../themes";
 import { uuid } from "../../utils";
 import Field from "../Field";
@@ -29,7 +28,6 @@ export default observer((props: FormProps) => {
     onFieldFunction,
     keyboardAvoidingView
   } = props;
-  const dim = useDimensions().window;
   const meta = useObservable({
     validate: {},
     initError: 0

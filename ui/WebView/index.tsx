@@ -5,33 +5,48 @@ import Image from "../Image";
 import Theme from "@src/libs/theme";
 import Spinner from "../Spinner";
 
-export default (props: WebViewProps) => {
+export interface IWebViewProps extends WebViewProps {
+  loadingSource?: any;
+}
+
+export default (props: IWebViewProps) => {
+  const { loadingSource } = props;
   return (
     <WebView
-      originWhitelist={["*"]}
+      originWhitelist={["*", "intent://*"]}
       scalesPageToFit={true}
       textZoom={100}
       javaScriptEnabled={true}
       domStorageEnabled={true}
       {...props}
-      renderLoading={LoadingScreen}
+      renderLoading={() => <LoadingScreen source={loadingSource} />}
+      startInLoadingState
+      allowFileAccess={true}
+      geolocationEnabled={true}
+      saveFormDataDisabled={true}
+      allowUniversalAccessFromFileURLs={true}
+      cacheEnabled={true}
     />
   );
 };
 
-const LoadingScreen = () => {
+const LoadingScreen = ({ source }) => {
   return (
     <View
       style={{
         backgroundColor: Theme.UIColors.primary,
-        flexGrow: 1,
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0
       }}
       type={"View"}
     >
       <Image
-        source={Theme.UIImageLoading}
+        source={source || Theme.UIImageLoading}
         style={{
           width: 120,
           height: 50,

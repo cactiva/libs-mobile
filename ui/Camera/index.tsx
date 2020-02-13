@@ -2,8 +2,14 @@ import { Camera } from "expo-camera";
 import * as Permissions from "expo-permissions";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
-import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
-import { useDimensions } from "react-native-hooks";
+import {
+  Image,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
+  Dimensions
+} from "react-native";
 import { DefaultTheme, ThemeProps } from "../../themes";
 import Icon from "../Icon";
 import Spinner from "../Spinner";
@@ -30,7 +36,7 @@ export default observer((props: CameraProps) => {
     photo: null,
     resnap: false
   });
-  const dim = useDimensions().window;
+  const dim = Dimensions.get("window");
   const width = (style && style.width) || 150;
   const height = (style && style.height) || dim.width;
   useEffect(() => {
