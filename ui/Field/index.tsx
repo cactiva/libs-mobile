@@ -1,23 +1,21 @@
+import Theme from "@src/libs/theme";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import { Text, View as ViewNative, Platform } from "react-native";
-import { useDimensions } from "react-native-hooks";
-import { DefaultTheme, ThemeProps } from "../../themes";
+import { Platform, Text, View as ViewNative } from "react-native";
+import { ThemeProps } from "../../themes";
 import { textStyle, uuid } from "../../utils";
 import Camera, { CameraProps } from "../Camera";
 import { CheckboxProps } from "../Checkbox";
 import { CheckboxGroupProps } from "../CheckboxGroup";
 import DatePicker, { DateTimeProps } from "../DatePicker";
+import DateTime from "../DateTime";
 import Icon, { IconProps } from "../Icon";
 import Input, { InputProps } from "../Input";
 import { LocationProps } from "../Location";
 import { RadioProps } from "../Radio";
 import RadioGroup, { RadioGroupProps } from "../RadioGroup";
 import Select, { SelectProps } from "../Select";
-import DateTime from "../DateTime";
-import { toJS } from "mobx";
-import Theme from "@src/libs/theme";
 
 interface StylesFieldProps {
   root?: any;
@@ -82,7 +80,6 @@ export default observer((props: FieldProps) => {
     enableBorder
   } = props;
   let field = props.field;
-  const dim = useDimensions().window;
   const meta = useObservable({
     focus: false,
     validate: false,

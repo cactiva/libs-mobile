@@ -1,20 +1,17 @@
+import Theme from "../../theme";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import { Platform } from "react-native";
-import { DefaultTheme, ThemeProps } from "../../themes";
+import { ThemeProps } from "../../themes";
 import { fuzzyMatch, textStyle, uuid } from "../../utils";
 import Button from "../Button";
 import FlatList from "../FlatList";
-import Header from "../Header";
 import Icon from "../Icon";
 import Input from "../Input";
 import Modal from "../Modal";
 import Text from "../Text";
-import View from "../View";
-import Screen from "../Screen";
 import TopBar from "../TopBar";
-import Theme from "@src/libs/theme";
+import View from "../View";
 
 export interface SelectItemProps {
   label: any;
@@ -34,6 +31,7 @@ export interface SelectProps {
   labelPath?: ((item: any) => any) | string;
   valuePath?: ((item: any) => any) | string;
   icon?: boolean;
+  searchStyle?: any;
 }
 
 const parsePath = (item, path) => {
@@ -186,7 +184,8 @@ const ModalItems = observer((props: any) => {
             onChangeText={onSearch}
             autoFocus={true}
             style={{
-              padding: 10
+              padding: 10,
+              ..._.get(props, "searchStyle", {})
             }}
           />
         </TopBar>

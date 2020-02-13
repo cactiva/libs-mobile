@@ -101,8 +101,7 @@ export default (props: ITopBarProps) => {
         <View
           style={{
             flexGrow: 1,
-            flexShrink: 1,
-            marginRight: 12
+            flexShrink: 1
           }}
         >
           {typeof children === "string" ? (
@@ -113,7 +112,13 @@ export default (props: ITopBarProps) => {
             children
           )}
         </View>
-        {rightAction}
+        <View
+          style={{
+            marginLeft: 12
+          }}
+        >
+          {rightAction}
+        </View>
       </View>
     </View>
   );
