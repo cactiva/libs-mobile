@@ -72,7 +72,8 @@ export default observer((props: CameraProps) => {
                 height: height,
                 width: width,
                 flexGrow: 1,
-                flexShrink: 1
+                flexShrink: 1,
+                margin: 0
               }}
             />
           )}

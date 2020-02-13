@@ -17,7 +17,7 @@ export interface ButtonProps extends TouchableOpacityProps {
 }
 
 export default observer((props: ButtonProps) => {
-  const { disabled, children, shadow } = props;
+  const { disabled, shadow } = props;
   const theme = {
     ...DefaultTheme,
     ...Theme.colors
