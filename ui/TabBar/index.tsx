@@ -12,6 +12,7 @@ export interface IMenuProps {
   label?: string;
   path: string;
   icon?: IIconProps;
+  [key: string]: any;
 }
 
 export interface ITabBarProps {

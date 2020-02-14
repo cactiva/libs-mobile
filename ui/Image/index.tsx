@@ -3,7 +3,8 @@ import {
   Image,
   ImageProps as OriginImageProps,
   StyleSheet,
-  ImageStyle
+  ImageStyle,
+  ViewStyle
 } from "react-native";
 import _ from "lodash";
 import Theme from "../../theme";
@@ -35,12 +36,13 @@ export default (props: IImageProps) => {
     };
   }
 
-  const btnStyle = {
+  const btnStyle: ViewStyle = {
     padding: 0,
     margin: 0,
     paddingLeft: 0,
     paddingRight: 0,
-    backgroundColor: "transparent"
+    backgroundColor: "transparent",
+    opacity: !preview ? 1 : undefined
   };
 
   const onPress = () => {
@@ -102,7 +104,7 @@ const PreviewImage = (props: any) => {
       >
         <Image
           {...imgProps}
-          resizeMode={"cover"}
+          resizeMode={"contain"}
           style={{
             width: "100%",
             height: "100%"
@@ -111,6 +113,8 @@ const PreviewImage = (props: any) => {
 
         <Button
           style={{
+            minWidth: 50,
+            minHeight: 50,
             width: 50,
             height: 50,
             position: "absolute",
