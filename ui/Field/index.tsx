@@ -1,4 +1,3 @@
-import Theme from "@src/libs/theme";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
@@ -10,12 +9,13 @@ import { CheckboxProps } from "../Checkbox";
 import { CheckboxGroupProps } from "../CheckboxGroup";
 import DatePicker, { DateTimeProps } from "../DatePicker";
 import DateTime from "../DateTime";
-import Icon, { IconProps } from "../Icon";
+import Icon, { IIconProps } from "../Icon";
 import Input, { InputProps } from "../Input";
 import { LocationProps } from "../Location";
 import { RadioProps } from "../Radio";
 import RadioGroup, { RadioGroupProps } from "../RadioGroup";
 import Select, { SelectProps } from "../Select";
+import Theme from "@src/libs/theme";
 
 interface StylesFieldProps {
   root?: any;
@@ -45,8 +45,8 @@ export interface FieldProps {
   value?: any;
   setValue?: (value: any) => void;
   onChange?: (value: any) => void;
-  iconStart?: IconProps;
-  iconEnd?: IconProps;
+  iconStart?: IIconProps;
+  iconEnd?: IIconProps;
   theme?: ThemeProps;
   style?: any;
   styles?: StylesFieldProps;
@@ -257,6 +257,7 @@ export default observer((props: FieldProps) => {
           justifyContent: "flex-start",
           display: "flex",
           ..._.get(Theme, "fieldStyle", {}),
+          ...Theme.UIInput,
           ...((styles && styles.field) || {})
         }}
         className={Platform.OS === "web" ? "cactiva-field-input" : undefined}

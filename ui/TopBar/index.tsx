@@ -112,13 +112,15 @@ export default (props: ITopBarProps) => {
             children
           )}
         </View>
-        <View
-          style={{
-            marginLeft: 12
-          }}
-        >
-          {rightAction}
-        </View>
+        {!!rightAction && (
+          <View
+            style={{
+              marginLeft: 12
+            }}
+          >
+            {rightAction}
+          </View>
+        )}
       </View>
     </View>
   );
