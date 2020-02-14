@@ -36,9 +36,7 @@ export default observer((props: InputProps) => {
         v = parseFloat(e);
         break;
       case "currency":
-        if (!!props.editable) {
-          v = e;
-        }
+        v = parseInt(e.replace(/,/g, "") || "0").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         break;
     }
 
@@ -56,10 +54,16 @@ export default observer((props: InputProps) => {
 
   const cprops = { ...props, onChangeText: setValue };
 
-  if (typeof value === "number" && type !== "number" && type !== "decimal") {
+  if (typeof value === "number" && type !== "number" && type !== "decimal" && type !== "currency") {
     originalType.current = "number";
     value = !!value ? String(value) : "";
   }
+
+  if (type === "currency") {
+    if (value !== undefined)
+      value = value.toString().replace(/,/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
   let ComponentProps: TextInputProps = {
     returnKeyType: "next",
     ...cprops,
@@ -110,7 +114,7 @@ export default observer((props: InputProps) => {
       ComponentProps = {
         keyboardType: "number-pad",
         ...ComponentProps,
-        value: !!value ? String(value) : ""
+        // value: !!value ? String(value) : ""
       };
       break;
   }
