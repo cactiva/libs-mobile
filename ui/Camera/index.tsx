@@ -8,11 +8,14 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Dimensions
+  Dimensions,
+  Platform
 } from "react-native";
 import { DefaultTheme, ThemeProps } from "../../themes";
 import Icon from "../Icon";
 import Spinner from "../Spinner";
+import { toJS } from "mobx";
+import * as ImagePicker from "expo-image-picker";
 
 export interface CameraProps {
   value?: any;
@@ -20,12 +23,14 @@ export interface CameraProps {
   style?: any;
   theme?: ThemeProps;
   onCapture?: (value: any) => void;
+  imagePicker?: boolean;
 }
 
 export default observer((props: CameraProps) => {
   const { style, value } = props;
   const meta = useObservable({
     hasCameraPermission: null,
+    hasImagePickPermission: true,
     isShown: false,
     cameraProps: {
       type: Camera.Constants.Type.back,
@@ -40,9 +45,16 @@ export default observer((props: CameraProps) => {
   const width = (style && style.width) || 150;
   const height = (style && style.height) || dim.width;
   useEffect(() => {
+    meta.photo = value;
     Permissions.askAsync(Permissions.CAMERA).then((res: any) => {
       meta.hasCameraPermission = res.status === "granted";
     });
+    if (Platform.OS === "ios") {
+      meta.hasImagePickPermission = false;
+      Permissions.askAsync(Permissions.CAMERA_ROLL).then(res => {
+        meta.hasImagePickPermission = res.status === "granted";
+      });
+    }
   }, []);
 
   const camera = useRef(null);
@@ -72,7 +84,7 @@ export default observer((props: CameraProps) => {
         >
           {(meta.photo || value) && (
             <Image
-              source={{ uri: meta.photo ? meta.photo.uri : value }}
+              source={{ uri: value ? value : meta.photo }}
               resizeMode="cover"
               style={{
                 height: height,
@@ -115,7 +127,7 @@ export default observer((props: CameraProps) => {
           </View>
         </TouchableOpacity>
         <ModalCamera
-          meta={meta}
+          state={meta}
           camera={camera}
           theme={theme}
           dim={dim}
@@ -127,9 +139,9 @@ export default observer((props: CameraProps) => {
 });
 
 const ModalCamera = observer((props: any) => {
-  const { meta, camera, theme, dim, onCapture } = props;
+  const { state, camera, theme, dim, onCapture, imagePicker } = props;
   const getRatio = () => {
-    const ratio = meta.cameraProps.ratio.split(":");
+    const ratio = state.cameraProps.ratio.split(":");
     return {
       width: dim.width,
       height: (dim.width / parseInt(ratio[1])) * parseInt(ratio[0])
@@ -137,32 +149,50 @@ const ModalCamera = observer((props: any) => {
   };
 
   const snap = () => {
-    if (meta.photo && !meta.resnap) {
-      meta.resnap = true;
+    if (state.photo && !state.resnap) {
+      state.resnap = true;
     } else if (camera.current) {
-      meta.snap = true;
+      state.snap = true;
       camera.current
-        .takePictureAsync({ quality: 80, skipProcessing: true })
+        .takePictureAsync({ quality: 0.8, skipProcessing: true })
         .then((res: any) => {
-          meta.photo = res;
+          state.photo = res.uri;
           onCapture && onCapture(res.uri);
-          meta.snap = false;
-          meta.isShown = false;
-          meta.resnap = false;
+          state.snap = false;
+          state.isShown = false;
+          state.resnap = false;
         });
     }
   };
-  const capture = !meta.photo || meta.resnap;
-
+  const pick = async () => {
+    if (!state.hasImagePickPermission) {
+      alert("No access to Album");
+      return;
+    }
+    ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      quality: 0.8
+    }).then((res: any) => {
+      state.photo = res.uri;
+      onCapture && onCapture(res.uri);
+      state.snap = false;
+      state.isShown = false;
+      state.resnap = false;
+      console.log(res);
+    });
+  };
+  const capture = !state.photo || state.resnap;
+  console.log("met", toJS(state));
   return (
     <Modal
       animationType="slide"
       transparent={false}
-      visible={meta.isShown}
+      visible={state.isShown}
       onRequestClose={() => {
-        meta.isShown = false;
-        meta.resnap = false;
-        meta.snap = false;
+        state.isShown = false;
+        state.resnap = false;
+        state.snap = false;
       }}
     >
       <View
@@ -195,11 +225,12 @@ const ModalCamera = observer((props: any) => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              width: 40
+              width: 50,
+              height: 50
             }}
             onPress={() => {
-              meta.snap = false;
-              meta.isShown = false;
+              state.snap = false;
+              state.isShown = false;
             }}
           >
             <Icon source="AntDesign" name="arrowleft" color="white" size={24} />
@@ -211,9 +242,9 @@ const ModalCamera = observer((props: any) => {
             backgroundColor: "white"
           }}
         >
-          {meta.photo && !meta.resnap ? (
+          {!!state.photo && !state.resnap ? (
             <Image
-              source={{ uri: meta.photo.uri }}
+              source={{ uri: state.photo }}
               resizeMode="cover"
               style={{
                 height: 100,
@@ -226,16 +257,16 @@ const ModalCamera = observer((props: any) => {
           ) : (
             <Camera
               style={{
-                flex: 1,
-                opacity: meta.snap ? 0.6 : 1,
+                flexGrow: 1,
+                opacity: state.snap ? 0.6 : 1,
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "transparent"
               }}
               ref={camera}
-              {...meta.cameraProps}
+              {...state.cameraProps}
             >
-              {meta.snap && <Spinner color={theme.primary} size="large" />}
+              {state.snap && <Spinner color={theme.primary} size="large" />}
             </Camera>
           )}
         </View>
@@ -250,9 +281,9 @@ const ModalCamera = observer((props: any) => {
             justifyContent: "space-between",
             alignItems: "stretch",
             zIndex: 1,
-            marginBottom: 10,
-            paddingLeft: 5,
-            paddingRight: 5
+            padding: 10,
+            backgroundColor: "rgba(0,0,0,0.7)",
+            height: 100
           }}
         >
           {capture && (
@@ -274,16 +305,16 @@ const ModalCamera = observer((props: any) => {
                   width: 60
                 }}
                 onPress={() => {
-                  if (meta.cameraProps.flashMode === "auto") {
-                    meta.cameraProps.flashMode = "on";
-                  } else if (meta.cameraProps.flashMode === "on") {
-                    meta.cameraProps.flashMode = "off";
+                  if (state.cameraProps.flashMode === "auto") {
+                    state.cameraProps.flashMode = "on";
+                  } else if (state.cameraProps.flashMode === "on") {
+                    state.cameraProps.flashMode = "off";
                   } else {
-                    meta.cameraProps.flashMode = "auto";
+                    state.cameraProps.flashMode = "auto";
                   }
                 }}
               >
-                {meta.cameraProps.flashMode === "auto" ? (
+                {state.cameraProps.flashMode === "auto" ? (
                   <Text
                     style={{
                       color: "white",
@@ -293,7 +324,7 @@ const ModalCamera = observer((props: any) => {
                   >
                     Auto
                   </Text>
-                ) : meta.cameraProps.flashMode === "on" ? (
+                ) : state.cameraProps.flashMode === "on" ? (
                   <Icon
                     source="Ionicons"
                     name="ios-flash"
@@ -314,11 +345,11 @@ const ModalCamera = observer((props: any) => {
 
           <View
             style={{
-              flex: 1,
-              display: "flex",
-              justifyContent: "center",
-              flexDirection: "row",
-              alignItems: "center"
+              position: "absolute",
+              bottom: 10,
+              left: 0,
+              right: 0,
+              flexGrow: 1
             }}
           >
             <TouchableOpacity
@@ -327,16 +358,17 @@ const ModalCamera = observer((props: any) => {
                 borderColor: "white",
                 borderStyle: "solid",
                 backgroundColor: "transparent",
-                borderRadius: 100
+                borderRadius: 100,
+                alignSelf: "center"
               }}
-              disabled={meta.snap}
+              disabled={state.snap}
               onPress={snap}
             >
               <View
                 style={{
                   backgroundColor: "white",
-                  height: 80,
-                  width: 80,
+                  height: 60,
+                  width: 60,
                   margin: 4,
                   borderRadius: 100,
                   display: "flex",
@@ -344,7 +376,7 @@ const ModalCamera = observer((props: any) => {
                   justifyContent: "center"
                 }}
               >
-                {meta.photo && !meta.resnap && (
+                {state.photo && !state.resnap && (
                   <Icon
                     source="Ionicons"
                     name="ios-refresh"
@@ -367,8 +399,8 @@ const ModalCamera = observer((props: any) => {
             >
               <TouchableOpacity
                 onPress={() => {
-                  meta.cameraProps.type =
-                    meta.cameraProps.type === Camera.Constants.Type.back
+                  state.cameraProps.type =
+                    state.cameraProps.type === Camera.Constants.Type.back
                       ? Camera.Constants.Type.front
                       : Camera.Constants.Type.back;
                 }}
@@ -384,10 +416,29 @@ const ModalCamera = observer((props: any) => {
                   source="Ionicons"
                   name="ios-reverse-camera"
                   color="white"
-                  size={40}
+                  size={35}
                 />
               </TouchableOpacity>
             </View>
+          )}
+          {imagePicker && (
+            <TouchableOpacity
+              onPress={pick}
+              style={{
+                padding: 10,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: 60
+              }}
+            >
+              <Icon
+                source="Ionicons"
+                name="md-images"
+                color="white"
+                size={35}
+              />
+            </TouchableOpacity>
           )}
         </View>
       </View>
