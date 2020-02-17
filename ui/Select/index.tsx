@@ -12,6 +12,8 @@ import Modal from "../Modal";
 import Text from "../Text";
 import TopBar from "../TopBar";
 import View from "../View";
+import Container from "../Container";
+import Screen from "../Screen";
 
 export interface SelectItemProps {
   label: any;
@@ -162,35 +164,26 @@ const ModalItems = observer((props: any) => {
   return (
     <Modal
       animationType="slide"
-      transparent={true}
       visible={meta.isShown}
       onRequestClose={() => (meta.isShown = false)}
     >
-      <View
-        style={{
-          flexGrow: 1,
-          flexShrink: 1,
-          backgroundColor: Theme.UIColors.background
-        }}
+      <TopBar
+        backButton={true}
+        actionBackButton={() => (meta.isShown = false)}
+        enableShadow
       >
-        <TopBar
-          backButton={true}
-          actionBackButton={() => (meta.isShown = false)}
-          enableShadow
-        >
-          <Input
-            placeholder={props.placeholder || "Search..."}
-            value={meta.filter}
-            onChangeText={onSearch}
-            autoFocus={true}
-            style={{
-              padding: 10,
-              ..._.get(props, "searchStyle", {})
-            }}
-          />
-        </TopBar>
-        <RenderItem {...props} meta={meta} items={items} />
-      </View>
+        <Input
+          placeholder={props.placeholder || "Search..."}
+          value={meta.filter}
+          onChangeText={onSearch}
+          autoFocus={true}
+          style={{
+            padding: 10,
+            ..._.get(props, "searchStyle", {})
+          }}
+        />
+      </TopBar>
+      <RenderItem {...props} meta={meta} items={items} />
     </Modal>
   );
 });

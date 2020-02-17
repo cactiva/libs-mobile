@@ -179,11 +179,9 @@ const ModalCamera = observer((props: any) => {
       state.snap = false;
       state.isShown = false;
       state.resnap = false;
-      console.log(res);
     });
   };
   const capture = !state.photo || state.resnap;
-  console.log("met", toJS(state));
   return (
     <Modal
       animationType="slide"

@@ -51,6 +51,8 @@ export default (props: ITopBarProps) => {
   const backButtonStyle: ViewStyle = {
     minHeight: 30,
     minWidth: 30,
+    height: 30,
+    width: 30,
     padding: 0,
     backgroundColor: undefined,
     paddingLeft: 4,
