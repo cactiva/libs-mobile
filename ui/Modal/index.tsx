@@ -1,14 +1,8 @@
-import React from "react";
-import { observer } from "mobx-react-lite";
-import {
-  Modal,
-  ModalProps as ModalPropsOrigin,
-  StyleSheet,
-  Platform
-} from "react-native";
 import Constants from "expo-constants";
+import { observer } from "mobx-react-lite";
+import React from "react";
+import { Modal, ModalProps as ModalPropsOrigin, Platform } from "react-native";
 import Screen from "../Screen";
-import Container from "../Container";
 
 export interface ModalProps extends ModalPropsOrigin {
   style?: any;
@@ -19,13 +13,14 @@ export default observer((props: ModalProps) => {
   const { style, children } = props;
   const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
   return (
-    <Modal animationType="slide" transparent={true} {...props}>
+    <Modal animationType="fade" transparent={true} {...props}>
       <Screen
         statusbarStyle={{
           marginTop
         }}
+        style={style}
       >
-        <Container style={style}>{children}</Container>
+        {children}
       </Screen>
     </Modal>
   );

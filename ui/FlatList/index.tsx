@@ -5,10 +5,13 @@ import { FlatList, FlatListProps, StyleSheet } from "react-native";
 export default observer((props: FlatListProps<any>) => {
   const { contentContainerStyle, style } = props;
   const baseStyle = {
-    flexGrow: 1
+    flexGrow: 1,
+    flexShrink: 1
   };
   const basecontentContainerStyle = {
-    padding: 15
+    padding: 5,
+    paddingLeft: 15,
+    paddingRight: 15
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   const ccontentContainerStyle = StyleSheet.flatten([

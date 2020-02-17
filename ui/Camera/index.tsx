@@ -74,7 +74,7 @@ export default observer((props: CameraProps) => {
           style={{
             flex: 1,
             height: 100,
-            backgroundColor: theme.medium,
+            backgroundColor: "#a2a4ab",
             alignItems: "center",
             justifyContent: "center",
             borderRadius: 4,
