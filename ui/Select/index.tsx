@@ -179,6 +179,7 @@ const ModalItems = observer((props: any) => {
           autoFocus={true}
           style={{
             padding: 10,
+            color: "#fff",
             ..._.get(props, "searchStyle", {})
           }}
         />
@@ -217,7 +218,7 @@ const RenderItem = observer((props: any) => {
       ListEmptyComponent={() => (
         <Text
           style={{
-            margin: 10,
+            margin: 30,
             textAlign: "center"
           }}
         >
@@ -233,6 +234,9 @@ const RenderItem = observer((props: any) => {
             onSelect={onSelect}
           ></RenderItemRow>
         );
+      }}
+      style={{
+        backgroundColor: "#fff"
       }}
     />
   );
