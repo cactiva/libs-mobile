@@ -6,6 +6,7 @@ import _ from "lodash";
 export interface IContainerProps extends ScrollViewProps {
   children?: any;
   scrollRef?: any;
+  KeyboardAvoidingView?: boolean;
 }
 
 export default (props: IContainerProps) => {
