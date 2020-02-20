@@ -154,7 +154,11 @@ const ModalCamera = observer((props: any) => {
     } else if (camera.current) {
       state.snap = true;
       camera.current
-        .takePictureAsync({ quality: 0.8, skipProcessing: true })
+        .takePictureAsync({
+          quality: 0.6,
+          skipProcessing: true,
+          fastMode: true
+        })
         .then((res: any) => {
           state.photo = res.uri;
           onCapture && onCapture(res.uri);
