@@ -1,21 +1,21 @@
 import { Camera } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
+import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import {
-  Image,
+  Dimensions,
   Modal,
+  Platform,
   Text,
   TouchableOpacity,
-  View,
-  Dimensions,
-  Platform
+  View
 } from "react-native";
 import { DefaultTheme, ThemeProps } from "../../themes";
 import Icon from "../Icon";
 import Spinner from "../Spinner";
-import { toJS } from "mobx";
-import * as ImagePicker from "expo-image-picker";
+import Image from "../Image";
 
 export interface CameraProps {
   value?: any;
@@ -24,10 +24,11 @@ export interface CameraProps {
   theme?: ThemeProps;
   onCapture?: (value: any) => void;
   imagePicker?: boolean;
+  imageProps?: any;
 }
 
 export default observer((props: CameraProps) => {
-  const { style, value } = props;
+  const { style, value, imageProps } = props;
   const meta = useObservable({
     hasCameraPermission: null,
     hasImagePickPermission: true,
@@ -62,6 +63,11 @@ export default observer((props: CameraProps) => {
     ...DefaultTheme,
     ...props.theme
   };
+
+  const csourceimg = {
+    ..._.get(imageProps, "source", {}),
+    uri: value ? value : meta.photo
+  };
   if (meta.hasCameraPermission === null) {
     return <View />;
   } else if (meta.hasCameraPermission === false) {
@@ -84,7 +90,8 @@ export default observer((props: CameraProps) => {
         >
           {(meta.photo || value) && (
             <Image
-              source={{ uri: value ? value : meta.photo }}
+              {...imageProps}
+              source={csourceimg}
               resizeMode="cover"
               style={{
                 height: height,

@@ -47,10 +47,10 @@ export default observer((props: FormProps) => {
         child.map(el => {
           if (Array.isArray(el)) {
             validateCheck(el);
-          } else if (el.props && Array.isArray(el.props.children)) {
+          } else if (el && el.props && Array.isArray(el.props.children)) {
             validateCheck(el.props.children);
           } else {
-            if (el.props && el.props.isRequired && el.props.path)
+            if (el && el.props && el.props.isRequired && el.props.path)
               meta.validate[el.props.path] = !!_.get(data, el.props.path);
           }
         });

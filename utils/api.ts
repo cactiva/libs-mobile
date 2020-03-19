@@ -10,6 +10,10 @@ export default (e: any) => {
   };
   if (e.url.indexOf("http") !== 0) {
     url = `${config.backend.protocol}://${config.backend.host}:${config.backend.port}${e.url}`;
+
+    if (!!config.mode && config.mode === "dev") {
+      url = `${config["backend-dev"].protocol}://${config["backend-dev"].host}:${config["backend-dev"].port}${e.url}`;
+    }
   }
   let onError;
   if (e.onError) {

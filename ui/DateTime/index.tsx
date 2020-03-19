@@ -1,359 +1,284 @@
-import _ from "lodash";
-import { observer, useObservable } from "mobx-react-lite";
-import React, { useEffect } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { toJS } from "mobx";
+import React, { useEffect, useState } from "react";
 import {
-  DatePickerAndroid,
-  DatePickerIOS,
   Modal,
   Platform,
   Text,
-  TimePickerAndroid,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
   ViewStyle
 } from "react-native";
-import { DefaultTheme, ThemeProps } from "../../themes";
+import Theme from "../../theme";
+import { dateFormat } from "../../utils/date";
+import Button from "../Button";
 import Icon from "../Icon";
-import Input from "../Input";
 
 export interface DateTimeProps {
   onChange?: (value: any) => void;
   maxDate?: Date;
   minDate?: Date;
-  theme?: ThemeProps;
   value?: any;
   onFocus?: (e: any) => void;
   onBlur?: () => void;
   showPicker?: boolean;
   style?: ViewStyle;
-  dateOnly?: Boolean;
+  mode?: "date" | "time" | "datetime";
+  visibility?: "text-icon" | "text-only" | "icon-only";
 }
 
-export default observer((props: DateTimeProps) => {
-  const { value, style, onChange, showPicker, dateOnly } = props;
-  const meta = useObservable({
-    isShown: false,
-    value: new Date(),
-    dateString: {
-      dd: "",
-      mm: "",
-      yyyy: "",
-      HH: "",
-      MM: ""
-    }
-  });
+export default (props: DateTimeProps) => {
+  const {
+    style,
+    onChange,
+    showPicker,
+    visibility = "text-icon",
+    mode = "date"
+  } = props;
+  const [visible, setVisible] = useState(false);
+  const [value, setValue] = useState(new Date(props.value || new Date()));
 
-  const theme = {
-    ...DefaultTheme,
-    ..._.get(props, "theme", {})
+  const onChangePicker = (date: Date) => {
+    if (!!onChange) {
+      if (mode === "date") {
+        onChange(dateFormat(date, "yyyy-MM-dd"));
+      } else if (mode === "time") {
+        onChange(dateFormat(date, "HH:mm:ss"));
+      } else if (mode === "datetime") {
+        onChange(date.toISOString());
+      }
+    }
+    setValue(date);
   };
 
-  // const getTimeZone = (date) => {
-  //   let offset = date.getTimezoneOffset(), o = Math.abs(offset);
-  //   return (offset < 0 ? "+" : "-") + ("00" + Math.floor(o / 60)).slice(-2) + ":" + ("00" + (o % 60)).slice(-2);
-  // }
-
-  const onChangeDateString = (v, p) => {
-    if (p === "dd") {
-      v = v > 31 ? 31 : v < 0 ? 0 : v;
-      meta.dateString[p] = v == 0 ? "" : ("0" + v).slice(-2);
-    } else if (p === "mm") {
-      v = v > 12 ? 12 : v < 0 ? 0 : v;
-      meta.dateString[p] = v == 0 ? "" : ("0" + v).slice(-2);
-    } else if (p === "HH") {
-      v = v > 24 ? 24 : v < 0 ? 0 : v;
-      meta.dateString[p] = v == 0 ? "" : ("0" + v).slice(-2);
-    } else if (p === "MM") {
-      v = v > 59 ? 59 : v < 0 ? 0 : v;
-      meta.dateString[p] = v == 0 ? "" : ("0" + v).slice(-2);
-    } else meta.dateString[p] = v;
-    if (meta.dateString.dd && meta.dateString.mm && meta.dateString.yyyy) {
-      let day = new Date(
-        parseInt(meta.dateString.yyyy),
-        parseInt(meta.dateString.mm),
-        0
-      ).getDate();
-      if (parseInt(meta.dateString.dd) > day) meta.dateString.dd = `${day}`;
-      let nDate = new Date(
-        parseInt(meta.dateString.yyyy),
-        parseInt(meta.dateString.mm) - 1,
-        parseInt(meta.dateString.dd),
-        parseInt(meta.dateString.HH),
-        parseInt(meta.dateString.MM)
-      );
-      nDate.setHours(nDate.getHours() + 7);
-      meta.value = new Date(nDate);
-      onChange && onChange(meta.value);
+  const dateString = () => {
+    let date = toJS(value);
+    if (mode === "date") {
+      return dateFormat(date, "d MMMM yyyy");
+    } else if (mode === "time") {
+      return dateFormat(date, "HH:mm");
+    } else if (mode === "datetime") {
+      return dateFormat(date, "d MMMM yyyy - HH:mm");
     }
-  };
-  const onChangePicker = date => {
-    meta.dateString.dd = ("0" + date.getDate()).slice(-2);
-    meta.dateString.mm = ("0" + (date.getMonth() + 1)).slice(-2);
-    meta.dateString.yyyy = `${date.getFullYear()}`;
-    meta.dateString.HH = ("0" + date.getHours()).slice(-2);
-    meta.dateString.MM = ("0" + date.getMinutes()).slice(-2);
-    meta.value = date;
-    onChange && onChange(meta.value);
+    return "";
   };
 
   useEffect(() => {
-    if (value) {
-      let date;
-      if (typeof value === "string") date = new Date(value);
-      meta.value = date;
-      meta.dateString.dd = ("0" + date.getDate()).slice(-2);
-      meta.dateString.mm = ("0" + (date.getMonth() + 1)).slice(-2);
-      meta.dateString.yyyy = `${date.getFullYear()}`;
-      meta.dateString.HH = ("0" + date.getHours()).slice(-2);
-      meta.dateString.MM = ("0" + date.getMinutes()).slice(-2);
-    }
-  }, [value]);
-  useEffect(() => {
-    if (showPicker !== undefined) meta.isShown = showPicker;
+    if (!!showPicker) setVisible(showPicker);
   }, [showPicker]);
+
   return (
     <>
-      <View
+      <Button
         style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
           alignItems: "stretch",
+          justifyContent: "center",
+          paddingLeft: 5,
+          paddingRight: 5,
+          flexGrow: 1,
+          backgroundColor: "transparent",
+          paddingHorizontal: 0,
+          margin: 0,
           ...style
+        }}
+        onPress={e => {
+          e.stopPropagation();
+          e.preventDefault();
+          setVisible(!visible);
         }}
       >
         <View
           style={{
-            display: "flex",
+            flexGrow: 1,
             flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center"
+            alignItems: "center",
+            justifyContent: "space-between"
           }}
         >
-          <Input
-            placeholder="dd"
-            style={{
-              width: 30
-            }}
-            type="number"
-            value={meta.dateString.dd}
-            onChangeText={v => onChangeDateString(v, "dd")}
-            returnKeyType="next"
-          />
-          <Text
-            style={{
-              paddingRight: 10,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center"
-            }}
-          >
-            /
-          </Text>
-          <Input
-            placeholder="mm"
-            style={{
-              width: 30
-            }}
-            type="number"
-            value={meta.dateString.mm}
-            onChangeText={v => onChangeDateString(v, "mm")}
-            returnKeyType="next"
-          />
-          <Text
-            style={{
-              paddingRight: 10,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center"
-            }}
-          >
-            /
-          </Text>
-          <Input
-            placeholder="yyyy"
-            style={{
-              width: 50
-            }}
-            type="number"
-            value={meta.dateString.yyyy}
-            onChangeText={v => onChangeDateString(v, "yyyy")}
-            returnKeyType="next"
-          />
-          {dateOnly !== true && (
-            <>
-              <Input
-                placeholder="HH"
-                style={{
-                  width: 30,
-                  marginLeft: 5
-                }}
-                type="number"
-                value={meta.dateString.HH}
-                onChangeText={v => onChangeDateString(v, "HH")}
-                returnKeyType="next"
-              />
-              <Text
-                style={{
-                  paddingRight: 10,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center"
-                }}
-              >
-                :
-              </Text>
-              <Input
-                placeholder="MM"
-                style={{
-                  width: 30
-                }}
-                type="number"
-                value={meta.dateString.MM}
-                onChangeText={v => onChangeDateString(v, "MM")}
-                returnKeyType="next"
-              />
-            </>
+          {["text-icon", "text-only"].indexOf(visibility) > -1 && (
+            <Text
+              style={{
+                color: Theme.UIColors.text,
+                fontSize: Theme.UIFontSize,
+                flexGrow: 1
+              }}
+              numberOfLines={1}
+              ellipsizeMode={"tail"}
+            >
+              {dateString()}
+            </Text>
+          )}
+          {["text-icon", "icon-only"].indexOf(visibility) > -1 && (
+            <Icon source="Ionicons" name={"ios-calendar"} size={24} />
           )}
         </View>
-        {Platform.OS !== "web" && (
-          <TouchableOpacity
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              paddingLeft: 5,
-              paddingRight: 5
-            }}
-            onPress={e => {
-              e.stopPropagation();
-              e.preventDefault();
-              meta.isShown = !meta.isShown;
-              if (Platform.OS === "ios") {
-                onChangePicker(meta.value);
-              }
-            }}
-          >
-            <Icon
-              source="Ionicons"
-              name={"ios-calendar"}
-              color={theme.dark}
-              size={24}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
-      <DatePickerModal meta={meta} {...props} onChangePicker={onChangePicker} />
+      </Button>
+      <DatePickerModal
+        {...props}
+        visible={visible}
+        setVisible={setVisible}
+        value={value}
+        mode={mode}
+        onChangePicker={onChangePicker}
+      />
     </>
   );
-});
+};
 
-const DatePickerModal = observer((props: any) => {
-  const { meta, dateOnly, onChangePicker, minDate, maxDate, onBlur } = props;
-  if (Platform.OS === "android") {
-    if (meta.isShown) {
-      const timePicker = async (year, month, day) => {
-        try {
-          const { action, hour, minute }: any = await TimePickerAndroid.open({
-            hour: meta.value.getHours(),
-            minute: meta.value.getMinutes(),
-            is24Hour: true // Will display '2 PM'
-          });
-          if (action !== TimePickerAndroid.dismissedAction) {
-            onChangePicker(new Date(year, month, day, hour, minute));
+const DatePickerModal = (props: any) => {
+  const {
+    onChangePicker,
+    minDate,
+    maxDate,
+    onBlur,
+    mode,
+    setVisible,
+    value,
+    visible
+  } = props;
+  const [val, setVal] = useState(new Date());
+  const [androidMode, setAndroidMode] = useState("date");
+  const dismiss = () => {
+    setVisible(false);
+    onBlur && onBlur();
+  };
+  const onChange = date => {
+    setVisible(false);
+    onChangePicker(date);
+  };
+  const setValue = (ev, date, type = null) => {
+    if (Platform.OS === "android") {
+      if (ev.type === "dismissed") {
+        if (androidMode === "time") setAndroidMode("date");
+        setVal(value);
+        dismiss();
+      } else {
+        if (mode !== "datetime") {
+          dismiss();
+          onChangePicker(date);
+          setVal(date);
+        } else {
+          if (androidMode === "time") {
+            dismiss();
+            onChangePicker(date);
+            setVal(date);
+            setAndroidMode("date");
+          } else {
+            setVal(date);
+            setAndroidMode("time");
           }
-          onBlur && onBlur();
-        } catch ({ code, message }) {
-          console.warn("Cannot open time picker", message);
-          onBlur && onBlur();
         }
-      };
-      const datePicker = async () => {
-        try {
-          const {
-            action,
-            year,
-            month,
-            day
-          }: any = await DatePickerAndroid.open({
-            date: meta.value,
-            mode: "calendar",
-            minDate: minDate && minDate,
-            maxDate: maxDate && maxDate
-          });
-          if (action !== DatePickerAndroid.dismissedAction) {
-            if (dateOnly) {
-              onChangePicker(new Date(year, month, day, 0, 0));
-            } else timePicker(year, month, day);
-          }
-          onBlur && onBlur();
-        } catch ({ code, message }) {
-          console.warn("Cannot open date picker", message);
-          onBlur && onBlur();
-        }
-      };
-      datePicker();
-      meta.isShown = false;
-      return null;
+      }
+    } else {
+      setVal(date);
     }
-  } else if (Platform.OS === "ios") {
+  };
+
+  useEffect(() => {
+    setVal(value);
+    if (mode === "time") setAndroidMode(mode);
+  }, []);
+
+  if (Platform.OS === "android") {
+    if (!!visible)
+      return (
+        <>
+          <DateTimePicker
+            value={val}
+            mode={androidMode as any}
+            is24Hour={true}
+            display="default"
+            onChange={setValue}
+            minimumDate={minDate}
+            maximumDate={maxDate}
+          />
+        </>
+      );
+  } else if (Platform.OS === "ios")
     return (
       <Modal
         animationType="slide"
         transparent={true}
-        visible={meta.isShown}
+        visible={visible}
         onRequestClose={() => {
-          meta.isShown = false;
-          onBlur && onBlur();
+          setVal(value);
+          dismiss();
         }}
       >
-        <View
-          style={{
-            bottom: 0,
-            left: 0,
-            right: 0,
-            position: "absolute",
-            height: 200,
-            backgroundColor: "#fff",
-            zIndex: 9
-          }}
-        >
-          <DatePickerIOS
-            date={meta.value}
-            onDateChange={onChangePicker}
-            mode={"date"}
-            minimumDate={minDate && minDate}
-            maximumDate={maxDate && maxDate}
-          />
-          <DatePickerIOS
-            date={meta.value}
-            onDateChange={onChangePicker}
-            mode={"time"}
-            minimumDate={minDate && minDate}
-            maximumDate={maxDate && maxDate}
-          />
-        </View>
-        <TouchableWithoutFeedback
+        <TouchableOpacity
+          activeOpacity={1}
           onPress={() => {
-            meta.isShown = false;
-            onBlur && onBlur();
+            setVal(value);
+            dismiss();
+          }}
+          style={{
+            backgroundColor: "rgba(0,0,0,0.3)",
+            flexGrow: 1,
+            justifyContent: "flex-end"
           }}
         >
           <View
             style={{
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-              backgroundColor: "rgba(0,0,0,.3)"
+              backgroundColor: "#fff"
             }}
-          />
-        </TouchableWithoutFeedback>
+          >
+            <DateTimePicker
+              value={val}
+              mode={mode}
+              is24Hour={true}
+              display="default"
+              onChange={setValue}
+              minimumDate={minDate}
+              maximumDate={maxDate}
+            />
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center"
+              }}
+            >
+              <Button
+                mode={"clean"}
+                style={{
+                  minHeight: 35,
+                  padding: 0
+                }}
+                onPress={() => {
+                  setVal(value);
+                  dismiss();
+                }}
+              >
+                <Text
+                  style={{
+                    color: Theme.UIColors.primary
+                  }}
+                >
+                  Cancel
+                </Text>
+              </Button>
+              <Button
+                mode={"clean"}
+                style={{
+                  minHeight: 35,
+                  padding: 0
+                }}
+                onPress={() => {
+                  onChange(val);
+                }}
+              >
+                <Text
+                  style={{
+                    color: Theme.UIColors.primary
+                  }}
+                >
+                  Ok
+                </Text>
+              </Button>
+            </View>
+          </View>
+        </TouchableOpacity>
       </Modal>
     );
-  }
   return null;
-});
+};

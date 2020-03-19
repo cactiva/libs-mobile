@@ -25,6 +25,7 @@ const Theme = {
   UIInput: {},
   UILabel: {},
   UIButton: {},
+  LocalLang: "enUS",
   ...overideTheme
 };
 

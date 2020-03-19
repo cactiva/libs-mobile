@@ -1,32 +1,16 @@
+import Theme from "@src/libs/theme";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
+import { Dimensions, ViewStyle } from "react-native";
 import Carousel, {
+  CarouselProps as OriginCarouselProps,
   Pagination as PaginationOrigin
 } from "react-native-snap-carousel";
 import View from "../View";
-import { ViewStyle, Dimensions } from "react-native";
-import Theme from "@src/libs/theme";
 
-export interface CarouselProps {
-  data: any[];
-  renderItem: any;
-  itemWidth: number;
-  sliderWidth: number;
-  children?: any;
+export interface CarouselProps extends OriginCarouselProps<any> {
   style?: any;
-  loop?: boolean;
-  onSnapToItem?: (index) => void;
-  enableMomentum?: boolean;
-  enableSnap?: boolean;
-  firstItem?: number;
-  inactiveSlideOpacity?: number;
-  inactiveSlideScale?: number;
-  slideStyle?: any;
-  autoplay?: boolean;
-  lockScrollWhileSnapping?: boolean;
-  layoutCardOffset?: number;
-  lockScrollTimeoutDuration?: number;
 }
 
 export default observer((props: CarouselProps) => {
@@ -39,7 +23,7 @@ export default observer((props: CarouselProps) => {
   const meta = useObservable({
     activeSlide: 0,
     dataLength: 0,
-    data: []
+    data: [] as any
   });
 
   useEffect(() => {

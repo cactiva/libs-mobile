@@ -1,27 +1,26 @@
 import React from "react";
-import { observer } from "mobx-react-lite";
-import { TextProps, Text } from "react-native";
+import {
+  TextProps as OriginTextProps,
+  Text,
+  StyleSheet,
+  TextStyle
+} from "react-native";
 import _ from "lodash";
-import Theme from "@src/theme.json";
-import { DefaultTheme } from "../../themes";
+import Theme from "../../theme";
 
-export default observer((props: TextProps) => {
-  const theme = {
-    ...DefaultTheme,
-    ...Theme.colors
+export interface ITextProps extends OriginTextProps {
+  children: any;
+  color?: "white" | "black" | string;
+}
+
+export default (props: ITextProps) => {
+  const { style, color } = props;
+  const baseStyle: TextStyle = {
+    fontFamily: Theme.UIFontFamily,
+    fontSize: Theme.UIFontSize,
+    color: color || Theme.UIColors.text
   };
-  let style = null;
+  const cstyle = StyleSheet.flatten([baseStyle, style]);
 
-  if (typeof props.style === "number") {
-    style = props.style;
-  } else {
-    style = {
-      fontSize: Theme.fontSize,
-      color: theme.dark,
-      fontFamily: _.get(Theme, "fontFamily", undefined),
-      ...(_.get(props, "style", {}) as any)
-    };
-  }
-
-  return <Text {...props} style={style} />;
-});
+  return <Text {...props} style={cstyle} />;
+};

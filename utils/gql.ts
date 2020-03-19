@@ -23,10 +23,16 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
 
   try {
     let url = `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/hasura/v1/graphql`;
+
     if (config.hasura.host) {
       url = `${config.hasura.host}/v1/graphql`;
     }
-
+    if (!!config.mode && config.mode === "dev") {
+      url = `${config["backend-dev"].protocol}://${config["backend-dev"].host}:${config["backend-dev"].port}/hasura/v1/graphql`;
+      if (config["hasura-dev"].host) {
+        url = `${config["hasura-dev"].host}/v1/graphql`;
+      }
+    }
     const res: any = await api({
       url,
       method: "post",

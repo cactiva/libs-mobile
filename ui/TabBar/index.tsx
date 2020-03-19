@@ -5,7 +5,7 @@ import Button from "../Button";
 import { NavigationActions } from "react-navigation";
 import Text from "../Text";
 import Theme from "@src/libs/theme";
-import { ViewStyle, StyleSheet } from "react-native";
+import { ViewStyle, StyleSheet, SafeAreaView } from "react-native";
 import { useNavigation } from "react-navigation-hooks";
 
 export interface IMenuProps {
@@ -33,13 +33,15 @@ export default (props: ITabBarProps) => {
   };
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   return (
-    <View style={cstyle}>
-      {menu.map(item => {
-        const Template = template;
-        if (Template) return <Template key={item.path} {...item} />;
-        return <DefaultTemplate key={item.path} {...item} />;
-      })}
-    </View>
+    <SafeAreaView>
+      <View style={cstyle}>
+        {menu.map(item => {
+          const Template = template;
+          if (Template) return <Template key={item.path} {...item} />;
+          return <DefaultTemplate key={item.path} {...item} />;
+        })}
+      </View>
+    </SafeAreaView>
   );
 };
 

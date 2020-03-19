@@ -131,11 +131,7 @@ export default observer((props: FieldProps) => {
       childProps = {
         style: childStyle,
         value: value,
-        onChange: (e: Date) => {
-          try {
-            onChangeValue(e.toISOString());
-          } catch (e) {}
-        }
+        onChange: onChangeValue
       };
       break;
     case Input:
@@ -164,7 +160,7 @@ export default observer((props: FieldProps) => {
       childProps = {
         style: childStyle,
         value: value,
-        onChange: value => onChangeValue(value),
+        onChange: onChangeValue,
         onFocus: (e: any) => (meta.focus = e)
       };
       break;

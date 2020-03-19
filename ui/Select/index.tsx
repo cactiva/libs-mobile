@@ -97,6 +97,9 @@ export default observer((props: SelectProps) => {
           backgroundColor: "transparent",
           paddingLeft: 0,
           paddingRight: 0,
+          alignItems: "stretch",
+          justifyContent: "space-between",
+          flexGrow: 1,
           ...style
         }}
         disabled={readonly}
@@ -107,15 +110,11 @@ export default observer((props: SelectProps) => {
       >
         <Text
           style={{
-            flex: 1,
+            flexGrow: 1,
             minHeight: 22,
             paddingLeft: 5,
             fontSize: Theme.UIFontSize,
-            color: placeholderColor
-              ? placeholderColor
-              : value
-              ? "#3a3a3a"
-              : "#757575",
+            color: Theme.UIColors.text,
             overflow: "hidden",
             ...tStyle
           }}
@@ -182,6 +181,7 @@ const ModalItems = observer((props: any) => {
             color: "#fff",
             ..._.get(props, "searchStyle", {})
           }}
+          placeholderTextColor={props.placeholderColor || "#fff"}
         />
       </TopBar>
       <RenderItem {...props} meta={meta} items={items} />
