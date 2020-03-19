@@ -6,12 +6,12 @@ import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import {
   Dimensions,
-  Modal,
   Platform,
   Text,
   TouchableOpacity,
   View
 } from "react-native";
+import Modal from "../Modal";
 import { DefaultTheme, ThemeProps } from "../../themes";
 import Icon from "../Icon";
 import Spinner from "../Spinner";
@@ -161,7 +161,10 @@ const ModalCamera = observer((props: any) => {
     } else if (camera.current) {
       state.snap = true;
       camera.current
-        .takePictureAsync({ quality: 0.8, skipProcessing: true })
+        .takePictureAsync({
+          quality: 0.6,
+          skipProcessing: true
+        })
         .then((res: any) => {
           state.photo = res.uri;
           onCapture && onCapture(res.uri);
