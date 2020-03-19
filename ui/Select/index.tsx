@@ -48,9 +48,9 @@ const parsePath = (item, path) => {
 };
 
 const processData = (props: SelectProps) => {
+  if (!Array.isArray(props.items)) return [];
   const labelPath = _.get(props, "labelPath", "label");
   const valuePath = _.get(props, "valuePath", "value");
-
   return (props.items || []).map(item => {
     return {
       label: parsePath(item, labelPath),
