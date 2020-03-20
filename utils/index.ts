@@ -107,7 +107,11 @@ const truncateStr = (text: string, length: number) => {
 };
 
 const formatMoney = (number: string | number, prefix: string = "") => {
-  let val = typeof number == "string" ? parseFloat(number) : number;
+  let val = !number
+    ? parseFloat("0")
+    : typeof number == "string"
+    ? parseFloat(number)
+    : number;
   let res = val.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,");
   return `${prefix}${res}`;
 };

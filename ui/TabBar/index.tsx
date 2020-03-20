@@ -35,7 +35,7 @@ export default (props: ITabBarProps) => {
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   return (
     <SafeAreaView>
-      <View style={cstyle}>
+      <View {...props} style={cstyle}>
         {menu.map(item => {
           const Template = template;
           if (Template) return <Template key={item.path} {...item} />;
