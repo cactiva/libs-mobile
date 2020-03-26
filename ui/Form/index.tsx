@@ -14,8 +14,8 @@ export interface FormProps extends ScrollViewProps {
   children?: any;
   theme?: ThemeProps;
   onSubmit?: (data?: any) => void;
+  onError?: (error?: any) => void;
   onFieldFunction?: (data?: any) => void;
-  keyboardAvoidingView?: boolean;
   reinitValidate?: () => boolean;
 }
 
@@ -26,10 +26,10 @@ export default observer((props: FormProps) => {
     setValue,
     onSubmit,
     onFieldFunction,
-    keyboardAvoidingView
+    onError
   } = props;
   const meta = useObservable({
-    validate: {},
+    validate: [],
     initError: 0
   });
   const style = {
@@ -37,7 +37,7 @@ export default observer((props: FormProps) => {
   };
 
   useEffect(() => {
-    meta.validate = {};
+    meta.validate = [];
     validateCheck(children);
   }, [data]);
 
@@ -50,13 +50,44 @@ export default observer((props: FormProps) => {
           } else if (el && el.props && Array.isArray(el.props.children)) {
             validateCheck(el.props.children);
           } else {
-            if (el && el.props && el.props.isRequired && el.props.path)
-              meta.validate[el.props.path] = !!_.get(data, el.props.path);
+            if (el && el.props && el.props.isRequired && el.props.path) {
+              let idx = meta.validate.findIndex(x => x.key === el.props.path);
+              if (idx === -1) {
+                meta.validate.push({
+                  key: el.props.path,
+                  label: el.props.label || el.props.path,
+                  status: !!_.get(data, el.props.path)
+                });
+              } else {
+                meta.validate[idx] = {
+                  key: el.props.path,
+                  label: el.props.label || el.props.path,
+                  status: !!_.get(data, el.props.path)
+                };
+              }
+            }
           }
         });
       } else {
         if (child.props && child.props.isRequired && child.props.path)
-          meta.validate[child.props.path] = !!_.get(data, child.props.path);
+          meta.validate[child.props.path] = {
+            label: child.props.label || child.props.path,
+            status: !!_.get(data, child.props.path)
+          };
+        let idx = meta.validate.findIndex(x => x.key === child.props.path);
+        if (idx === -1) {
+          meta.validate.push({
+            key: child.props.path,
+            label: child.props.label || child.props.path,
+            status: !!_.get(data, child.props.path)
+          });
+        } else {
+          meta.validate[idx] = {
+            key: child.props.path,
+            label: child.props.label || child.props.path,
+            status: !!_.get(data, child.props.path)
+          };
+        }
       }
     }
   };
@@ -73,6 +104,7 @@ export default observer((props: FormProps) => {
               meta={meta}
               onFieldFunction={onFieldFunction}
               onSubmit={onSubmit}
+              onError={onError}
             />
           );
         })
@@ -85,6 +117,7 @@ export default observer((props: FormProps) => {
           meta={meta}
           onFieldFunction={onFieldFunction}
           onSubmit={onSubmit}
+          onError={onError}
         />
       )}
     </View>
@@ -92,7 +125,15 @@ export default observer((props: FormProps) => {
 });
 
 const RenderChild = observer((props: any) => {
-  const { data, child, setValue, meta, onSubmit, onFieldFunction } = props;
+  const {
+    data,
+    child,
+    setValue,
+    meta,
+    onSubmit,
+    onFieldFunction,
+    onError
+  } = props;
   if (Array.isArray(child)) {
     return child.map(el => (
       <RenderChild
@@ -102,6 +143,7 @@ const RenderChild = observer((props: any) => {
         key={uuid()}
         meta={meta}
         onSubmit={onSubmit}
+        onError={onError}
       />
     ));
   }
@@ -110,14 +152,16 @@ const RenderChild = observer((props: any) => {
   }
   const onPress = e => {
     let i = 0;
-    Object.keys(meta.validate).map(e => {
-      if (!meta.validate[e]) {
+    meta.validate.map(item => {
+      if (!item.status) {
         ++i;
       }
     });
     meta.initError = i;
     if (i === 0 && onSubmit) {
       onSubmit(data);
+    } else if (i > 0) {
+      onError(meta.validate);
     }
   };
 
@@ -153,7 +197,10 @@ const RenderChild = observer((props: any) => {
   } else if (child.type === Field) {
     let custProps: any;
     const isValid = value => {
-      meta.validate[child.props.path] = value;
+      let idx = meta.validate.findIndex(x => x.key === child.props.path);
+      if (idx > -1) {
+        meta.validate[idx].status = value;
+      }
     };
     if (child.props.type === "submit") {
       custProps = {
@@ -199,6 +246,7 @@ const RenderChild = observer((props: any) => {
             key={uuid()}
             meta={meta}
             onSubmit={onSubmit}
+            onError={onError}
           />
         ))
       });

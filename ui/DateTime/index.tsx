@@ -71,14 +71,14 @@ export default (props: DateTimeProps) => {
     <>
       <Button
         style={{
-          alignItems: "stretch",
-          justifyContent: "center",
           paddingLeft: 5,
           paddingRight: 5,
           flexGrow: 1,
           backgroundColor: "transparent",
-          paddingHorizontal: 0,
           margin: 0,
+          padding: 0,
+          minHeight: 28,
+          minWidth: 38,
           ...style
         }}
         onPress={e => {
@@ -92,7 +92,7 @@ export default (props: DateTimeProps) => {
             flexGrow: 1,
             flexDirection: "row",
             alignItems: "center",
-            justifyContent: "space-between"
+            justifyContent: "space-between",
           }}
         >
           {["text-icon", "text-only"].indexOf(visibility) > -1 && (
@@ -100,8 +100,9 @@ export default (props: DateTimeProps) => {
               style={{
                 color: Theme.UIColors.text,
                 fontSize: Theme.UIFontSize,
-                flexGrow: 1
-              }}
+                flexGrow: 1,
+                flexShrink: 1
+          }}
               numberOfLines={1}
               ellipsizeMode={"tail"}
             >

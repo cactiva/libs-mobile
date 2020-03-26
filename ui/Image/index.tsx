@@ -95,7 +95,7 @@ const PreviewImage = (props: any) => {
     <Modal visible={show} onRequestClose={onRequestClose}>
       <View
         style={{
-          backgroundColor: "rgba(0,0,0,0.6)",
+          backgroundColor: "rgba(0,0,0,0.8)",
           flexShrink: 1,
           flexGrow: 1,
           justifyContent: "center",
