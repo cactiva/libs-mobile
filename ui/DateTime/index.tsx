@@ -69,6 +69,12 @@ export default (props: DateTimeProps) => {
     if (!!showPicker) setVisible(showPicker);
   }, [showPicker]);
 
+  useEffect(() => {
+    if (!props.value) {
+      onChangePicker(value);
+    }
+  }, [])
+
   return (
     <>
       <Button

@@ -38,6 +38,11 @@ export default observer((props: FormProps) => {
   };
 
   useEffect(() => {
+    meta.validate = [];
+    validateCheck(children);
+  }, []);
+
+  useEffect(() => {
     if (!!reinitValidate) {
       let res = reinitValidate();
       if (!!res) {
@@ -208,7 +213,7 @@ const RenderChild = observer((props: any) => {
         meta.validate[idx].status = value;
       }
     };
-    if (child.props.type === "submit") {
+    if (child.props.type == "submit") {
       custProps = {
         ...custProps,
         onPress: onPress
@@ -239,7 +244,7 @@ const RenderChild = observer((props: any) => {
     } else if (child.props) {
       const children = Array.isArray(childrenRaw) ? childrenRaw : [childrenRaw];
       const props = { ...child.props };
-      if (child.props.type === "submit") {
+      if (child.props.type == "submit") {
         props.onPress = onPress;
       }
       return React.cloneElement(child, {
