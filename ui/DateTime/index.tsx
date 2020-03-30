@@ -12,7 +12,7 @@ import {
 import Theme from "../../theme";
 import { dateFormat } from "../../utils/date";
 import Button from "../Button";
-import Icon from "../Icon";
+import Icon, { IIconProps } from "../Icon";
 
 export interface DateTimeProps {
   onChange?: (value: any) => void;
@@ -23,6 +23,7 @@ export interface DateTimeProps {
   onBlur?: () => void;
   showPicker?: boolean;
   style?: ViewStyle;
+  iconProps?: IIconProps | any;
   mode?: "date" | "time" | "datetime";
   visibility?: "text-icon" | "text-only" | "icon-only";
 }
@@ -33,7 +34,8 @@ export default (props: DateTimeProps) => {
     onChange,
     showPicker,
     visibility = "text-icon",
-    mode = "date"
+    mode = "date",
+    iconProps
   } = props;
   const [visible, setVisible] = useState(false);
   const [value, setValue] = useState(new Date(props.value || new Date()));
@@ -87,32 +89,31 @@ export default (props: DateTimeProps) => {
           setVisible(!visible);
         }}
       >
-        <View
-          style={{
-            flexGrow: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          {["text-icon", "text-only"].indexOf(visibility) > -1 && (
-            <Text
-              style={{
-                color: Theme.UIColors.text,
-                fontSize: Theme.UIFontSize,
-                flexGrow: 1,
-                flexShrink: 1
-          }}
-              numberOfLines={1}
-              ellipsizeMode={"tail"}
-            >
-              {dateString()}
-            </Text>
-          )}
-          {["text-icon", "icon-only"].indexOf(visibility) > -1 && (
-            <Icon source="Ionicons" name={"ios-calendar"} size={24} />
-          )}
-        </View>
+        {["text-icon", "text-only"].indexOf(visibility) > -1 && (
+          <Text
+            style={{
+              color: Theme.UIColors.text,
+              fontSize: Theme.UIFontSize,
+              flexGrow: 1,
+              flexShrink: 1
+            }}
+            numberOfLines={1}
+            ellipsizeMode={"tail"}
+          >
+            {dateString()}
+          </Text>
+        )}
+        {["text-icon", "icon-only"].indexOf(visibility) > -1 && (
+          <Icon
+            source="Ionicons"
+            name={"ios-calendar"}
+            size={24}
+            style={{
+              margin: 0
+            }}
+            {...iconProps}
+          />
+        )}
       </Button>
       <DatePickerModal
         {...props}

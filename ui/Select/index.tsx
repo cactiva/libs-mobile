@@ -111,10 +111,10 @@ export default observer((props: SelectProps) => {
         <Text
           style={{
             flexGrow: 1,
-            minHeight: 22,
             paddingLeft: 5,
             fontSize: Theme.UIFontSize,
             color: Theme.UIColors.text,
+            alignSelf: "center",
             overflow: "hidden",
             ...tStyle
           }}

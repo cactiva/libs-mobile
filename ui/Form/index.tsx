@@ -26,7 +26,8 @@ export default observer((props: FormProps) => {
     setValue,
     onSubmit,
     onFieldFunction,
-    onError
+    onError,
+    reinitValidate
   } = props;
   const meta = useObservable({
     validate: [],
@@ -37,9 +38,14 @@ export default observer((props: FormProps) => {
   };
 
   useEffect(() => {
-    meta.validate = [];
-    validateCheck(children);
-  }, [data]);
+    if (!!reinitValidate) {
+      let res = reinitValidate();
+      if (!!res) {
+        meta.validate = [];
+        validateCheck(children);
+      }
+    }
+  }, [reinitValidate]);
 
   const validateCheck = child => {
     if (child) {
