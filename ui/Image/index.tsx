@@ -58,7 +58,7 @@ export default (props: IImageProps) => {
           disabled={!preview}
           onPress={onPress}
         >
-          <Image
+          {!error && <Image
             resizeMode={"contain"}
             defaultSource={Theme.UIImageLoading}
             {...props}
@@ -68,7 +68,7 @@ export default (props: IImageProps) => {
               const err = _.get(e, "mativeEvent.error", "");
               if (!!err) setError(true);
             }}
-          />
+          />}
         </Button>
       ) : (
         <Image

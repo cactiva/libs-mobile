@@ -116,6 +116,7 @@ export default observer((props: SelectProps) => {
             color: Theme.UIColors.text,
             alignSelf: "center",
             overflow: "hidden",
+            flexShrink: 1,
             ...tStyle
           }}
           ellipsizeMode={"tail"}
