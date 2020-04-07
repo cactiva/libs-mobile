@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ViewStyle,
   Platform,
-  TextStyle
+  TextStyle,
 } from "react-native";
 import Text from "../Text";
 import Button from "../Button";
@@ -32,7 +32,7 @@ export default (props: ITopBarProps) => {
     actionBackButton,
     children,
     leftAction,
-    rightAction
+    rightAction,
   } = props;
   const { goBack } = useNavigation();
   const shadowStyle = enableShadow !== false ? Theme.UIShadow : {};
@@ -45,7 +45,7 @@ export default (props: ITopBarProps) => {
     zIndex: 9,
     margin: 0,
     padding: 8,
-    flexShrink: 1
+    flexShrink: 1,
   };
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   const backButtonStyle: ViewStyle = {
@@ -57,13 +57,13 @@ export default (props: ITopBarProps) => {
     backgroundColor: undefined,
     paddingLeft: 4,
     paddingRight: 4,
-    marginRight: 12
+    marginRight: 12,
   };
   const titleStyle: TextStyle = {
     lineHeight: 30,
     fontSize: 18,
     color: "white",
-    overflow: "hidden"
+    overflow: "hidden",
   };
   const onPressBack = actionBackButton
     ? actionBackButton
@@ -73,58 +73,27 @@ export default (props: ITopBarProps) => {
 
   return (
     <View {...props} style={cstyle}>
-      <View
-        style={{
-          flexDirection: "row"
-        }}
-      >
-        {leftAction}
-        {backButton && (
-          <Button style={backButtonStyle} onPress={onPressBack}>
-            <Icon
-              name={`${Platform.OS === "ios" ? "ios" : "md"}-arrow-back`}
-              size={24}
-              style={{
-                margin: 0
-              }}
-              color={"white"}
-            />
-          </Button>
-        )}
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          flexGrow: 1,
-          flexShrink: 1,
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <View
-          style={{
-            flexGrow: 1,
-            flexShrink: 1
-          }}
-        >
-          {typeof children === "string" ? (
-            <Text style={titleStyle} ellipsizeMode={"tail"} numberOfLines={1}>
-              {children}
-            </Text>
-          ) : (
-            children
-          )}
-        </View>
-        {!!rightAction && (
-          <View
+      {leftAction}
+      {backButton && (
+        <Button style={backButtonStyle} onPress={onPressBack}>
+          <Icon
+            name={`${Platform.OS === "ios" ? "ios" : "md"}-arrow-back`}
+            size={24}
             style={{
-              marginLeft: 12
+              margin: 0,
             }}
-          >
-            {rightAction}
-          </View>
-        )}
-      </View>
+            color={"white"}
+          />
+        </Button>
+      )}
+      {typeof children === "string" ? (
+        <Text style={titleStyle} ellipsizeMode={"tail"} numberOfLines={1}>
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
+      {rightAction}
     </View>
   );
 };

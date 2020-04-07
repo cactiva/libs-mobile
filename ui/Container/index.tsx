@@ -17,14 +17,22 @@ export default (props: IContainerProps) => {
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   return (
     <View
-      type={"ScrollView"}
-      {...props}
+      type={KeyboardAvoidingView != false ? "KeyboardAvoidingView" : "View"}
       style={{
         flexGrow: 1,
         flexShrink: 1,
       }}
-      childRef={scrollRef}
-      contentContainerStyle={cstyle}
-    />
+    >
+      <View
+        type={"ScrollView"}
+        {...props}
+        style={{
+          flexGrow: 1,
+          flexShrink: 1,
+        }}
+        childRef={scrollRef}
+        contentContainerStyle={cstyle}
+      />
+    </View>
   );
 };
