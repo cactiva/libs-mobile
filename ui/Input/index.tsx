@@ -17,10 +17,11 @@ export type InputType =
 export interface InputProps extends TextInputProps {
   type?: InputType;
   currencyProps?: any;
+  editable?: boolean;
 }
 
 export default observer((props: InputProps) => {
-  let { type, onChangeText, value, currencyProps } = props;
+  let { type, onChangeText, value, currencyProps, editable } = props;
   const originalType = useRef(type);
   const setValue = (e: any) => {
     let v;
