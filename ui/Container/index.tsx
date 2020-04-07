@@ -12,27 +12,19 @@ export interface IContainerProps extends ScrollViewProps {
 export default (props: IContainerProps) => {
   const { style, scrollRef, KeyboardAvoidingView } = props;
   const baseStyle: ViewStyle = {
-    flexGrow: 1
+    flexGrow: 1,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   return (
     <View
-      type={KeyboardAvoidingView != false ? "KeyboardAvoidingView" : "View"}
+      type={"ScrollView"}
+      {...props}
       style={{
         flexGrow: 1,
-        flexShrink: 1
+        flexShrink: 1,
       }}
-    >
-      <View
-        type={"ScrollView"}
-        {...props}
-        style={{
-          flexGrow: 1,
-          flexShrink: 1
-        }}
-        childRef={scrollRef}
-        contentContainerStyle={cstyle}
-      />
-    </View>
+      childRef={scrollRef}
+      contentContainerStyle={cstyle}
+    />
   );
 };

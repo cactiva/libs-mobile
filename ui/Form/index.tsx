@@ -27,14 +27,14 @@ export default observer((props: FormProps) => {
     onSubmit,
     onFieldFunction,
     onError,
-    reinitValidate
+    reinitValidate,
   } = props;
   const meta = useObservable({
     validate: [],
-    initError: 0
+    initError: 0,
   });
   const style = {
-    ...(_.get(props, "style", {}) as any)
+    ...(_.get(props, "style", {}) as any),
   };
 
   useEffect(() => {
@@ -52,28 +52,28 @@ export default observer((props: FormProps) => {
     }
   }, [reinitValidate]);
 
-  const validateCheck = child => {
+  const validateCheck = (child) => {
     if (child) {
       if (Array.isArray(child)) {
-        child.map(el => {
+        child.map((el) => {
           if (Array.isArray(el)) {
             validateCheck(el);
           } else if (el && el.props && Array.isArray(el.props.children)) {
             validateCheck(el.props.children);
           } else {
             if (el && el.props && el.props.isRequired && el.props.path) {
-              let idx = meta.validate.findIndex(x => x.key === el.props.path);
+              let idx = meta.validate.findIndex((x) => x.key === el.props.path);
               if (idx === -1) {
                 meta.validate.push({
                   key: el.props.path,
                   label: el.props.label || el.props.path,
-                  status: !!_.get(data, el.props.path)
+                  status: !!_.get(data, el.props.path),
                 });
               } else {
                 meta.validate[idx] = {
                   key: el.props.path,
                   label: el.props.label || el.props.path,
-                  status: !!_.get(data, el.props.path)
+                  status: !!_.get(data, el.props.path),
                 };
               }
             }
@@ -83,20 +83,20 @@ export default observer((props: FormProps) => {
         if (child.props && child.props.isRequired && child.props.path)
           meta.validate[child.props.path] = {
             label: child.props.label || child.props.path,
-            status: !!_.get(data, child.props.path)
+            status: !!_.get(data, child.props.path),
           };
-        let idx = meta.validate.findIndex(x => x.key === child.props.path);
+        let idx = meta.validate.findIndex((x) => x.key === child.props.path);
         if (idx === -1) {
           meta.validate.push({
             key: child.props.path,
             label: child.props.label || child.props.path,
-            status: !!_.get(data, child.props.path)
+            status: !!_.get(data, child.props.path),
           });
         } else {
           meta.validate[idx] = {
             key: child.props.path,
             label: child.props.label || child.props.path,
-            status: !!_.get(data, child.props.path)
+            status: !!_.get(data, child.props.path),
           };
         }
       }
@@ -143,10 +143,10 @@ const RenderChild = observer((props: any) => {
     meta,
     onSubmit,
     onFieldFunction,
-    onError
+    onError,
   } = props;
   if (Array.isArray(child)) {
-    return child.map(el => (
+    return child.map((el) => (
       <RenderChild
         data={data}
         setValue={setValue}
@@ -161,9 +161,9 @@ const RenderChild = observer((props: any) => {
   if (!child || !child.type || !child.props) {
     return child;
   }
-  const onPress = e => {
+  const onPress = (e) => {
     let i = 0;
-    meta.validate.map(item => {
+    meta.validate.map((item) => {
       if (!item.status) {
         ++i;
       }
@@ -203,12 +203,12 @@ const RenderChild = observer((props: any) => {
 
     return React.cloneElement(child, {
       ...child.props,
-      children: fc
+      children: fc,
     });
   } else if (child.type === Field) {
     let custProps: any;
-    const isValid = value => {
-      let idx = meta.validate.findIndex(x => x.key === child.props.path);
+    const isValid = (value) => {
+      let idx = meta.validate.findIndex((x) => x.key === child.props.path);
       if (idx > -1) {
         meta.validate[idx].status = value;
       }
@@ -216,25 +216,25 @@ const RenderChild = observer((props: any) => {
     if (child.props.type == "submit") {
       custProps = {
         ...custProps,
-        onPress: onPress
+        onPress: onPress,
       };
     } else {
       custProps = {
         ...custProps,
         isValid: isValid,
         value: _.get(data, child.props.path),
-        setValue: (value: any) => defaultSetValue(value, child.props.path)
+        setValue: (value: any) => defaultSetValue(value, child.props.path),
       };
     }
     if (child.props.isRequired) {
       custProps = {
         ...custProps,
-        isValidate: meta.initError
+        isValidate: meta.initError,
       };
     }
     return React.cloneElement(child, {
       ...custProps,
-      ...child.props
+      ...child.props,
     });
   } else {
     const childrenRaw = _.get(child, "props.children");
@@ -249,7 +249,7 @@ const RenderChild = observer((props: any) => {
       }
       return React.cloneElement(child, {
         ...props,
-        children: children.map(el => (
+        children: children.map((el) => (
           <RenderChild
             data={data}
             setValue={setValue}
@@ -259,7 +259,7 @@ const RenderChild = observer((props: any) => {
             onSubmit={onSubmit}
             onError={onError}
           />
-        ))
+        )),
       });
     }
   }
