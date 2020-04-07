@@ -172,7 +172,7 @@ const RenderChild = observer((props: any) => {
     if (i === 0 && onSubmit) {
       onSubmit(data);
     } else if (i > 0) {
-      onError(meta.validate);
+      onError && onError(meta.validate);
     }
   };
 
