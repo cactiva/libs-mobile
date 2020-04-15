@@ -7,7 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ViewStyle
+  ViewStyle,
 } from "react-native";
 import Theme from "../../theme";
 import { dateFormat } from "../../utils/date";
@@ -35,7 +35,7 @@ export default (props: DateTimeProps) => {
     showPicker,
     visibility = "text-icon",
     mode = "date",
-    iconProps
+    iconProps,
   } = props;
   const [visible, setVisible] = useState(false);
   const [value, setValue] = useState(new Date(props.value || new Date()));
@@ -73,7 +73,7 @@ export default (props: DateTimeProps) => {
     if (!props.value) {
       onChangePicker(value);
     }
-  }, [])
+  }, []);
 
   return (
     <>
@@ -87,9 +87,9 @@ export default (props: DateTimeProps) => {
           padding: 0,
           minHeight: 28,
           minWidth: 38,
-          ...style
+          ...style,
         }}
-        onPress={e => {
+        onPress={(e) => {
           e.stopPropagation();
           e.preventDefault();
           setVisible(!visible);
@@ -101,7 +101,7 @@ export default (props: DateTimeProps) => {
               color: Theme.UIColors.text,
               fontSize: Theme.UIFontSize,
               flexGrow: 1,
-              flexShrink: 1
+              flexShrink: 1,
             }}
             numberOfLines={1}
             ellipsizeMode={"tail"}
@@ -115,7 +115,7 @@ export default (props: DateTimeProps) => {
             name={"ios-calendar"}
             size={24}
             style={{
-              margin: 0
+              margin: 0,
             }}
             {...iconProps}
           />
@@ -142,7 +142,7 @@ const DatePickerModal = (props: any) => {
     mode,
     setVisible,
     value,
-    visible
+    visible,
   } = props;
   const [val, setVal] = useState(new Date());
   const [androidMode, setAndroidMode] = useState("date");
@@ -150,7 +150,7 @@ const DatePickerModal = (props: any) => {
     setVisible(false);
     onBlur && onBlur();
   };
-  const onChange = date => {
+  const onChange = (date) => {
     setVisible(false);
     onChangePicker(date);
   };
@@ -222,12 +222,12 @@ const DatePickerModal = (props: any) => {
           style={{
             backgroundColor: "rgba(0,0,0,0.3)",
             flexGrow: 1,
-            justifyContent: "flex-end"
+            justifyContent: "flex-end",
           }}
         >
           <View
             style={{
-              backgroundColor: "#fff"
+              backgroundColor: "#fff",
             }}
           >
             <DateTimePicker
@@ -243,14 +243,14 @@ const DatePickerModal = (props: any) => {
               style={{
                 flexDirection: "row",
                 justifyContent: "center",
-                alignItems: "center"
+                alignItems: "center",
               }}
             >
               <Button
                 mode={"clean"}
                 style={{
                   minHeight: 35,
-                  padding: 0
+                  padding: 0,
                 }}
                 onPress={() => {
                   setVal(value);
@@ -259,7 +259,7 @@ const DatePickerModal = (props: any) => {
               >
                 <Text
                   style={{
-                    color: Theme.UIColors.primary
+                    color: Theme.UIColors.primary,
                   }}
                 >
                   Cancel
@@ -269,7 +269,7 @@ const DatePickerModal = (props: any) => {
                 mode={"clean"}
                 style={{
                   minHeight: 35,
-                  padding: 0
+                  padding: 0,
                 }}
                 onPress={() => {
                   onChange(val);
@@ -277,7 +277,7 @@ const DatePickerModal = (props: any) => {
               >
                 <Text
                   style={{
-                    color: Theme.UIColors.primary
+                    color: Theme.UIColors.primary,
                   }}
                 >
                   Ok

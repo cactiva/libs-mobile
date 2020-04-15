@@ -77,14 +77,14 @@ export default observer((props: FieldProps) => {
     isValidate,
     isValid,
     isFocus,
-    enableBorder
+    enableBorder,
   } = props;
   let field = props.field;
   const meta = useObservable({
     focus: false,
     validate: false,
     error: false,
-    errorMessage: []
+    errorMessage: [],
   });
   let labelText =
     isLabel == false || !label ? "" : label + (isRequired ? " *" : "");
@@ -95,12 +95,12 @@ export default observer((props: FieldProps) => {
   const placeholder =
     !meta.error && !meta.focus ? _.get(children, "props.placeholder", "") : "";
 
-  const onChangeValue = newValue => {
+  const onChangeValue = (newValue) => {
     validation(newValue);
     setValue && setValue(newValue);
     onChange && onChange(newValue);
   };
-  const validation = value => {
+  const validation = (value) => {
     if (isRequired && !value) {
       meta.error = true;
       meta.errorMessage = [`${label} is required!`];
@@ -131,7 +131,7 @@ export default observer((props: FieldProps) => {
       childProps = {
         style: childStyle,
         value: value,
-        onChange: onChangeValue
+        onChange: onChangeValue,
       };
       break;
     case Input:
@@ -141,7 +141,7 @@ export default observer((props: FieldProps) => {
         onChangeText: onChangeValue,
         placeholder: placeholder,
         onFocus: () => (meta.focus = true),
-        onBlur: () => (meta.focus = false)
+        onBlur: () => (meta.focus = false),
       };
       break;
     case Select:
@@ -149,11 +149,11 @@ export default observer((props: FieldProps) => {
         style: childStyle,
         value: value,
         placeholder: placeholder,
-        onSelect: value =>
+        onSelect: (value) =>
           onChangeValue(
             typeof value !== "object" ? value : value.value || value.label
           ),
-        onFocus: (e: any) => (meta.focus = e)
+        onFocus: (e: any) => (meta.focus = e),
       };
       break;
     case DatePicker:
@@ -161,47 +161,50 @@ export default observer((props: FieldProps) => {
         style: childStyle,
         value: value,
         onChange: onChangeValue,
-        onFocus: (e: any) => (meta.focus = e)
+        onFocus: (e: any) => (meta.focus = e),
       };
       break;
     case RadioGroup:
       childProps = {
         onChange: onChangeValue,
         value: value,
-        children: children.props.children
+        children: children.props.children,
       };
       break;
     case "checkbox-group":
       childProps = {
         onChange: onChangeValue,
         value: value,
-        children: children.props.children
+        children: children.props.children,
       };
       break;
     case Camera:
       childProps = {
         onCapture: onChangeValue,
-        value: value
+        value: value,
       };
       break;
     case "location":
       childProps = {
         onCapture: onChangeValue,
-        value: value
+        value: value,
       };
       break;
   }
+  const Component = children.type;
 
-  const childrenWithProps = React.Children.map(children, child =>
-    React.cloneElement(child, {
-      ...child.props,
-      ...childProps
-    })
-  );
+  // const childrenWithProps = React.Children.map(children, (child) => {
+  //   const Component = child.type;
+  //   return <Component {...child.props} {...childProps} />;
+  //   // React.cloneElement(child, {
+  //   //   ...child.props,
+  //   //   ...childProps,
+  //   // });
+  // });
   const tStyle = textStyle(props.style);
   const style = { ...props.style };
   if (!!style)
-    Object.keys(style).map(k => {
+    Object.keys(style).map((k) => {
       if (Object.keys(tStyle).indexOf(k) > -1) delete style[k];
     });
 
@@ -219,7 +222,7 @@ export default observer((props: FieldProps) => {
         marginLeft: 0,
         marginRight: 0,
         ..._.get(styles, "root", {}),
-        ...style
+        ...style,
       }}
       className={Platform.OS === "web" ? "cactiva-field" : undefined}
     >
@@ -230,7 +233,7 @@ export default observer((props: FieldProps) => {
             color: Theme.UIColors.secondary,
             marginBottom: 5,
             ...((styles && styles.label) || {}),
-            ...tStyle
+            ...tStyle,
           }}
         >
           {labelText}
@@ -254,7 +257,7 @@ export default observer((props: FieldProps) => {
           display: "flex",
           ..._.get(Theme, "fieldStyle", {}),
           ...Theme.UIInput,
-          ...((styles && styles.field) || {})
+          ...((styles && styles.field) || {}),
         }}
         className={Platform.OS === "web" ? "cactiva-field-input" : undefined}
       >
@@ -264,7 +267,7 @@ export default observer((props: FieldProps) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              ...((styles && styles.iconStart) || {})
+              ...((styles && styles.iconStart) || {}),
             }}
           >
             <Icon
@@ -275,14 +278,14 @@ export default observer((props: FieldProps) => {
             />
           </View>
         )}
-        {childrenWithProps}
+        <Component {...children.props} {...childProps} />
         {!!isIconEnd && (
           <View
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              ...((styles && styles.iconEnd) || {})
+              ...((styles && styles.iconEnd) || {}),
             }}
           >
             <Icon
@@ -296,13 +299,13 @@ export default observer((props: FieldProps) => {
       </View>
       {meta.error &&
         meta.errorMessage.length > 0 &&
-        meta.errorMessage.map(message => (
+        meta.errorMessage.map((message) => (
           <Text
             key={uuid()}
             style={{
               paddingTop: 5,
               fontSize: 12,
-              color: Theme.UIColors.danger
+              color: Theme.UIColors.danger,
             }}
           >
             *{message}

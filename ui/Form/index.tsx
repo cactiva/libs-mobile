@@ -7,6 +7,7 @@ import { uuid } from "../../utils";
 import Field from "../Field";
 import View from "../View";
 import { toJS } from "mobx";
+import Button from "../Button";
 
 export interface FormProps extends ScrollViewProps {
   data?: any;
@@ -161,20 +162,6 @@ const RenderChild = observer((props: any) => {
   if (!child || !child.type || !child.props) {
     return child;
   }
-  const onPress = (e) => {
-    let i = 0;
-    meta.validate.map((item) => {
-      if (!item.status) {
-        ++i;
-      }
-    });
-    meta.initError = i;
-    if (i === 0 && onSubmit) {
-      onSubmit(data);
-    } else if (i > 0) {
-      onError && onError(meta.validate);
-    }
-  };
 
   const defaultSetValue = (value: any, path: any) => {
     if (!!setValue) setValue(value, path);
@@ -200,67 +187,114 @@ const RenderChild = observer((props: any) => {
     } else {
       fc = child.props.children(_.get(data, child.props.path, []));
     }
-
-    return React.cloneElement(child, {
-      ...child.props,
-      children: fc,
-    });
+    const Component = child.type;
+    const custProps = child.props;
+    return <Component {...custProps} children={fc} />;
+    // return React.cloneElement(child, {
+    //   ...child.props,
+    //   children: fc,
+    // });
   } else if (child.type === Field) {
-    let custProps: any;
+    let custProps: any = child.props;
     const isValid = (value) => {
       let idx = meta.validate.findIndex((x) => x.key === child.props.path);
       if (idx > -1) {
         meta.validate[idx].status = value;
       }
     };
-    if (child.props.type == "submit") {
-      custProps = {
-        ...custProps,
-        onPress: onPress,
-      };
-    } else {
-      custProps = {
-        ...custProps,
-        isValid: isValid,
-        value: _.get(data, child.props.path),
-        setValue: (value: any) => defaultSetValue(value, child.props.path),
-      };
-    }
+    custProps = {
+      ...custProps,
+      isValid: isValid,
+      value: _.get(data, child.props.path),
+      setValue: (value: any) => defaultSetValue(value, child.props.path),
+    };
+
     if (child.props.isRequired) {
       custProps = {
         ...custProps,
         isValidate: meta.initError,
       };
     }
-    return React.cloneElement(child, {
-      ...custProps,
-      ...child.props,
-    });
+    const Component = child.type;
+    return <Component {...custProps} />;
+    // return React.cloneElement(child, {
+    //   ...custProps,
+    //   ...child.props,
+    // });
+  } else if (child.type === Button) {
+    let custProps: any = child.props;
+    if (custProps.type == "submit") {
+      const onPress = (e) => {
+        let i = 0;
+        meta.validate.map((item) => {
+          if (!item.status) {
+            ++i;
+          }
+        });
+        meta.initError = i;
+        if (i === 0 && onSubmit) {
+          onSubmit(data);
+        } else if (i > 0) {
+          onError && onError(meta.validate);
+        }
+      };
+      custProps = {
+        ...custProps,
+        onPress: onPress,
+      };
+    }
+    const Component = child.type;
+    return <Component {...custProps} />;
   } else {
     const childrenRaw = _.get(child, "props.children");
     const hasChildren = !!childrenRaw;
     if (!hasChildren) {
       return child;
     } else if (child.props) {
+      const custProps = child.props;
       const children = Array.isArray(childrenRaw) ? childrenRaw : [childrenRaw];
-      const props = { ...child.props };
-      if (child.props.type == "submit") {
-        props.onPress = onPress;
-      }
-      return React.cloneElement(child, {
-        ...props,
-        children: children.map((el) => (
-          <RenderChild
-            data={data}
-            setValue={setValue}
-            child={el}
-            key={uuid()}
-            meta={meta}
-            onSubmit={onSubmit}
-            onError={onError}
-          />
-        )),
-      });
+      const Component = child.type;
+      return (
+        <Component {...custProps}>
+          {Array.isArray(children) ? (
+            children.map((el) => (
+              <RenderChild
+                data={data}
+                setValue={setValue}
+                child={el}
+                key={uuid()}
+                meta={meta}
+                onSubmit={onSubmit}
+                onError={onError}
+              />
+            ))
+          ) : (
+            <RenderChild
+              data={data}
+              setValue={setValue}
+              child={children}
+              key={uuid()}
+              meta={meta}
+              onSubmit={onSubmit}
+              onError={onError}
+            />
+          )}
+        </Component>
+      );
+      // return React.cloneElement(child, {
+      //   ...props,
+      // children: children.map((el) => (
+      //   <RenderChild
+      //     data={data}
+      //     setValue={setValue}
+      //     child={el}
+      //     key={uuid()}
+      //     meta={meta}
+      //     onSubmit={onSubmit}
+      //     onError={onError}
+      //   />
+      //   )),
+      // });
     }
   }
 });
