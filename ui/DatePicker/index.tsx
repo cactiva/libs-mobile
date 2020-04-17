@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  ViewStyle
+  ViewStyle,
 } from "react-native";
 import { DefaultTheme, ThemeProps } from "../../themes";
 import { dateToString } from "../../utils";
@@ -38,13 +38,13 @@ export default observer((props: DateTimeProps) => {
     dateString: {
       dd: "",
       mm: "",
-      yyyy: ""
-    }
+      yyyy: "",
+    },
   });
 
   const theme = {
     ...DefaultTheme,
-    ..._.get(props, "theme", {})
+    ..._.get(props, "theme", {}),
   };
   const onChangeDateString = (v, p) => {
     if (p === "dd") {
@@ -67,7 +67,7 @@ export default observer((props: DateTimeProps) => {
       onChange && onChange(dateToString(meta.value));
     }
   };
-  const onChangePicker = date => {
+  const onChangePicker = (date) => {
     meta.value = date;
     meta.dateString.dd = ("0" + meta.value.getDate()).slice(-2);
     meta.dateString.mm = ("0" + (meta.value.getMonth() + 1)).slice(-2);
@@ -96,7 +96,7 @@ export default observer((props: DateTimeProps) => {
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "stretch",
-          ...style
+          ...style,
         }}
       >
         <View
@@ -104,24 +104,24 @@ export default observer((props: DateTimeProps) => {
             display: "flex",
             flexDirection: "row",
             justifyContent: "center",
-            alignItems: "center"
+            alignItems: "center",
           }}
         >
           <Input
             placeholder="dd"
             style={{
-              width: 30
+              width: 30,
             }}
             type="number"
             value={meta.dateString.dd}
-            onChangeText={v => onChangeDateString(v, "dd")}
+            onChangeText={(v) => onChangeDateString(v, "dd")}
           />
           <Text
             style={{
               paddingRight: 10,
               display: "flex",
               justifyContent: "center",
-              alignItems: "center"
+              alignItems: "center",
             }}
           >
             /
@@ -129,18 +129,18 @@ export default observer((props: DateTimeProps) => {
           <Input
             placeholder="mm"
             style={{
-              width: 30
+              width: 30,
             }}
             type="number"
             value={meta.dateString.mm}
-            onChangeText={v => onChangeDateString(v, "mm")}
+            onChangeText={(v) => onChangeDateString(v, "mm")}
           />
           <Text
             style={{
               paddingRight: 10,
               display: "flex",
               justifyContent: "center",
-              alignItems: "center"
+              alignItems: "center",
             }}
           >
             /
@@ -148,11 +148,11 @@ export default observer((props: DateTimeProps) => {
           <Input
             placeholder="yyyy"
             style={{
-              width: 60
+              width: 60,
             }}
             type="number"
             value={meta.dateString.yyyy}
-            onChangeText={v => onChangeDateString(v, "yyyy")}
+            onChangeText={(v) => onChangeDateString(v, "yyyy")}
           />
         </View>
         <TouchableOpacity
@@ -161,9 +161,9 @@ export default observer((props: DateTimeProps) => {
             alignItems: "center",
             justifyContent: "center",
             paddingLeft: 5,
-            paddingRight: 5
+            paddingRight: 5,
           }}
-          onPress={e => {
+          onPress={(e) => {
             e.stopPropagation();
             e.preventDefault();
             meta.isShown = !meta.isShown;
@@ -195,12 +195,12 @@ const DatePickerModal = observer((props: any) => {
             action,
             year,
             month,
-            day
+            day,
           }: any = await DatePickerAndroid.open({
             date: meta.value,
             mode: mode || "calendar",
             minDate: minDate && minDate,
-            maxDate: maxDate && maxDate
+            maxDate: maxDate && maxDate,
           });
           if (action !== DatePickerAndroid.dismissedAction) {
             onChangePicker(new Date(year, month, day));
@@ -234,7 +234,7 @@ const DatePickerModal = observer((props: any) => {
             position: "absolute",
             height: 200,
             backgroundColor: "#fff",
-            zIndex: 9
+            zIndex: 9,
           }}
         >
           <DatePickerIOS
@@ -258,7 +258,7 @@ const DatePickerModal = observer((props: any) => {
               bottom: 0,
               left: 0,
               right: 0,
-              backgroundColor: "rgba(0,0,0,.3)"
+              backgroundColor: "rgba(0,0,0,.3)",
             }}
           />
         </TouchableWithoutFeedback>

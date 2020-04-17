@@ -98,7 +98,7 @@ export default observer((props: RadioProps) => {
           />
         </View>
       ) : (
-        mode === "default" && (
+        (mode === "default" || !mode) && (
           <Icon
             name={checked ? "md-radio-button-on" : "md-radio-button-off"}
             size={24}
