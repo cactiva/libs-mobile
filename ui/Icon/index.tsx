@@ -9,6 +9,7 @@ export interface IIconProps {
     | "EvilIcons"
     | "Feather"
     | "FontAwesome"
+    | "FontAwesome5"
     | "Foundation"
     | "Ionicons"
     | "MaterialCommunityIcons"
@@ -25,7 +26,7 @@ export default (props: IIconProps) => {
   const { source, style, size } = props;
   const Icon: any = (IconSource as any)[source || "Ionicons"];
   const baseStyle = {
-    margin: 4
+    margin: 4,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   const csize = size || 20;

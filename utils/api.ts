@@ -23,7 +23,6 @@ export default (e: any) => {
   return new Promise(async (resolve, reject) => {
     try {
       const res = await axios({ ...e, url, headers });
-      console.log(url, res);
       if (res.status >= 200 && res.status < 300) {
         if (res.data) resolve(res.data);
         else resolve(res);

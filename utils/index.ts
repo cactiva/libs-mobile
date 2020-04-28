@@ -4,7 +4,7 @@ import session from "@src/stores/session";
 const config = require("../../../settings.json");
 const globalSettings = {
   backend: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/`,
-  repo: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/api/repo/`
+  repo: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/api/repo/`,
 };
 const { width, height } = Dimensions.get("window");
 
@@ -37,11 +37,11 @@ const findLargestSmallest = (a: string, b: string) =>
   a.length > b.length
     ? {
         largest: a,
-        smallest: b
+        smallest: b,
       }
     : {
         largest: b,
-        smallest: a
+        smallest: a,
       };
 const fuzzyMatch = (strA: string, strB: string, fuzziness = 0) => {
   if (strA === "" || strB === "") {
@@ -68,7 +68,7 @@ const fuzzyMatch = (strA: string, strB: string, fuzziness = 0) => {
 
   return false;
 };
-const dateToString = date => {
+const dateToString = (date) => {
   var d = new Date(date),
     month = "" + (d.getMonth() + 1),
     day = "" + d.getDate(),
@@ -79,7 +79,7 @@ const dateToString = date => {
 
   return [year, month, day].join("-");
 };
-const textStyle = style => {
+const textStyle = (style) => {
   const textStyleProps = [
     "fontSize",
     "color",
@@ -87,11 +87,11 @@ const textStyle = style => {
     "lineHeight",
     "fontFamily",
     "textAlign",
-    "fontStyle"
+    "fontStyle",
   ];
   const newTextStyle = {};
   if (!!style)
-    Object.keys(style).map(k => {
+    Object.keys(style).map((k) => {
       if (textStyleProps.indexOf(k) > -1) newTextStyle[k] = style[k];
     });
   return newTextStyle;
@@ -106,24 +106,29 @@ const truncateStr = (text: string, length: number) => {
   return string.length > length ? string.substr(0, length - 1) + "..." : string;
 };
 
-const formatMoney = (number: string | number, prefix: string = "") => {
+const formatMoney = (
+  number: string | number,
+  prefix: string = "",
+  decimal = false
+) => {
   let val = !number
     ? parseFloat("0")
     : typeof number == "string"
     ? parseFloat(number)
     : number;
   let res = val.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,");
+  if (!decimal) res = String(res).substr(0, res.length - 3);
   return `${prefix}${res}`;
 };
-const getAsset = uri => {
-  return new Promise(async resolve => {
+const getAsset = (uri) => {
+  return new Promise(async (resolve) => {
     await fetch(uri, {
       headers: {
-        Authorization: `Bearer ${session.jwt}`
-      }
+        Authorization: `Bearer ${session.jwt}`,
+      },
     })
-      .then(response => response.blob())
-      .then(images => {
+      .then((response) => response.blob())
+      .then((images) => {
         resolve(URL.createObjectURL(images));
       });
   });
@@ -141,5 +146,5 @@ export {
   dateToString,
   textStyle,
   capitalizeFLetter,
-  truncateStr
+  truncateStr,
 };
