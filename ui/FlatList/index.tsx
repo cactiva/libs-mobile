@@ -1,22 +1,23 @@
-import { observer } from "mobx-react-lite";
 import React from "react";
 import { FlatList, FlatListProps, StyleSheet } from "react-native";
 
-export default observer((props: FlatListProps<any>) => {
+export interface IFlatListProps extends FlatListProps<any> {
+  flatListRef?: any;
+}
+export default (props: IFlatListProps) => {
   const { contentContainerStyle, style } = props;
   const baseStyle = {
     flexGrow: 1,
-    flexShrink: 1
+    flexShrink: 1,
   };
   const basecontentContainerStyle = {
     padding: 5,
-    paddingLeft: 15,
-    paddingRight: 15
+    paddingHorizontal: 15,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   const ccontentContainerStyle = StyleSheet.flatten([
     basecontentContainerStyle,
-    contentContainerStyle
+    contentContainerStyle,
   ]);
   return (
     <FlatList
@@ -24,10 +25,11 @@ export default observer((props: FlatListProps<any>) => {
       maxToRenderPerBatch={20}
       windowSize={5}
       removeClippedSubviews={true}
-      updateCellsBatchingPeriod={500}
+      updateCellsBatchingPeriod={30}
       {...props}
       style={cstyle}
       contentContainerStyle={ccontentContainerStyle}
+      ref={props.flatListRef}
     />
   );
-});
+};

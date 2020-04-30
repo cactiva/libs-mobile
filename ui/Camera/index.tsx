@@ -1,197 +1,204 @@
-import { Camera } from "expo-camera";
-import * as ImagePicker from "expo-image-picker";
-import * as Permissions from "expo-permissions";
-import _ from "lodash";
-import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
+import { observer, useObservable } from "mobx-react-lite";
+import * as Permissions from "expo-permissions";
 import {
-  Dimensions,
   Platform,
-  Text,
-  TouchableOpacity,
-  View
+  Dimensions,
+  ViewStyle,
+  ImageProps,
+  AsyncStorage,
 } from "react-native";
-import Modal from "../Modal";
-import { DefaultTheme, ThemeProps } from "../../themes";
-import Icon from "../Icon";
-import Spinner from "../Spinner";
+import View from "../View";
+import Button from "../Button";
+import Theme from "@src/libs/theme";
 import Image from "../Image";
+import _ from "lodash";
+import Icon, { IIconProps } from "../Icon";
+import Modal from "../Modal";
+import Container from "../Container";
+import { CameraProps, Camera } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+import Spinner from "../Spinner";
+import Text from "../Text";
+import { toJS } from "mobx";
 
-export interface CameraProps {
-  value?: any;
-  option?: any;
-  style?: any;
-  theme?: ThemeProps;
-  onCapture?: (value: any) => void;
-  imagePicker?: boolean;
-  imageProps?: any;
+const storage = AsyncStorage;
+
+interface IStyles {
+  preview?: ViewStyle;
+  icon?: ViewStyle;
 }
 
-export default observer((props: CameraProps) => {
-  const { style, value, imageProps } = props;
+export interface ICameraProps {
+  value?: any;
+  style?: ViewStyle;
+  onCapture?: (value: any) => void;
+  styles?: IStyles;
+  previewProps?: ImageProps;
+  iconProps?: IIconProps;
+  cameraProps?: CameraProps;
+  cameraTools?: {
+    ratio?: boolean;
+    flash?: boolean;
+    picker?: boolean;
+    reverse?: boolean;
+  };
+}
+
+export default observer((props: ICameraProps) => {
+  const { style, value, previewProps, iconProps } = props;
   const meta = useObservable({
     hasCameraPermission: null,
-    hasImagePickPermission: true,
+    hasImagePickPermission: null,
     isShown: false,
+    resanp: false,
+    snap: false,
+  });
+  const requestPermission = () => {
+    let permissionsRequest = [Permissions.CAMERA] as any;
+    if (Platform.OS === "ios") {
+      permissionsRequest.push(Permissions.CAMERA_ROLL);
+    }
+    Permissions.getAsync(...permissionsRequest).then((res) => {
+      Object.keys(res.permissions).map((key: any) => {
+        if (res.permissions[key].status !== "granted") {
+          Permissions.askAsync(key);
+        }
+      });
+    });
+  };
+  useEffect(() => {
+    requestPermission();
+  }, []);
+
+  const dim = Dimensions.get("window");
+  const width = (style && style.width) || dim.width;
+  const height = (style && style.height) || 120;
+  const baseStyle: any = {
+    ...Theme.UIInput,
+    height: 120,
+    backgroundColor: "#a2a4ab",
+    overflow: "hidden",
+    paddingHorizontal: 0,
+    ...style,
+  };
+  const iconStyle = {
+    ...Theme.UIShadow,
+    ..._.get(props, "styles.icon", {}),
+  };
+  const previewStyle = {
+    height: height,
+    width: width,
+    flexGrow: 1,
+    flexShrink: 1,
+    ..._.get(props, "styles.preview", {}),
+  };
+
+  if (
+    meta.hasCameraPermission === false ||
+    (Platform.OS === "ios" && meta.hasImagePickPermission === false)
+  ) {
+    return (
+      <View>
+        <Button label="Request Permission" onPress={requestPermission} />
+      </View>
+    );
+  }
+  const source = !!value
+    ? { uri: value }
+    : _.get(previewProps, "source", undefined);
+  return (
+    <>
+      <Button
+        mode={"clean"}
+        style={baseStyle}
+        onPress={() => (meta.isShown = true)}
+      >
+        {!!value ? (
+          <Image
+            resizeMode="cover"
+            style={previewStyle}
+            {...previewProps}
+            source={source}
+          />
+        ) : (
+          <Icon
+            source="Entypo"
+            name="camera"
+            size={45}
+            color="white"
+            style={iconStyle}
+            {...iconProps}
+          />
+        )}
+      </Button>
+      <CameraPicker {...props} state={meta} />
+    </>
+  );
+});
+
+const CameraPicker = observer((props: any) => {
+  const { state, cameraProps, value, onCapture } = props;
+  const meta = useObservable({
     cameraProps: {
       type: Camera.Constants.Type.back,
       ratio: "16:9",
-      flashMode: "auto"
+      flashMode: "auto",
     },
-    snap: false,
-    photo: null,
-    resnap: false
   });
   const dim = Dimensions.get("window");
-  const width = (style && style.width) || 150;
-  const height = (style && style.height) || dim.width;
-  useEffect(() => {
-    meta.photo = value;
-    Permissions.askAsync(Permissions.CAMERA).then((res: any) => {
-      meta.hasCameraPermission = res.status === "granted";
-    });
-    if (Platform.OS === "ios") {
-      meta.hasImagePickPermission = false;
-      Permissions.askAsync(Permissions.CAMERA_ROLL).then(res => {
-        meta.hasImagePickPermission = res.status === "granted";
-      });
-    }
-  }, []);
-
-  const camera = useRef(null);
-  const theme = {
-    ...DefaultTheme,
-    ...props.theme
-  };
-
-  const csourceimg = {
-    ..._.get(imageProps, "source", {}),
-    uri: value ? value : meta.photo
-  };
-  if (meta.hasCameraPermission === null) {
-    return <View />;
-  } else if (meta.hasCameraPermission === false) {
-    return <Text style={{ padding: 10 }}>No access to camera</Text>;
-  } else {
-    return (
-      <>
-        <TouchableOpacity
-          onPress={() => (meta.isShown = true)}
-          style={{
-            flex: 1,
-            height: 100,
-            backgroundColor: "#a2a4ab",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 4,
-            overflow: "hidden",
-            ...style
-          }}
-        >
-          {(meta.photo || value) && (
-            <Image
-              {...imageProps}
-              source={csourceimg}
-              resizeMode="cover"
-              style={{
-                height: height,
-                width: width,
-                flexGrow: 1,
-                flexShrink: 1,
-                margin: 0
-              }}
-            />
-          )}
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              display: "flex",
-              zIndex: 1,
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0
-            }}
-          >
-            <Icon
-              source="Entypo"
-              name="camera"
-              size={45}
-              color="white"
-              style={{
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: 2
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-                elevation: 5
-              }}
-            />
-          </View>
-        </TouchableOpacity>
-        <ModalCamera
-          state={meta}
-          camera={camera}
-          theme={theme}
-          dim={dim}
-          {...props}
-        />
-      </>
-    );
-  }
-});
-
-const ModalCamera = observer((props: any) => {
-  const { state, camera, theme, dim, onCapture, imagePicker } = props;
+  const camera = useRef(null as any);
   const getRatio = () => {
-    const ratio = state.cameraProps.ratio.split(":");
+    const ratio = _.get(meta, "cameraProps.ratio", "16:9").split(":");
     return {
       width: dim.width,
-      height: (dim.width / parseInt(ratio[1])) * parseInt(ratio[0])
+      height: (dim.width / parseInt(ratio[1])) * parseInt(ratio[0]),
     };
   };
-
-  const snap = () => {
-    if (state.photo && !state.resnap) {
+  const imageSnap = () => {
+    if (!!value && !state.resnap) {
       state.resnap = true;
     } else if (camera.current) {
       state.snap = true;
       camera.current
         .takePictureAsync({
           quality: 0.5,
-          skipProcessing: true
+          skipProcessing: true,
         })
         .then((res: any) => {
-          state.photo = res.uri;
           onCapture && onCapture(res.uri);
-          state.snap = false;
           state.isShown = false;
-          state.resnap = false;
+          state.snap = false;
+          !!state.resnap && (state.resnap = false);
         });
     }
   };
-  const pick = async () => {
-    if (!state.hasImagePickPermission) {
-      alert("No access to Album");
-      return;
-    }
+  const imagePicker = async () => {
     ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
-      quality: 0.8
+      quality: 0.8,
     }).then((res: any) => {
-      state.photo = res.uri;
-      onCapture && onCapture(res.uri);
-      state.snap = false;
-      state.isShown = false;
-      state.resnap = false;
+      if (res.cancelled === false) {
+        onCapture && onCapture(res.uri);
+        state.isShown = false;
+        !!state.resnap && (state.resnap = false);
+      }
     });
   };
-  const capture = !state.photo || state.resnap;
+  const setCameraProps = async () => {
+    let camProps = { ...meta.cameraProps, ...cameraProps };
+    await storage.getItem("cameraProps").then((res) => {
+      if (!!res) {
+        camProps = { ...camProps, ...JSON.parse(res) };
+      }
+    });
+    meta.cameraProps = camProps;
+    storage.setItem("cameraProps", JSON.stringify(camProps));
+  };
+  useEffect(() => {
+    setCameraProps();
+  }, []);
   return (
     <Modal
       animationType="slide"
@@ -199,257 +206,276 @@ const ModalCamera = observer((props: any) => {
       visible={state.isShown}
       onRequestClose={() => {
         state.isShown = false;
-        state.resnap = false;
-        state.snap = false;
+      }}
+      screenProps={{
+        style: {
+          backgroundColor: "black",
+        },
+        styles: {
+          statusbar: {
+            backgroundColor: "black",
+          },
+        },
       }}
     >
       <View
         style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "column",
-          backgroundColor: theme.dark
+          flexDirection: "row",
+          flexGrow: 1,
+          paddingHorizontal: 15,
+          maxHeight: 44,
         }}
       >
-        <View
+        <Button
+          mode={"clean"}
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "flex-start",
-            zIndex: 1,
-            paddingLeft: 5,
-            paddingRight: 5
+            margin: 0,
+            padding: 0,
+            paddingHorizontal: 0,
+            minWidth: 44,
+          }}
+          onPress={() => {
+            state.isShown = false;
           }}
         >
-          <TouchableOpacity
-            style={{
-              padding: 10,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: 50,
-              height: 50
-            }}
-            onPress={() => {
-              state.snap = false;
-              state.isShown = false;
-            }}
-          >
-            <Icon source="AntDesign" name="arrowleft" color="white" size={24} />
-          </TouchableOpacity>
-        </View>
-        <View
+          <Icon source="AntDesign" name="arrowleft" color="white" size={24} />
+        </Button>
+        <CameraToolsTop
+          state={meta}
+          cameraTools={_.get(props, "cameraTools", {})}
+        />
+      </View>
+      {!!value && !state.resnap ? (
+        <Image
+          source={{ uri: value }}
+          resizeMode="cover"
           style={{
             ...getRatio(),
-            backgroundColor: "white"
           }}
-        >
-          {!!state.photo && !state.resnap ? (
-            <Image
-              source={{ uri: state.photo }}
-              resizeMode="cover"
-              style={{
-                height: 100,
-                width: dim.width,
-                flexGrow: 1,
-                flexShrink: 1,
-                flexBasis: 0
-              }}
-            />
-          ) : (
-            <Camera
-              style={{
-                flexGrow: 1,
-                opacity: state.snap ? 0.6 : 1,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "transparent"
-              }}
-              ref={camera}
-              {...state.cameraProps}
-            >
-              {state.snap && <Spinner color={theme.primary} size="large" />}
-            </Camera>
-          )}
-        </View>
-        <View
+        />
+      ) : (
+        <Camera
+          {...meta.cameraProps}
           style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "stretch",
-            zIndex: 1,
-            padding: 10,
-            backgroundColor: "rgba(0,0,0,0.7)",
-            height: 100
+            opacity: state.snap ? 0.6 : 1,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "transparent",
+            ...getRatio(),
+          }}
+          ref={camera}
+        >
+          {state.snap && <Spinner color={"white"} size="large" />}
+        </Camera>
+      )}
+      <CameraToolsBottom
+        imagePicker={imagePicker}
+        meta={meta}
+        cameraTools={_.get(props, "cameraTools", {})}
+      />
+      <CameraAction imageSnap={imageSnap} state={state} value={value} />
+    </Modal>
+  );
+});
+
+const CameraToolsTop = observer((props: any) => {
+  const { state, cameraTools } = props;
+  const handleFlash = () => {
+    if (state.cameraProps.flashMode === "auto") {
+      state.cameraProps.flashMode = "on";
+    } else if (state.cameraProps.flashMode === "on") {
+      state.cameraProps.flashMode = "off";
+    } else {
+      state.cameraProps.flashMode = "auto";
+    }
+    storage.setItem("cameraProps", JSON.stringify(toJS(state.cameraProps)));
+  };
+  const handleRatio = () => {
+    if (state.cameraProps.ratio === "1:1") {
+      state.cameraProps.ratio = "4:3";
+    } else if (state.cameraProps.ratio === "4:3") {
+      state.cameraProps.ratio = "16:9";
+    } else {
+      state.cameraProps.ratio = "1:1";
+    }
+    storage.setItem("cameraProps", JSON.stringify(toJS(state.cameraProps)));
+  };
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        flexGrow: 1,
+        justifyContent: "flex-end",
+        maxHeight: 44,
+      }}
+    >
+      {!!_.get(cameraTools, "ratio", true) && (
+        <Button
+          mode={"clean"}
+          onPress={handleRatio}
+          style={{
+            minWidth: 44,
+            margin: 0,
+            paddingHorizontal: 10,
           }}
         >
-          {capture && (
-            <View
-              style={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "flex-start",
-                flexDirection: "row",
-                alignItems: "center"
-              }}
-            >
-              <TouchableOpacity
-                style={{
-                  padding: 10,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: 60
-                }}
-                onPress={() => {
-                  if (state.cameraProps.flashMode === "auto") {
-                    state.cameraProps.flashMode = "on";
-                  } else if (state.cameraProps.flashMode === "on") {
-                    state.cameraProps.flashMode = "off";
-                  } else {
-                    state.cameraProps.flashMode = "auto";
-                  }
-                }}
-              >
-                {state.cameraProps.flashMode === "auto" ? (
-                  <Text
-                    style={{
-                      color: "white",
-                      fontSize: 16,
-                      fontWeight: "bold"
-                    }}
-                  >
-                    Auto
-                  </Text>
-                ) : state.cameraProps.flashMode === "on" ? (
-                  <Icon
-                    source="Ionicons"
-                    name="ios-flash"
-                    color="white"
-                    size={40}
-                  />
-                ) : (
-                  <Icon
-                    source="Ionicons"
-                    name="ios-flash-off"
-                    color="white"
-                    size={40}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <View
+          <Text
             style={{
-              position: "absolute",
-              bottom: 10,
-              left: 0,
-              right: 0,
-              flexGrow: 1
+              color: "white",
+              fontSize: 14,
+              fontWeight: "bold",
             }}
           >
-            <TouchableOpacity
-              style={{
-                borderWidth: 1,
-                borderColor: "white",
-                borderStyle: "solid",
-                backgroundColor: "transparent",
-                borderRadius: 100,
-                alignSelf: "center"
-              }}
-              disabled={state.snap}
-              onPress={snap}
-            >
-              <View
-                style={{
-                  backgroundColor: "white",
-                  height: 60,
-                  width: 60,
-                  margin: 4,
-                  borderRadius: 100,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
-                {state.photo && !state.resnap && (
-                  <Icon
-                    source="Ionicons"
-                    name="ios-refresh"
-                    size={40}
-                    color={theme.dark}
-                  />
-                )}
-              </View>
-            </TouchableOpacity>
-          </View>
-          {capture && (
-            <View
-              style={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "flex-end",
-                flexDirection: "row",
-                alignItems: "center"
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  state.cameraProps.type =
-                    state.cameraProps.type === Camera.Constants.Type.back
-                      ? Camera.Constants.Type.front
-                      : Camera.Constants.Type.back;
-                }}
-                style={{
-                  padding: 10,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: 60
-                }}
-              >
-                <Icon
-                  source="Ionicons"
-                  name="ios-reverse-camera"
-                  color="white"
-                  size={35}
-                />
-              </TouchableOpacity>
-            </View>
-          )}
-          {imagePicker && (
-            <TouchableOpacity
-              onPress={pick}
-              style={{
-                padding: 10,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                width: 60
-              }}
-            >
+            {state.cameraProps.ratio}
+          </Text>
+        </Button>
+      )}
+      {!!_.get(cameraTools, "flash", true) && (
+        <Button
+          mode={"clean"}
+          onPress={handleFlash}
+          style={{
+            minWidth: 44,
+            margin: 0,
+            paddingHorizontal: 10,
+          }}
+        >
+          {state.cameraProps.flashMode === "auto" ? (
+            <>
               <Icon
                 source="Ionicons"
-                name="md-images"
+                name="ios-flash"
                 color="white"
-                size={35}
+                size={22}
               />
-            </TouchableOpacity>
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 14,
+                  fontWeight: "bold",
+                }}
+              >
+                Auto
+              </Text>
+            </>
+          ) : state.cameraProps.flashMode === "on" ? (
+            <Icon source="Ionicons" name="ios-flash" color="white" size={26} />
+          ) : (
+            <Icon
+              source="Ionicons"
+              name="ios-flash-off"
+              color="white"
+              size={26}
+            />
           )}
-        </View>
+        </Button>
+      )}
+    </View>
+  );
+});
+
+const CameraToolsBottom = observer((props: any) => {
+  const { imagePicker, meta, cameraTools } = props;
+  const handleReverse = () => {
+    meta.cameraProps.type =
+      meta.cameraProps.type === Camera.Constants.Type.back
+        ? Camera.Constants.Type.front
+        : Camera.Constants.Type.back;
+  };
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingHorizontal: 30,
+        backgroundColor: "rgba(0,0,0,0.4)",
+      }}
+    >
+      {!!_.get(cameraTools, "picker", true) && (
+        <Button
+          mode={"clean"}
+          onPress={imagePicker}
+          style={{
+            flexGrow: 0,
+            paddingHorizontal: 10,
+          }}
+        >
+          <Icon source="Ionicons" name="md-images" color="white" size={35} />
+        </Button>
+      )}
+      <View
+        style={{
+          flexGrow: 1,
+          justifyContent: "flex-end",
+        }}
+      >
+        {!!_.get(cameraTools, "reverse", true) && (
+          <Button
+            mode={"clean"}
+            onPress={handleReverse}
+            style={{
+              flexGrow: 0,
+              paddingHorizontal: 10,
+              alignSelf: "flex-end",
+            }}
+          >
+            <Icon
+              source="Ionicons"
+              name="ios-reverse-camera"
+              color="white"
+              size={45}
+            />
+          </Button>
+        )}
       </View>
-    </Modal>
+    </View>
+  );
+});
+
+const CameraAction = observer((props: any) => {
+  const { imageSnap, state, value } = props;
+  return (
+    <Button
+      mode={"clean"}
+      style={{
+        borderWidth: 2,
+        borderColor: "white",
+        borderStyle: "solid",
+        borderRadius: 100,
+        alignSelf: "center",
+        padding: 0,
+        paddingHorizontal: 0,
+        position: "absolute",
+        bottom: 0,
+      }}
+      disabled={state.snap}
+      onPress={imageSnap}
+    >
+      <View
+        style={{
+          backgroundColor: "white",
+          height: 50,
+          width: 50,
+          margin: 4,
+          borderRadius: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {!!value && !state.resnap && (
+          <Icon
+            source="Ionicons"
+            name="ios-refresh"
+            size={26}
+            color={"black"}
+          />
+        )}
+      </View>
+    </Button>
   );
 });

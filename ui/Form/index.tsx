@@ -1,135 +1,57 @@
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
-import React, { useEffect } from "react";
-import { ScrollViewProps } from "react-native";
-import { ThemeProps } from "../../themes";
-import { uuid } from "../../utils";
-import Field from "../Field";
-import View from "../View";
-import { toJS } from "mobx";
+import React from "react";
 import Button from "../Button";
+import Field from "../Field";
+import View, { IViewProps } from "../View";
+import { uuid } from "../../utils";
+import { toJS } from "mobx";
 
-export interface FormProps extends ScrollViewProps {
+export interface IFromProps extends IViewProps {
   data?: any;
-  setValue?: (value: any, path: any) => void;
+  style?: any;
   children?: any;
-  theme?: ThemeProps;
-  onSubmit?: (data?: any) => void;
+  setValue?: (value, path) => void;
+  onSubmit?: (data) => void;
   onError?: (error?: any) => void;
-  onFieldFunction?: (data?: any) => void;
   reinitValidate?: () => boolean;
 }
 
-export default observer((props: FormProps) => {
+export default observer((props: IFromProps) => {
   const {
     children,
     data,
     setValue,
+    style,
     onSubmit,
-    onFieldFunction,
     onError,
     reinitValidate,
   } = props;
   const meta = useObservable({
-    validate: [],
-    initError: 0,
+    fields: {},
   });
-  const style = {
-    ...(_.get(props, "style", {}) as any),
-  };
 
-  useEffect(() => {
-    meta.validate = [];
-    validateCheck(children);
-  }, []);
-
-  useEffect(() => {
-    if (!!reinitValidate) {
-      let res = reinitValidate();
-      if (!!res) {
-        meta.validate = [];
-        validateCheck(children);
-      }
-    }
-  }, [reinitValidate]);
-
-  const validateCheck = (child) => {
-    if (child) {
-      if (Array.isArray(child)) {
-        child.map((el) => {
-          if (Array.isArray(el)) {
-            validateCheck(el);
-          } else if (el && el.props && Array.isArray(el.props.children)) {
-            validateCheck(el.props.children);
-          } else {
-            if (el && el.props && el.props.isRequired && el.props.path) {
-              let idx = meta.validate.findIndex((x) => x.key === el.props.path);
-              if (idx === -1) {
-                meta.validate.push({
-                  key: el.props.path,
-                  label: el.props.label || el.props.path,
-                  status: !!_.get(data, el.props.path),
-                });
-              } else {
-                meta.validate[idx] = {
-                  key: el.props.path,
-                  label: el.props.label || el.props.path,
-                  status: !!_.get(data, el.props.path),
-                };
-              }
-            }
-          }
-        });
-      } else {
-        if (child.props && child.props.isRequired && child.props.path)
-          meta.validate[child.props.path] = {
-            label: child.props.label || child.props.path,
-            status: !!_.get(data, child.props.path),
-          };
-        let idx = meta.validate.findIndex((x) => x.key === child.props.path);
-        if (idx === -1) {
-          meta.validate.push({
-            key: child.props.path,
-            label: child.props.label || child.props.path,
-            status: !!_.get(data, child.props.path),
-          });
-        } else {
-          meta.validate[idx] = {
-            key: child.props.path,
-            label: child.props.label || child.props.path,
-            status: !!_.get(data, child.props.path),
-          };
-        }
-      }
-    }
-  };
   return (
     <View style={style}>
-      {children && Array.isArray(children) ? (
-        children.map((el: any) => {
-          return (
-            <RenderChild
-              data={data}
-              setValue={setValue}
-              child={el}
-              key={uuid()}
-              meta={meta}
-              onFieldFunction={onFieldFunction}
-              onSubmit={onSubmit}
-              onError={onError}
-            />
-          );
-        })
+      {Array.isArray(children) ? (
+        children.map((el) => (
+          <RenderChild
+            data={data}
+            setValue={setValue}
+            child={el}
+            key={uuid()}
+            onSubmit={onSubmit}
+            meta={meta}
+          />
+        ))
       ) : (
         <RenderChild
           data={data}
           setValue={setValue}
           child={children}
           key={uuid()}
-          meta={meta}
-          onFieldFunction={onFieldFunction}
           onSubmit={onSubmit}
-          onError={onError}
+          meta={meta}
         />
       )}
     </View>
@@ -137,105 +59,48 @@ export default observer((props: FormProps) => {
 });
 
 const RenderChild = observer((props: any) => {
-  const {
-    data,
-    child,
-    setValue,
-    meta,
-    onSubmit,
-    onFieldFunction,
-    onError,
-  } = props;
-  if (Array.isArray(child)) {
-    return child.map((el) => (
-      <RenderChild
-        data={data}
-        setValue={setValue}
-        child={el}
-        key={uuid()}
-        meta={meta}
-        onSubmit={onSubmit}
-        onError={onError}
-      />
-    ));
-  }
+  const { data, child, setValue, onSubmit, meta } = props;
   if (!child || !child.type || !child.props) {
     return child;
-  }
-
-  const defaultSetValue = (value: any, path: any) => {
-    if (!!setValue) setValue(value, path);
-    else {
-      if (data) {
-        _.set(data, path, value);
-      } else {
-        alert("Failed to set value: Form data props is undefined");
-      }
-    }
-  };
-
-  if (typeof child.props.children === "function") {
-    let fc = null;
-
-    if (onFieldFunction) {
-      fc = onFieldFunction(
-        child.props.children,
-        _.get(data, child.props.path, []),
-        defaultSetValue,
-        child.props.path
-      );
-    } else {
-      fc = child.props.children(_.get(data, child.props.path, []));
-    }
-    const Component = child.type;
-    const custProps = child.props;
-    return <Component {...custProps} children={fc} />;
-    // return React.cloneElement(child, {
-    //   ...child.props,
-    //   children: fc,
-    // });
   } else if (child.type === Field) {
     let custProps: any = child.props;
-    const isValid = (value) => {
-      let idx = meta.validate.findIndex((x) => x.key === child.props.path);
-      if (idx > -1) {
-        meta.validate[idx].status = value;
+    let val = true;
+    if (custProps.isRequired) {
+      val = !!_.get(data, custProps.path, null);
+    }
+
+    meta.fields[custProps.path] = val;
+    const defaultSetValue = (value: any, path: any) => {
+      meta.fields[path] = !!value;
+      if (!!setValue) setValue(value, path);
+      else {
+        if (data) {
+          _.set(data, path, value);
+        } else {
+          alert(`Failed to set value to ${path}: Form data props is undefined`);
+        }
       }
     };
     custProps = {
       ...custProps,
-      isValid: isValid,
-      value: _.get(data, child.props.path),
-      setValue: (value: any) => defaultSetValue(value, child.props.path),
+      isValid: meta.fields[custProps.path],
+      value: _.get(data, custProps.path, ""),
+      setValue: (value: any) => defaultSetValue(value, custProps.path),
     };
-
-    if (child.props.isRequired) {
-      custProps = {
-        ...custProps,
-        isValidate: meta.initError,
-      };
-    }
     const Component = child.type;
     return <Component {...custProps} />;
-    // return React.cloneElement(child, {
-    //   ...custProps,
-    //   ...child.props,
-    // });
   } else if (child.type === Button) {
     let custProps: any = child.props;
-    if (custProps.type == "submit") {
-      const onPress = (e) => {
+    if (custProps.type.toLowerCase() == "submit") {
+      const onPress = () => {
         let i = 0;
-        meta.validate.map((item) => {
-          if (!item.status) {
+        Object.keys(meta.fields).map((e) => {
+          if (!meta.fields[e]) {
             ++i;
           }
         });
-        meta.initError = i;
-        if (i === 0 && onSubmit) {
-          onSubmit(data);
-        } else if (i > 0) {
-          onError && onError(meta.validate);
+        if (i === 0) {
+          onSubmit && onSubmit(data);
         }
       };
       custProps = {
@@ -246,55 +111,32 @@ const RenderChild = observer((props: any) => {
     const Component = child.type;
     return <Component {...custProps} />;
   } else {
-    const childrenRaw = _.get(child, "props.children");
-    const hasChildren = !!childrenRaw;
-    if (!hasChildren) {
-      return child;
-    } else if (child.props) {
-      const custProps = child.props;
-      const children = Array.isArray(childrenRaw) ? childrenRaw : [childrenRaw];
-      const Component = child.type;
-      return (
-        <Component {...custProps}>
-          {Array.isArray(children) ? (
-            children.map((el) => (
-              <RenderChild
-                data={data}
-                setValue={setValue}
-                child={el}
-                key={uuid()}
-                meta={meta}
-                onSubmit={onSubmit}
-                onError={onError}
-              />
-            ))
-          ) : (
+    const Component = child.type;
+    const children = child.props.children;
+    return (
+      <Component {...child.props}>
+        {Array.isArray(children) ? (
+          children.map((el) => (
             <RenderChild
               data={data}
               setValue={setValue}
-              child={children}
+              child={el}
               key={uuid()}
-              meta={meta}
               onSubmit={onSubmit}
-              onError={onError}
+              meta={meta}
             />
-          )}
-        </Component>
-      );
-      // return React.cloneElement(child, {
-      //   ...props,
-      // children: children.map((el) => (
-      //   <RenderChild
-      //     data={data}
-      //     setValue={setValue}
-      //     child={el}
-      //     key={uuid()}
-      //     meta={meta}
-      //     onSubmit={onSubmit}
-      //     onError={onError}
-      //   />
-      //   )),
-      // });
-    }
+          ))
+        ) : (
+          <RenderChild
+            data={data}
+            setValue={setValue}
+            child={children}
+            key={uuid()}
+            onSubmit={onSubmit}
+            meta={meta}
+          />
+        )}
+      </Component>
+    );
   }
 });

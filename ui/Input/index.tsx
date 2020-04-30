@@ -1,29 +1,25 @@
 import _ from "lodash";
-import { observer, useObservable } from "mobx-react-lite";
 import React, { useRef } from "react";
-import { TextInput, TextInputProps } from "react-native";
-import { DefaultTheme } from "../../themes";
-import Text from "../Text";
+import { StyleSheet, TextInput, TextInputProps, TextStyle } from "react-native";
 import Theme from "../../theme";
-import { scale } from "../../utils";
+import Text from "../Text";
 
-export type InputType =
+export type IInputType =
   | "text"
   | "number"
   | "password"
   | "decimal"
   | "multiline"
   | "currency";
-export interface InputProps extends TextInputProps {
-  type?: InputType;
-  currencyProps?: any;
+export interface IInputProps extends TextInputProps {
+  type?: IInputType;
   editable?: boolean;
 }
 
-export default observer((props: InputProps) => {
-  let { type, onChangeText, value, currencyProps, editable } = props;
+export default (props: IInputProps) => {
+  let { type, onChangeText, value, editable, style } = props;
   const originalType = useRef(type);
-  const setValue = (e: any) => {
+  const onChange = (e: any) => {
     let v;
     switch (originalType.current) {
       default:
@@ -44,17 +40,25 @@ export default observer((props: InputProps) => {
 
     onChangeText && onChangeText(v);
   };
-  let style = {
-    minWidth: 10,
-    borderWidth: 0,
-    margin: 0,
+  const baseStyle: TextStyle = {
+    fontSize: Theme.UIFontSize,
+    fontFamily: Theme.UIFontFamily,
     color: Theme.UIColors.text,
-    minHeight: 30,
-    fontSize: scale(Theme.UIFontSize),
-    ...(_.get(props, "style", {}) as any)
   };
+  const cstyle = StyleSheet.flatten([
+    baseStyle,
+    Theme.UIInput,
+    style,
+    {
+      opacity: editable !== false ? 1 : 0.7,
+    },
+  ]);
 
-  const cprops = { ...props, onChangeText: setValue };
+  if (!!value && typeof value === "object") {
+    return <Text>{JSON.stringify(value)}</Text>;
+  }
+
+  const cprops = { ...props, onChangeText: onChange };
 
   if (
     typeof value === "number" &&
@@ -74,17 +78,13 @@ export default observer((props: InputProps) => {
         .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
-  let ComponentProps: TextInputProps = {
+  let ComponentProps: any = {
     returnKeyType: "next",
     ...cprops,
-    style,
+    style: cstyle,
     value: !!value ? value : "",
-    placeholder: _.get(cprops, "placeholder", "")
+    placeholder: _.get(cprops, "placeholder", ""),
   };
-
-  if (!!value && typeof value === "object") {
-    return <Text>{JSON.stringify(value)}</Text>;
-  }
 
   let Component = TextInput;
 
@@ -92,7 +92,7 @@ export default observer((props: InputProps) => {
     case "password":
       ComponentProps = {
         ...ComponentProps,
-        secureTextEntry: true
+        secureTextEntry: true,
       };
       break;
     case "decimal":
@@ -100,35 +100,27 @@ export default observer((props: InputProps) => {
       ComponentProps = {
         keyboardType: "number-pad",
         ...ComponentProps,
-        value: !!value ? String(value) : ""
+        value: !!value ? String(value) : "",
       };
       break;
     case "multiline":
       ComponentProps = {
         numberOfLines: 4,
         ...ComponentProps,
-        multiline: true
+        multiline: true,
+        style: {
+          ...ComponentProps.style,
+          height: 100,
+        },
       };
       break;
     case "currency":
-      // delete ComponentProps.onChangeText;
-      // ComponentProps = {
-      //   locale: "id-ID",
-      //   currency: "IDR",
-      //   ...ComponentProps,
-      //   ...currencyProps,
-      //   type: "currency",
-      //   onUpdate: setValue
-      // };
-      // Component = NumericInput;
-      // break;
       ComponentProps = {
         keyboardType: "number-pad",
-        ...ComponentProps
-        // value: !!value ? String(value) : ""
+        ...ComponentProps,
       };
       break;
   }
 
   return <Component {...ComponentProps} />;
-});
+};

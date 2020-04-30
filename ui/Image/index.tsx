@@ -4,7 +4,7 @@ import {
   ImageProps as OriginImageProps,
   StyleSheet,
   ImageStyle,
-  ViewStyle
+  ViewStyle,
 } from "react-native";
 import _ from "lodash";
 import Theme from "../../theme";
@@ -13,9 +13,14 @@ import Modal from "../Modal";
 import Icon from "../Icon";
 import View from "../View";
 
+interface IStyle {
+  preview?: ViewStyle;
+}
+
 export interface IImageProps extends OriginImageProps {
   loadingSize?: "small" | "large";
   preview?: boolean;
+  styles?: IStyle;
 }
 
 export default (props: IImageProps) => {
@@ -23,16 +28,21 @@ export default (props: IImageProps) => {
   const [error, setError] = useState(false);
   const [show, setShow] = useState(false);
   const baseStyle: ImageStyle = {
-    margin: 4,
     width: 300,
-    height: 150
+    height: 150,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
+  const loadingStyle = StyleSheet.flatten([
+    cstyle,
+    {
+      backgroundColor: Theme.UIColors.primary,
+    },
+  ]);
   let csource: any = source;
   if (typeof source === "object") {
     csource = {
       ...source,
-      cache: "force-cache"
+      cache: "force-cache",
     };
   }
 
@@ -42,7 +52,7 @@ export default (props: IImageProps) => {
     paddingLeft: 0,
     paddingRight: 0,
     backgroundColor: "transparent",
-    opacity: !preview ? 1 : undefined
+    opacity: !preview ? 1 : undefined,
   };
 
   const onPress = () => {
@@ -57,18 +67,25 @@ export default (props: IImageProps) => {
           style={btnStyle}
           disabled={!preview}
           onPress={onPress}
+          styles={{
+            disabled: {
+              opacity: 1,
+            },
+          }}
         >
-          {!error && <Image
-            resizeMode={"contain"}
-            defaultSource={Theme.UIImageLoading}
-            {...props}
-            source={csource}
-            style={cstyle}
-            onError={e => {
-              const err = _.get(e, "mativeEvent.error", "");
-              if (!!err) setError(true);
-            }}
-          />}
+          {!error && (
+            <Image
+              resizeMode={"contain"}
+              defaultSource={Theme.UIImageLoading}
+              {...props}
+              source={csource}
+              style={cstyle}
+              onError={(e) => {
+                const err = _.get(e, "mativeEvent.error", "");
+                if (!!err) setError(true);
+              }}
+            />
+          )}
         </Button>
       ) : (
         <Image
@@ -76,12 +93,10 @@ export default (props: IImageProps) => {
           defaultSource={Theme.UIImageLoading}
           {...props}
           source={csource}
-          style={cstyle}
+          style={loadingStyle}
         />
       )}
-      {!!show && (
-        <PreviewImage show={show} setShow={setShow} imgProps={props} />
-      )}
+      <PreviewImage show={show} setShow={setShow} imgProps={props} />
     </>
   );
 };
@@ -99,7 +114,7 @@ const PreviewImage = (props: any) => {
           flexShrink: 1,
           flexGrow: 1,
           justifyContent: "center",
-          alignItems: "center"
+          alignItems: "center",
         }}
       >
         <Image
@@ -107,7 +122,7 @@ const PreviewImage = (props: any) => {
           resizeMode={"contain"}
           style={{
             width: "100%",
-            height: "100%"
+            height: "100%",
           }}
         />
 
@@ -124,7 +139,7 @@ const PreviewImage = (props: any) => {
             borderRadius: 99,
             padding: 0,
             paddingLeft: 0,
-            paddingRight: 0
+            paddingRight: 0,
           }}
           onPress={onRequestClose}
         >
@@ -133,7 +148,7 @@ const PreviewImage = (props: any) => {
             name={"arrowleft"}
             size={30}
             style={{
-              margin: 5
+              margin: 5,
             }}
           />
         </Button>

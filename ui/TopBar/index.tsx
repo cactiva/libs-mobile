@@ -11,7 +11,7 @@ import Text from "../Text";
 import Button from "../Button";
 import Icon from "../Icon";
 import Theme from "../../theme";
-import { useNavigation } from "react-navigation-hooks";
+import { useNavigation } from "@react-navigation/native";
 
 export interface ITopBarProps extends ViewProps {
   backButton?: boolean;
@@ -66,7 +66,7 @@ export default (props: ITopBarProps) => {
     overflow: "hidden",
     flexGrow: 1,
   };
-  const onPressBack = actionBackButton
+  const onPressBack = !!actionBackButton
     ? actionBackButton
     : () => {
         goBack();

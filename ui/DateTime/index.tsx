@@ -1,20 +1,24 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { toJS } from "mobx";
 import React, { useEffect, useState } from "react";
-import {
-  Modal,
-  Platform,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Platform, ViewStyle, TextStyle } from "react-native";
 import Theme from "../../theme";
 import { dateFormat } from "../../utils/date";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
+import Text from "../Text";
+import Modal from "../Modal";
+import View from "../View";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import _ from "lodash";
+import Container from "../Container";
 
-export interface DateTimeProps {
+interface IStyles {
+  label?: TextStyle;
+  icon?: ViewStyle;
+}
+
+export interface IDateTimeProps {
   onChange?: (value: any) => void;
   maxDate?: Date;
   minDate?: Date;
@@ -26,9 +30,10 @@ export interface DateTimeProps {
   iconProps?: IIconProps | any;
   mode?: "date" | "time" | "datetime";
   visibility?: "text-icon" | "text-only" | "icon-only";
+  styles?: IStyles;
 }
 
-export default (props: DateTimeProps) => {
+export default (props: IDateTimeProps) => {
   const {
     style,
     onChange,
@@ -75,20 +80,28 @@ export default (props: DateTimeProps) => {
     }
   }, []);
 
+  const baseStyle: any = {
+    backgroundColor: "transparent",
+    padding: 0,
+    paddingHorizontal: 10,
+    ...Theme.UIInput,
+    ...style,
+  };
+
+  const labelStyle = {
+    color: Theme.UIColors.text,
+    fontSize: Theme.UIFontSize,
+    flexGrow: 1,
+    flexShrink: 1,
+    ..._.get(props, "styles.label"),
+  };
+
+  const iconStyle = { margin: 0, ..._.get(props, "styles.icon") };
+
   return (
     <>
       <Button
-        style={{
-          paddingLeft: 5,
-          paddingRight: 5,
-          flexGrow: 1,
-          backgroundColor: "transparent",
-          margin: 0,
-          padding: 0,
-          minHeight: 28,
-          minWidth: 38,
-          ...style,
-        }}
+        style={baseStyle}
         onPress={(e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -96,16 +109,7 @@ export default (props: DateTimeProps) => {
         }}
       >
         {["text-icon", "text-only"].indexOf(visibility) > -1 && (
-          <Text
-            style={{
-              color: Theme.UIColors.text,
-              fontSize: Theme.UIFontSize,
-              flexGrow: 1,
-              flexShrink: 1,
-            }}
-            numberOfLines={1}
-            ellipsizeMode={"tail"}
-          >
+          <Text style={labelStyle} numberOfLines={1} ellipsizeMode={"tail"}>
             {dateString()}
           </Text>
         )}
@@ -114,10 +118,8 @@ export default (props: DateTimeProps) => {
             source="Ionicons"
             name={"ios-calendar"}
             size={24}
-            style={{
-              margin: 0,
-            }}
             {...iconProps}
+            style={iconStyle}
           />
         )}
       </Button>
@@ -154,7 +156,7 @@ const DatePickerModal = (props: any) => {
     setVisible(false);
     onChangePicker(date);
   };
-  const setValue = (ev, date, type = null) => {
+  const setValue = (ev, date) => {
     if (Platform.OS === "android") {
       if (ev.type === "dismissed") {
         if (androidMode === "time") setAndroidMode("date");
@@ -190,102 +192,107 @@ const DatePickerModal = (props: any) => {
   if (Platform.OS === "android") {
     if (!!visible)
       return (
-        <>
-          <DateTimePicker
-            value={val}
-            mode={androidMode as any}
-            is24Hour={true}
-            display="default"
-            onChange={setValue}
-            minimumDate={minDate}
-            maximumDate={maxDate}
-          />
-        </>
+        <DateTimePicker
+          value={val}
+          mode={androidMode as any}
+          is24Hour={true}
+          display="default"
+          onChange={setValue}
+          minimumDate={minDate}
+          maximumDate={maxDate}
+        />
       );
   } else if (Platform.OS === "ios")
     return (
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={visible}
         onRequestClose={() => {
           setVal(value);
           dismiss();
         }}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => {
-            setVal(value);
-            dismiss();
-          }}
-          style={{
+        screenProps={{
+          style: {
             backgroundColor: "rgba(0,0,0,0.3)",
             flexGrow: 1,
-            justifyContent: "flex-end",
+          },
+          styles: {
+            statusbar: {
+              backgroundColor: "rgba(0,0,0,0.3)",
+            },
+          },
+        }}
+      >
+        <Button
+          mode={"clean"}
+          style={{
+            margin: 0,
+            borderRadius: 0,
+            flexGrow: 1,
+          }}
+          onPress={dismiss}
+        ></Button>
+        <View
+          style={{
+            backgroundColor: "#fff",
           }}
         >
+          <DateTimePicker
+            value={val}
+            mode={mode}
+            is24Hour={true}
+            display="default"
+            onChange={setValue}
+            minimumDate={minDate}
+            maximumDate={maxDate}
+          />
           <View
             style={{
-              backgroundColor: "#fff",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            <DateTimePicker
-              value={val}
-              mode={mode}
-              is24Hour={true}
-              display="default"
-              onChange={setValue}
-              minimumDate={minDate}
-              maximumDate={maxDate}
-            />
-            <View
+            <Button
+              mode={"clean"}
               style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
+                minHeight: 35,
+                padding: 0,
+              }}
+              onPress={() => {
+                setVal(value);
+                dismiss();
               }}
             >
-              <Button
-                mode={"clean"}
+              <Text
                 style={{
-                  minHeight: 35,
-                  padding: 0,
-                }}
-                onPress={() => {
-                  setVal(value);
-                  dismiss();
+                  color: Theme.UIColors.primary,
                 }}
               >
-                <Text
-                  style={{
-                    color: Theme.UIColors.primary,
-                  }}
-                >
-                  Cancel
-                </Text>
-              </Button>
-              <Button
-                mode={"clean"}
+                Cancel
+              </Text>
+            </Button>
+            <Button
+              mode={"clean"}
+              style={{
+                minHeight: 35,
+                padding: 0,
+              }}
+              onPress={() => {
+                onChange(val);
+              }}
+            >
+              <Text
                 style={{
-                  minHeight: 35,
-                  padding: 0,
-                }}
-                onPress={() => {
-                  onChange(val);
+                  color: Theme.UIColors.primary,
                 }}
               >
-                <Text
-                  style={{
-                    color: Theme.UIColors.primary,
-                  }}
-                >
-                  Ok
-                </Text>
-              </Button>
-            </View>
+                Ok
+              </Text>
+            </Button>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     );
   return null;

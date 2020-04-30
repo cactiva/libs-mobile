@@ -1,75 +1,77 @@
-import { textStyle } from "@src/libs/utils";
-import { observer } from "mobx-react-lite";
 import React from "react";
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
-import Svg, { Circle } from "react-native-svg";
-import { DefaultTheme, ThemeProps } from "../../themes";
+import { StyleSheet, TextStyle, ViewStyle } from "react-native";
+import Theme from "../../theme";
+import Button from "../Button";
 import Icon from "../Icon";
-import Theme from "@src/libs/theme";
+import Text, { ITextProps } from "../Text";
+import View from "../View";
+import _ from "lodash";
 
 export type RadioModeType = "default" | "checkbox" | "button";
 
-export interface RadioProps {
-  text?: string;
+interface IStyle {
+  label?: TextStyle;
+  selected?: ViewStyle;
+}
+
+export interface IRadioProps {
+  label?: string;
   value?: any;
   mode?: RadioModeType;
   checked?: boolean;
   onPress?: (value: boolean) => void;
   style?: ViewStyle;
-  textStyle?: TextStyle;
-  theme?: ThemeProps;
+  styles?: IStyle;
+  labelProps?: ITextProps;
 }
 
-export default observer((props: RadioProps) => {
-  const { text, onPress, value, mode } = props;
+export default (props: IRadioProps) => {
+  const { label, onPress, mode, labelProps } = props;
   const checked = props.checked === true ? true : false;
-
-  const basetstyle = {
+  const baseLabelStyle = {
     color: Theme.UIColors.text,
   };
-  const tStyle = StyleSheet.flatten([basetstyle, props.textStyle]);
+  const labelStyle = StyleSheet.flatten([
+    baseLabelStyle,
+    _.get(props, "labelProps.style", {}),
+    _.get(props, "styles.label", {}),
+  ]);
   const baseStyle = {
-    margin: 5,
-    padding: 5,
+    margin: 0,
+    marginRight: 10,
+    marginBottom: 10,
+    padding: 0,
+    paddingHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
   };
   const btnStyle =
     mode === "button"
       ? {
-          borderColor: Theme.UIColors.primary,
-          borderWidth: 1,
+          ...Theme.UIInput,
+          backgroundColor: "transparent",
         }
       : {};
   const btnActiveStyle =
-    mode === "button"
+    mode === "button" && !!checked
       ? {
-          backgroundColor: Theme.UIColors.primary,
+          borderColor: Theme.UIColors.primary,
+          backgroundColor: "#fff",
         }
       : {};
-  const style = StyleSheet.flatten([
+  const style: any = StyleSheet.flatten([
     baseStyle,
     btnStyle,
-    btnActiveStyle,
     props.style,
+    btnActiveStyle,
   ]);
-  // if (!!style)
-  //   Object.keys(style).map((k) => {
-  //     if (Object.keys(tStyle).indexOf(k) > -1) delete style[k];
-  //   });
   return (
-    <TouchableOpacity
-      style={style}
+    <Button
+      mode={"clean"}
       onPress={() => {
         onPress && onPress(!checked);
       }}
+      style={style}
     >
       {mode === "checkbox" ? (
         <View
@@ -106,7 +108,9 @@ export default observer((props: RadioProps) => {
           />
         )
       )}
-      <Text style={tStyle}>{text}</Text>
-    </TouchableOpacity>
+      <Text {...labelProps} style={labelStyle}>
+        {label}
+      </Text>
+    </Button>
   );
-});
+};

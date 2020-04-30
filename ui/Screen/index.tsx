@@ -1,37 +1,52 @@
 import React from "react";
 import View from "../View";
 import Constants from "expo-constants";
-import { ViewStyle, StyleSheet, ViewProps } from "react-native";
+import {
+  ViewStyle,
+  StyleSheet,
+  ViewProps,
+  StatusBar,
+  Platform,
+} from "react-native";
 import Theme from "../../theme";
+import _ from "lodash";
+
+interface IStyles {
+  statusbar?: ViewStyle;
+}
 
 export interface IScreenProps extends ViewProps {
   children?: any;
-  statusbarStyle?: any;
+  styles?: IStyles;
 }
 
 export default (props: IScreenProps) => {
-  const { style, statusbarStyle } = props;
-  const safeAreaStyle: ViewStyle = {
-    flexGrow: 1,
-    flexShrink: 1,
-    backgroundColor: Theme.UIColors.background,
-    padding: 0,
-    margin: 0
-  };
-  let cstyle = StyleSheet.flatten([safeAreaStyle, style]);
+  const { style } = props;
+  const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
+  let cstyle = StyleSheet.flatten([
+    {
+      flexGrow: 1,
+      flexShrink: 1,
+      backgroundColor: Theme.UIColors.background,
+      padding: 0,
+      margin: 0,
+      marginTop,
+    },
+    style,
+  ]);
   const defStatusbarStyle: ViewStyle = {
     backgroundColor: Theme.UIColors.primary,
     height: Constants.statusBarHeight,
-    zIndex: 99
+    zIndex: 999,
   };
   const cstatusbarStyle = StyleSheet.flatten([
     defStatusbarStyle,
-    statusbarStyle
+    _.get(props, "styles.statusbar", {}),
   ]);
   return (
     <>
       <View style={cstatusbarStyle} />
-      <View {...props} style={cstyle} />
+      <View type={"SafeAreaView"} {...props} style={cstyle} />
     </>
   );
 };

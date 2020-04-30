@@ -5,29 +5,41 @@ import {
   Modal,
   ModalProps as ModalPropsOrigin,
   Platform,
-  StyleSheet
+  StyleSheet,
 } from "react-native";
-import Screen from "../Screen";
+import Screen, { IScreenProps } from "../Screen";
+import _ from "lodash";
 
 export interface ModalProps extends ModalPropsOrigin {
   style?: any;
   children?: any;
+  screenProps?: IScreenProps;
 }
 
 export default observer((props: ModalProps) => {
   const { style, children } = props;
   const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
   const baseStyle = {
-    backgroundColor: "transparent"
+    backgroundColor: "transparent",
   };
-  const cstyle = StyleSheet.flatten([baseStyle, style]);
+  const cstyle = StyleSheet.flatten([
+    baseStyle,
+    style,
+    _.get(props, "screenProps.style", {}),
+  ]);
+  const statusbarStyle = StyleSheet.flatten([
+    {
+      marginTop,
+    },
+    _.get(props, "screenProps.styles.statusbar"),
+  ]);
   return (
     <Modal animationType="fade" transparent={true} {...props}>
       <Screen
-        statusbarStyle={{
-          marginTop
-        }}
         style={cstyle}
+        styles={{
+          statusbar: statusbarStyle,
+        }}
       >
         {children}
       </Screen>

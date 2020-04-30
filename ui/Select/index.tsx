@@ -1,275 +1,255 @@
-import Theme from "../../theme";
-import _ from "lodash";
-import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import { ThemeProps } from "../../themes";
-import { fuzzyMatch, textStyle, uuid } from "../../utils";
-import Button from "../Button";
-import FlatList from "../FlatList";
-import Icon from "../Icon";
-import Input from "../Input";
+import { ViewStyle, TextStyle, StyleSheet } from "react-native";
+import Theme from "@src/libs/theme";
+import Button, { IButtonProps } from "../Button";
+import Text, { ITextProps } from "../Text";
+import { useObservable, observer } from "mobx-react-lite";
+import Input, { IInputProps } from "../Input";
 import Modal from "../Modal";
-import Text from "../Text";
+import View, { IViewProps } from "../View";
 import TopBar from "../TopBar";
-import View from "../View";
-import Container from "../Container";
-import Screen from "../Screen";
+import FlatList, { IFlatListProps } from "../FlatList";
+import _ from "lodash";
+import { uuid } from "@src/libs/utils";
+import Icon, { IIconProps } from "../Icon";
+import { fuzzyMatch } from "../../utils";
+import { toJS } from "mobx";
 
-export interface SelectItemProps {
+interface IItemProps {
   label: any;
   value: any;
 }
 
-export interface SelectProps {
-  value?: any;
-  placeholder?: string;
-  placeholderColor?: string;
-  items: (SelectItemProps | string | any)[];
-  onSelect?: (item: any) => void;
-  style?: any;
-  theme?: ThemeProps;
-  onFocus?: (e: any) => void;
-  readonly?: boolean;
-  labelPath?: ((item: any) => any) | string;
-  valuePath?: ((item: any) => any) | string;
-  icon?: boolean;
-  searchStyle?: any;
+interface IStyles {
+  label?: TextStyle;
+  icon?: ViewStyle;
+  search?: ViewStyle;
+  list?: ViewStyle;
+  item?: {
+    sperator?: ViewStyle;
+    button?: ViewStyle;
+    label?: TextStyle;
+    selected?: ViewStyle;
+  };
 }
 
-const parsePath = (item, path) => {
-  if (typeof item === "object") {
-    if (typeof path === "function") {
-      return path(item || {});
-    } else if (typeof path === "string") {
-      return _.get(item, path);
-    }
-  }
-  return item;
-};
+export interface ISelectProps {
+  items: (IItemProps | String | any)[];
+  value?: any;
+  onSelect?: (item) => void;
+  onChange?: (value) => void;
+  renderItem?: (item) => void;
+  labelPath?: any;
+  valuePath?: any;
+  editable?: boolean;
+  style?: ViewStyle;
+  styles?: IStyles;
+  iconProps?: IIconProps;
+  labelProps?: ITextProps;
+  searchProps?: IInputProps;
+  listProps?: IFlatListProps;
+}
 
-const processData = (props: SelectProps) => {
-  if (!Array.isArray(props.items)) return [];
+export const formatedItems = (props: ISelectProps | any) => {
   const labelPath = _.get(props, "labelPath", "label");
   const valuePath = _.get(props, "valuePath", "value");
-  return (props.items || []).map(item => {
+  let items = [];
+  if (Array.isArray(props.items)) {
+    items = _.get(props, "items", []);
+  }
+  return items.map((item) => {
     return {
-      label: parsePath(item, labelPath),
-      value: parsePath(item, valuePath)
+      label: item[labelPath],
+      value: item[valuePath],
     };
   });
 };
 
-export default observer((props: SelectProps) => {
-  const { value, placeholder, readonly, placeholderColor } = props;
+export default observer((props: ISelectProps) => {
+  const { style, editable, value, iconProps, labelProps } = props;
   const meta = useObservable({
-    isShown: false,
-    value: null,
-    items: [],
-    filter: ""
+    openSelect: false,
+    search: "",
   });
-
-  useEffect(() => {
-    meta.items = processData(props);
-  }, [props.items]);
-
-  const items = meta.items;
-
-  const tStyle: any = textStyle(props.style);
-  const style = { ...props.style };
-  if (!!style)
-    Object.keys(style).map(k => {
-      if (Object.keys(tStyle).indexOf(k) > -1) delete style[k];
-    });
-
-  useEffect(() => {
-    if (value && Array.isArray(items))
-      meta.value = items.find(x =>
-        typeof x === "string" ? x === value : x.value === value
-      );
-  }, [value, items]);
+  const baseStyle: ViewStyle = {
+    justifyContent: "space-between",
+    alignItems: "center",
+  };
+  const cstyle: any = StyleSheet.flatten([
+    baseStyle,
+    Theme.UIInput,
+    style,
+    {
+      opacity: editable !== false ? 1 : 0.7,
+    },
+  ]);
+  const baseLabelStyle: TextStyle = {
+    flexWrap: "nowrap",
+    flexShrink: 1,
+  };
+  const clabelstyle = StyleSheet.flatten([
+    baseLabelStyle,
+    _.get(props, "styles.label", {}),
+  ]);
+  const ciconstyle = StyleSheet.flatten([
+    {
+      margin: 0,
+      alignSelf: "center",
+    },
+    _.get(props, "styles.icon", {}),
+  ]);
+  const handleSelect = () => {
+    if (props.items.length === 0) alert("No item to display.");
+    else meta.openSelect = !meta.openSelect;
+  };
+  const items = formatedItems(props);
+  const selectedItem = items.find((x) => x.value === value) || {};
 
   return (
     <>
       <Button
-        style={{
-          minHeight: 30,
-          margin: 0,
-          backgroundColor: "transparent",
-          paddingLeft: 0,
-          paddingRight: 0,
-          alignItems: "stretch",
-          justifyContent: "space-between",
-          flexGrow: 1,
-          ...style
-        }}
-        disabled={readonly}
-        onPress={() => {
-          meta.isShown = items && items.length > 0 ? true : false;
-          if (items.length === 0) alert("No item to display.");
-        }}
+        mode={"clean"}
+        style={cstyle}
+        disabled={editable === false}
+        onPress={handleSelect}
       >
         <Text
-          style={{
-            flexGrow: 1,
-            paddingLeft: 5,
-            fontSize: Theme.UIFontSize,
-            color: Theme.UIColors.text,
-            alignSelf: "center",
-            overflow: "hidden",
-            flexShrink: 1,
-            ...tStyle
-          }}
           ellipsizeMode={"tail"}
           numberOfLines={1}
+          {...labelProps}
+          style={clabelstyle}
         >
-          {meta.value
-            ? typeof meta.value === "string"
-              ? meta.value
-              : meta.value.label
-            : placeholder}
+          {_.get(selectedItem, "label", "")}
         </Text>
-        {!readonly && (props.icon === undefined || props.icon) && (
-          <View
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              paddingLeft: 5,
-              paddingRight: 5
-            }}
-          >
-            <Icon
-              source="Entypo"
-              name={meta.isShown ? "chevron-up" : "chevron-down"}
-              color={tStyle.color || "black"}
-              size={20}
-              style={{
-                margin: 0
-              }}
-            />
-          </View>
-        )}
+        <Icon
+          name={"ios-arrow-down"}
+          size={18}
+          {...iconProps}
+          style={ciconstyle}
+        />
       </Button>
-      <ModalItems meta={meta} {...props} items={items} />
+      <SelectComponent
+        meta={meta}
+        selectedItem={selectedItem}
+        selectProps={props}
+        items={items}
+      />
     </>
   );
 });
 
-const ModalItems = observer((props: any) => {
-  const { meta, items } = props;
-  const onSearch = value => {
-    meta.filter = value;
+const SelectComponent = observer((props: any) => {
+  const { meta, selectProps, items } = props;
+  const { listProps, searchProps } = selectProps;
+  const handleReqClose = () => {
+    meta.openSelect = false;
   };
-
+  const renderItem = ({ item }: any) => {
+    return <RenderItem item={item} meta={meta} selectProps={selectProps} />;
+  };
+  const itemSperator = () => (
+    <View
+      style={StyleSheet.flatten([
+        {
+          borderBottomWidth: 1,
+          borderStyle: "solid",
+          borderColor: "#e4e4e4",
+          borderWidth: 0,
+        },
+        _.get(selectProps, "styles.item.sperator", {}),
+      ])}
+    />
+  );
+  const basesearchStyle: TextStyle = {
+    margin: 0,
+    flexGrow: 1,
+  };
+  const csearchstyle = StyleSheet.flatten([
+    basesearchStyle,
+    _.get(searchProps, "style", {}),
+    _.get(selectProps, "styles.item.search", {}),
+  ]);
+  const cstyle = StyleSheet.flatten([
+    {
+      paddingHorizontal: 0,
+    },
+    _.get(listProps, "style", {}),
+    _.get(selectProps, "styles.list", {}),
+  ]);
+  const handleSearchInput = (value) => {
+    meta.search = value;
+  };
   return (
     <Modal
-      animationType="slide"
-      visible={meta.isShown}
-      onRequestClose={() => (meta.isShown = false)}
+      transparent={false}
+      visible={meta.openSelect}
+      onRequestClose={handleReqClose}
     >
-      <TopBar
-        backButton={true}
-        actionBackButton={() => (meta.isShown = false)}
-        enableShadow
-      >
+      <TopBar backButton actionBackButton={handleReqClose}>
         <Input
-          placeholder={props.placeholder || "Search..."}
-          value={meta.filter}
-          onChangeText={onSearch}
           autoFocus={true}
-          style={{
-            padding: 10,
-            color: "#fff",
-            ..._.get(props, "searchStyle", {})
-          }}
-          placeholderTextColor={props.placeholderColor || "#fff"}
+          {...searchProps}
+          style={csearchstyle}
+          value={meta.search}
+          onChangeText={handleSearchInput}
         />
       </TopBar>
-      <RenderItem {...props} meta={meta} items={items} />
+      <FlatList
+        {...listProps}
+        data={items.filter((item) => {
+          if (!!meta.search)
+            return fuzzyMatch(
+              meta.search.toLowerCase(),
+              item.label.toLowerCase()
+            );
+          return true;
+        })}
+        renderItem={renderItem}
+        keyExtractor={() => uuid()}
+        ItemSeparatorComponent={itemSperator}
+        keyboardShouldPersistTaps={"handled"}
+        style={cstyle}
+      />
     </Modal>
   );
 });
 
-const RenderItem = observer((props: any) => {
-  const { meta, items, value, onSelect } = props;
+const RenderItem = (props: any) => {
+  const { item, meta, selectProps } = props;
+  const { labelProps } = selectProps;
+  const labelStyle = {
+    color: "#000",
+  };
+  const clabelstyle = StyleSheet.flatten([
+    labelStyle,
+    _.get(selectProps, "styles.item.label", {}),
+  ]);
+  const itemStyle: ViewStyle = {
+    justifyContent: "flex-start",
+    borderRadius: 0,
+    margin: 0,
+  };
+  const selectedStyle =
+    item.value === selectProps.value
+      ? {
+          backgroundColor: Theme.UIColors.primary + "24",
+          borderStyle: "solid",
+          borderBottomWidth: 1,
+          borderColor: Theme.UIColors.primary,
+          ..._.get(selectProps, "styles.item.selected", {}),
+        }
+      : {};
+  const cstyle = StyleSheet.flatten([itemStyle, selectedStyle]);
+  const handleSelect = () => {
+    selectProps.onChange && selectProps.onChange(item.value);
+    selectProps.onSelect && selectProps.onSelect(item);
+    meta.openSelect = false;
+  };
   return (
-    <FlatList
-      keyboardShouldPersistTaps={"handled"}
-      data={items.filter((item: any) => {
-        if (meta.filter.length > 0)
-          return fuzzyMatch(
-            meta.filter.toLowerCase(),
-            item.label.toLowerCase()
-          );
-        return true;
-      })}
-      keyExtractor={(item: any) => {
-        return `${uuid()}-${typeof item === "string" ? item : item.value}`;
-      }}
-      ItemSeparatorComponent={() => (
-        <View
-          style={{
-            borderBottomWidth: 1,
-            borderStyle: "solid",
-            borderColor: "#e4e4e4",
-            borderWidth: 0
-          }}
-        />
-      )}
-      ListEmptyComponent={() => (
-        <Text
-          style={{
-            margin: 30,
-            textAlign: "center"
-          }}
-        >
-          No item to display.
-        </Text>
-      )}
-      renderItem={({ item }) => {
-        return (
-          <RenderItemRow
-            item={item}
-            value={value}
-            meta={meta}
-            onSelect={onSelect}
-          ></RenderItemRow>
-        );
-      }}
-      style={{
-        backgroundColor: "#fff"
-      }}
-    />
-  );
-});
-
-const RenderItemRow = observer((props: any) => {
-  const { item, value, meta, onSelect } = props;
-  const textLabel = typeof item === "string" ? item : item.label;
-  const textValue = typeof item === "string" ? item : item.value;
-  let active = false;
-  if (value && value.value) {
-    active = value.value === textValue && !!textValue;
-  }
-  return (
-    <Button
-      onPress={() => {
-        onSelect(item);
-        meta.isShown = false;
-        meta.value = item;
-      }}
-      style={{
-        justifyContent: "flex-start",
-        backgroundColor: active ? Theme.UIColors.primary : "transparent"
-      }}
-    >
-      <Text
-        style={{
-          color: active ? "#fff" : "black"
-        }}
-      >
-        {textLabel}
+    <Button mode="clean" onPress={handleSelect} style={cstyle}>
+      <Text {...labelProps} style={clabelstyle}>
+        {item.label}
       </Text>
     </Button>
   );
-});
+};

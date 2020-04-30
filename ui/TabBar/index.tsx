@@ -1,12 +1,11 @@
-import React from "react";
-import View from "../View";
-import Icon, { IIconProps } from "../Icon";
-import Button from "../Button";
-import { NavigationActions } from "react-navigation";
-import Text from "../Text";
 import Theme from "@src/libs/theme";
-import { ViewStyle, StyleSheet, SafeAreaView } from "react-native";
+import React from "react";
+import { StyleSheet, ViewStyle } from "react-native";
 import { useNavigation } from "react-navigation-hooks";
+import Button from "../Button";
+import Icon, { IIconProps } from "../Icon";
+import Text from "../Text";
+import View from "../View";
 
 export interface IMenuProps {
   label?: string;
@@ -30,19 +29,17 @@ export default (props: ITabBarProps) => {
   const baseStyle = {
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   };
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   return (
-    <SafeAreaView>
-      <View {...props} style={cstyle}>
-        {menu.map(item => {
-          const Template = template;
-          if (Template) return <Template key={item.path} {...item} />;
-          return <DefaultTemplate key={item.path} {...item} />;
-        })}
-      </View>
-    </SafeAreaView>
+    <View type={"SafeAreaView"} {...props} style={cstyle}>
+      {menu.map((item) => {
+        const Template = template;
+        if (Template) return <Template key={item.path} {...item} />;
+        return <DefaultTemplate key={item.path} {...item} />;
+      })}
+    </View>
   );
 };
 
@@ -55,7 +52,7 @@ const DefaultTemplate = (props: IMenuProps) => {
     flexGrow: 1,
     borderRadius: 0,
     margin: 0,
-    backgroundColor: "transparent"
+    backgroundColor: "transparent",
   };
   return (
     <Button
@@ -68,7 +65,7 @@ const DefaultTemplate = (props: IMenuProps) => {
       {icon && <Icon {...icon} />}
       <Text
         style={{
-          color: Theme.UIColors.primary
+          color: Theme.UIColors.primary,
         }}
       >
         {label}
