@@ -162,6 +162,7 @@ const SelectComponent = observer((props: any) => {
   );
   const basesearchStyle: TextStyle = {
     margin: 0,
+    borderWidth: 0,
     flexGrow: 1,
   };
   const csearchstyle = StyleSheet.flatten([
@@ -185,7 +186,17 @@ const SelectComponent = observer((props: any) => {
       visible={meta.openSelect}
       onRequestClose={handleReqClose}
     >
-      <TopBar backButton actionBackButton={handleReqClose}>
+      <TopBar
+        backButton
+        actionBackButton={handleReqClose}
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+          paddingLeft: 8,
+          paddingRight: 15,
+        }}
+      >
         <Input
           autoFocus={true}
           {...searchProps}
