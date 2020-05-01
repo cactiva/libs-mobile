@@ -9,14 +9,12 @@ import {
   ViewProps as OriViewProps,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { SafeAreaViewProps } from "react-navigation";
 import Theme from "../../theme";
 import { SafeAreaView } from "react-native";
 
 export interface IViewProps
   extends OriViewProps,
     ScrollViewProps,
-    SafeAreaViewProps,
     KeyboardAvoidingViewProps {
   type?:
     | "View"
@@ -26,6 +24,7 @@ export interface IViewProps
     | "KeyboardAvoidingView";
   shadow?: boolean;
   childRef?: any;
+  children?: any;
 }
 
 export default (props: IViewProps) => {
