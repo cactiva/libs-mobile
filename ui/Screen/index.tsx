@@ -22,7 +22,7 @@ export interface IScreenProps extends ViewProps {
 
 export default (props: IScreenProps) => {
   const { style } = props;
-  const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
+  // const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
   let cstyle = StyleSheet.flatten([
     {
       flexGrow: 1,
@@ -30,7 +30,7 @@ export default (props: IScreenProps) => {
       backgroundColor: Theme.UIColors.background,
       padding: 0,
       margin: 0,
-      marginTop,
+      // marginTop,
     },
     style,
   ]);
