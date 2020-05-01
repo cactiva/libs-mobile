@@ -63,13 +63,16 @@ export default observer((props: ICameraProps) => {
       Object.keys(res.permissions).map((key: any) => {
         if (res.permissions[key].status !== "granted") {
           Permissions.askAsync(key);
+        } else {
+          if (key == Permissions.CAMERA) {
+            meta.hasCameraPermission = true;
+          } else if (key == Permissions.CAMERA_ROLL) {
+            meta.hasImagePickPermission = true;
+          }
         }
       });
     });
   };
-  useEffect(() => {
-    requestPermission();
-  }, []);
 
   const dim = Dimensions.get("window");
   const width = (style && style.width) || dim.width;
@@ -94,14 +97,19 @@ export default observer((props: ICameraProps) => {
     ..._.get(props, "styles.preview", {}),
   };
 
+  useEffect(() => {
+    requestPermission();
+  }, []);
   if (
     meta.hasCameraPermission === false ||
     (Platform.OS === "ios" && meta.hasImagePickPermission === false)
   ) {
     return (
-      <View>
-        <Button label="Request Permission" onPress={requestPermission} />
-      </View>
+      <Button
+        mode={"outlined"}
+        label="Request Camera Permission"
+        onPress={requestPermission}
+      />
     );
   }
   const source = !!value

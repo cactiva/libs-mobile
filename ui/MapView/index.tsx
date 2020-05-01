@@ -6,7 +6,6 @@ import MapViewNative, {
   MarkerProps,
 } from "react-native-maps";
 import View from "../View";
-import { toJS } from "mobx";
 
 export interface MapViewProps extends MapViewPropsOrigin {
   style?: any;
@@ -26,7 +25,6 @@ export interface MapViewProps extends MapViewPropsOrigin {
 export default observer((props: MapViewProps) => {
   const {
     style,
-    children,
     location,
     fitToSuppliedMarkers,
     markerIds,
