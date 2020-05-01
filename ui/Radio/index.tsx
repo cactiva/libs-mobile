@@ -1,13 +1,12 @@
-import React from "react";
+import _ from "lodash";
+import React, { FunctionComponent } from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
-import Icon from "../Icon";
+import Icon, { IIconProps } from "../Icon";
 import Text, { ITextProps } from "../Text";
-import View from "../View";
-import _ from "lodash";
 
-export type RadioModeType = "default" | "checkbox" | "button";
+export type RadioModeType = "default" | "button";
 
 interface IStyle {
   label?: TextStyle;
@@ -23,10 +22,11 @@ export interface IRadioProps {
   style?: ViewStyle;
   styles?: IStyle;
   labelProps?: ITextProps;
+  iconProps?: IIconProps | FunctionComponent;
 }
 
 export default (props: IRadioProps) => {
-  const { label, onPress, mode, labelProps } = props;
+  const { label, onPress, mode, labelProps, iconProps } = props;
   const checked = props.checked === true ? true : false;
   const baseLabelStyle = {
     color: Theme.UIColors.text,
@@ -73,40 +73,15 @@ export default (props: IRadioProps) => {
       }}
       style={style}
     >
-      {mode === "checkbox" ? (
-        <View
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 5,
-            backgroundColor: checked ? Theme.UIColors.primary : "#fff",
-            borderWidth: 1,
-            borderStyle: "solid",
-            borderColor: checked
-              ? Theme.UIColors.primary
-              : Theme.UIColors.secondary,
-            width: 20,
-            height: 20,
-            borderRadius: 4,
-            marginRight: 8,
-          }}
-        >
-          <Icon
-            source="Entypo"
-            name="check"
-            size={16}
-            color={checked ? "white" : Theme.UIColors.primary}
-          />
-        </View>
+      {(mode === "default" || !mode) && typeof iconProps === "object" ? (
+        <Icon
+          name={checked ? "md-radio-button-on" : "md-radio-button-off"}
+          size={24}
+          {...iconProps}
+          color={checked ? Theme.UIColors.primary : Theme.UIColors.text}
+        />
       ) : (
-        (mode === "default" || !mode) && (
-          <Icon
-            name={checked ? "md-radio-button-on" : "md-radio-button-off"}
-            size={24}
-            color={checked ? Theme.UIColors.primary : Theme.UIColors.text}
-          />
-        )
+        iconProps
       )}
       <Text {...labelProps} style={labelStyle}>
         {label}

@@ -1,76 +1,107 @@
-import { observer } from "mobx-react-lite";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { DefaultTheme, ThemeProps } from "../../themes";
+import { StyleSheet, TextStyle, ViewStyle } from "react-native";
+import Theme from "../../theme";
+import Button from "../Button";
 import Icon from "../Icon";
+import Text, { ITextProps } from "../Text";
+import View from "../View";
+import _ from "lodash";
 
-export interface CheckboxProps {
-  text?: string;
-  value?: string;
-  checked?: boolean;
-  onPress?: (value: boolean) => void;
-  style?: any;
-  theme?: ThemeProps;
+export type CheckboxType = "default" | "button";
+
+interface IStyle {
+  label?: TextStyle;
+  selected?: ViewStyle;
 }
 
-export default observer((props: CheckboxProps) => {
-  const { text, onPress, value, style } = props;
-  const checked = props.checked === true || !!value ? true : false;
-  const theme = {
-    ...DefaultTheme,
-    ...props.theme
+export interface ICheckboxProps {
+  label?: string;
+  value?: any;
+  mode?: CheckboxType;
+  checked?: boolean;
+  onPress?: (value: boolean) => void;
+  style?: ViewStyle;
+  styles?: IStyle;
+  labelProps?: ITextProps;
+}
+
+export default (props: ICheckboxProps) => {
+  const { label, onPress, mode, labelProps } = props;
+  const checked = props.checked === true ? true : false;
+  const baseLabelStyle = {
+    color: Theme.UIColors.text,
   };
+  const labelStyle = StyleSheet.flatten([
+    baseLabelStyle,
+    _.get(props, "labelProps.style", {}),
+    _.get(props, "styles.label", {}),
+  ]);
+  const baseStyle = {
+    margin: 0,
+    marginRight: 10,
+    marginBottom: 10,
+    padding: 0,
+    paddingHorizontal: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  };
+  const btnStyle =
+    mode === "button"
+      ? {
+          ...Theme.UIInput,
+          backgroundColor: "transparent",
+        }
+      : {};
+  const btnActiveStyle =
+    mode === "button" && !!checked
+      ? {
+          borderColor: Theme.UIColors.primary,
+          backgroundColor: "#fff",
+        }
+      : {};
+  const style: any = StyleSheet.flatten([
+    baseStyle,
+    btnStyle,
+    props.style,
+    btnActiveStyle,
+  ]);
   return (
-    <TouchableOpacity
-      style={{
-        marginTop: 5,
-        marginBottom: 5
-      }}
+    <Button
+      mode={"clean"}
       onPress={() => {
         onPress && onPress(!checked);
       }}
+      style={style}
     >
-      <View
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          ...style
-        }}
-      >
+      {(mode === "default" || !mode) && (
         <View
           style={{
-            display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: checked ? theme.primary : theme.light,
+            backgroundColor: !!checked ? Theme.UIColors.primary : "#fff",
             borderWidth: 1,
             borderStyle: "solid",
-            borderColor: checked ? theme.primary : theme.medium,
+            borderColor: Theme.UIColors.primary,
             width: 20,
             height: 20,
             borderRadius: 4,
-            marginRight: 8
+            marginRight: 8,
           }}
         >
           <Icon
             source="Entypo"
             name="check"
-            size={16}
-            color={checked ? "white" : theme.light}
+            size={14}
+            color={"white"}
             style={{
-              padding: 0
+              margin: 0,
             }}
           />
         </View>
-        <Text
-          style={{
-            color: theme.dark
-          }}
-        >
-          {text}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      )}
+      <Text {...labelProps} style={labelStyle}>
+        {label}
+      </Text>
+    </Button>
   );
-});
+};

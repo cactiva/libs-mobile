@@ -22,7 +22,7 @@ interface IFieldProps {
 }
 
 export default (props: IFieldProps) => {
-  const { label, isValid, readonly, onChange } = props;
+  const { label, isValid, readonly } = props;
   const [meta, setMeta] = useState({
     error: false,
     init: true,

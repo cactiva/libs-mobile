@@ -23,7 +23,7 @@ export interface IRadioGroupProps {
   items?: (IItemProps | String | any)[];
   itenProps?: IRadioProps;
 }
-export const formatedItems = (props: IRadioGroupProps | any) => {
+export const formatedItems = (props: IRadioGroupProps) => {
   const labelPath = _.get(props, "labelPath", "label");
   const valuePath = _.get(props, "valuePath", "value");
   let items = [];
