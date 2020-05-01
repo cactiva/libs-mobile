@@ -1,13 +1,7 @@
 import { Dimensions } from "react-native";
 import _ from "lodash";
 import session from "@src/stores/session";
-const config = require("../../../settings.json");
-const globalSettings = {
-  backend: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/`,
-  repo: `${config.backend.protocol}://${config.backend.host}:${config.backend.port}/api/repo/`,
-};
 const { width, height } = Dimensions.get("window");
-
 //Guideline sizes are based on standard ~5" screen mobile device
 const guidelineBaseWidth = 350;
 const guidelineBaseHeight = 680;
