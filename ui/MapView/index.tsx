@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import MapViewNative, {
   MapViewProps as MapViewPropsOrigin,
   Marker as MarkerOrigin,
-  MarkerProps
+  MarkerProps,
 } from "react-native-maps";
 import View from "../View";
 import { toJS } from "mobx";
@@ -30,24 +30,35 @@ export default observer((props: MapViewProps) => {
     location,
     fitToSuppliedMarkers,
     markerIds,
-    onMapViewReady
+    onMapViewReady,
   } = props;
   const mapProps = { ...props };
   delete mapProps.markers;
   delete mapProps.location;
   const meta = useObservable({
-    region: {
-      latitude: -0.7056041715972583,
-      longitude: 118.81669320395446,
-      latitudeDelta: 61.50892138363919,
-      longitudeDelta: 44.72305383294736
-    },
     defaultLatitudeDelta: 0.0922,
     defaultLongitudeDelta: 0.0922,
     mapReady: false,
-    ref: null
   });
   const mapRef = useRef(null);
+
+  let region = {
+    latitude: -0.7056041715972583,
+    longitude: 118.81669320395446,
+    latitudeDelta: 61.50892138363919,
+    longitudeDelta: 44.72305383294736,
+  };
+
+  if (!!location) {
+    let newregion: any = location;
+    if (!newregion.latitudeDelta) {
+      newregion.latitudeDelta = meta.defaultLatitudeDelta;
+    }
+    if (!newregion.longitudeDelta) {
+      newregion.longitudeDelta = meta.defaultLongitudeDelta;
+    }
+    region = newregion;
+  }
 
   useEffect(() => {
     if (
@@ -59,27 +70,14 @@ export default observer((props: MapViewProps) => {
     ) {
       setTimeout(() => {
         mapRef.current.fitToSuppliedMarkers(markerIds);
-      });
+      }, 0);
     }
   }, [meta.mapReady, markerIds]);
-
-  useEffect(() => {
-    if (!!location) {
-      let newregion: any = location;
-      if (!newregion.latitudeDelta) {
-        newregion.latitudeDelta = meta.defaultLatitudeDelta;
-      }
-      if (!newregion.longitudeDelta) {
-        newregion.longitudeDelta = meta.defaultLongitudeDelta;
-      }
-      meta.region = newregion;
-    }
-  }, [location]);
 
   return (
     <View
       style={style}
-      onLayout={event => {
+      onLayout={(event) => {
         const { width, height } = event.nativeEvent.layout;
         meta.defaultLongitudeDelta =
           (meta.defaultLatitudeDelta + width / height) * 10;
@@ -92,25 +90,25 @@ export default observer((props: MapViewProps) => {
         style={{
           flexGrow: 1,
           minWidth: 200,
-          minHeight: 200
+          minHeight: 200,
         }}
-        region={toJS(meta.region)}
+        region={region}
         {...mapProps}
       ></MapViewNative>
     </View>
   );
 });
 
-export const Marker = observer((props: MarkerProps) => {
+export const Marker = (props: MarkerProps) => {
   return <MarkerOrigin {...props} />;
-});
+};
 
 export function getRegionForCoordinates(points) {
   // points should be an array of { latitude: X, longitude: Y }
   let minX, maxX, minY, maxY;
 
   // init first point
-  (point => {
+  ((point) => {
     minX = point.latitude;
     maxX = point.latitude;
     minY = point.longitude;
@@ -118,7 +116,7 @@ export function getRegionForCoordinates(points) {
   })(points[0]);
 
   // calculate rect
-  points.map(point => {
+  points.map((point) => {
     minX = Math.min(minX, point.latitude);
     maxX = Math.max(maxX, point.latitude);
     minY = Math.min(minY, point.longitude);
@@ -134,6 +132,6 @@ export function getRegionForCoordinates(points) {
     latitude: midX,
     longitude: midY,
     latitudeDelta: deltaX,
-    longitudeDelta: deltaY
+    longitudeDelta: deltaY,
   };
 }

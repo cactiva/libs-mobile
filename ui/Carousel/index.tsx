@@ -1,7 +1,7 @@
 import Theme from "../../theme";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
-import { Dimensions } from "react-native";
+import { Dimensions, ViewStyle } from "react-native";
 import Carousel, {
   CarouselProps as OriginCarouselProps,
   Pagination as PaginationOrigin,
@@ -11,6 +11,7 @@ import { uuid } from "@src/libs/utils";
 
 export interface ICarouselProps extends OriginCarouselProps<any> {
   children?: any;
+  style?: ViewStyle;
 }
 
 export default observer((props: ICarouselProps) => {
@@ -39,7 +40,7 @@ export default observer((props: ICarouselProps) => {
         sliderWidth={dim.width}
         layout={"default"}
         containerCustomStyle={{
-          overflow: "visible",
+          flexGrow: 0,
         }}
         {...carouselProps}
         onSnapToItem={onSnapItem}

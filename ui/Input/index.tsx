@@ -122,5 +122,5 @@ export default (props: IInputProps) => {
       break;
   }
 
-  return <Component {...ComponentProps} />;
+  return <Component placeholderTextColor={"#999"} {...ComponentProps} />;
 };
