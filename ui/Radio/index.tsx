@@ -73,7 +73,7 @@ export default (props: IRadioProps) => {
       }}
       style={style}
     >
-      {(mode === "default" || !mode) && typeof iconProps === "object" ? (
+      {mode === "default" || !mode || typeof iconProps === "object" ? (
         <Icon
           name={checked ? "md-radio-button-on" : "md-radio-button-off"}
           size={24}
