@@ -31,17 +31,24 @@ export default (props: IRadioProps) => {
   const baseLabelStyle = {
     color: Theme.UIColors.text,
   };
+  const labelActiveStyle =
+    mode === "button" && !!checked
+      ? {
+          color: Theme.UIColors.primary,
+        }
+      : {};
   const labelStyle = StyleSheet.flatten([
     baseLabelStyle,
     _.get(props, "labelProps.style", {}),
     _.get(props, "styles.label", {}),
+    labelActiveStyle,
   ]);
   const baseStyle = {
     margin: 0,
     marginRight: 10,
     marginBottom: 10,
     padding: 0,
-    paddingHorizontal: 10,
+    paddingHorizontal: mode === "button" ? 10 : 0,
     flexDirection: "row",
     alignItems: "center",
   };
@@ -77,6 +84,9 @@ export default (props: IRadioProps) => {
         <Icon
           name={checked ? "md-radio-button-on" : "md-radio-button-off"}
           size={24}
+          style={{
+            height: 24,
+          }}
           {...iconProps}
           color={checked ? Theme.UIColors.primary : Theme.UIColors.text}
         />

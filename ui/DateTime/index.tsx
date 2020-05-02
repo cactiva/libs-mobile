@@ -81,10 +81,11 @@ export default (props: IDateTimeProps) => {
   }, []);
 
   const baseStyle: any = {
+    margin: 0,
     backgroundColor: "transparent",
     padding: 0,
     paddingHorizontal: 10,
-    ...Theme.UIInput,
+    // ...Theme.UIInput,
     ...style,
   };
 

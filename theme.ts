@@ -29,12 +29,11 @@ const Theme = {
     marginBottom: 15,
   },
   UIInput: {
-    padding: 10,
+    padding: 0,
     borderRadius: 4,
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#aaa",
-    height: 44,
     minWidth: 10,
     marginBottom: 5,
     backgroundColor: "white",

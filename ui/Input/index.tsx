@@ -44,10 +44,11 @@ export default (props: IInputProps) => {
     fontSize: Theme.UIFontSize,
     fontFamily: Theme.UIFontFamily,
     color: Theme.UIColors.text,
+    paddingHorizontal: 10,
   };
   const cstyle = StyleSheet.flatten([
     baseStyle,
-    Theme.UIInput,
+    // Theme.UIInput,
     style,
     {
       opacity: editable !== false ? 1 : 0.7,
@@ -110,7 +111,8 @@ export default (props: IInputProps) => {
         multiline: true,
         style: {
           ...ComponentProps.style,
-          height: 100,
+          height: undefined,
+          minHeight: 100,
         },
       };
       break;

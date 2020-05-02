@@ -1,4 +1,4 @@
-import Theme from "@src/libs/theme";
+import Theme from "../../theme";
 import React from "react";
 import { StyleSheet, ViewStyle } from "react-native";
 import { useNavigation } from "@react-navigation/native";

@@ -35,7 +35,11 @@ export default (props: IScreenProps) => {
     style,
   ]);
   const defStatusbarStyle: ViewStyle = {
-    backgroundColor: Theme.UIColors.primary,
+    backgroundColor: _.get(
+      props,
+      "style.backgroundColor",
+      Theme.UIColors.primary
+    ),
     height: Constants.statusBarHeight,
     zIndex: 999,
   };

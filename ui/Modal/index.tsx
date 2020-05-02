@@ -19,9 +19,7 @@ export interface ModalProps extends ModalPropsOrigin {
 export default observer((props: ModalProps) => {
   const { style, children } = props;
   const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
-  const baseStyle = {
-    backgroundColor: "transparent",
-  };
+  const baseStyle = {};
   const cstyle = StyleSheet.flatten([
     baseStyle,
     style,

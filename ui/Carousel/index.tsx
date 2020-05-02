@@ -7,7 +7,7 @@ import Carousel, {
   Pagination as PaginationOrigin,
   PaginationProps as PaginationPropsOrigin,
 } from "react-native-snap-carousel";
-import { uuid } from "@src/libs/utils";
+import { uuid } from "../../utils";
 
 export interface ICarouselProps extends OriginCarouselProps<any> {
   children?: any;

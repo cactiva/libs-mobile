@@ -1,19 +1,19 @@
-import React, { useEffect } from "react";
-import { ViewStyle, TextStyle, StyleSheet } from "react-native";
-import Theme from "@src/libs/theme";
-import Button, { IButtonProps } from "../Button";
-import Text, { ITextProps } from "../Text";
-import { useObservable, observer } from "mobx-react-lite";
+import Theme from "../../theme";
+import { uuid } from "../../utils";
+import _ from "lodash";
+import { observer, useObservable } from "mobx-react-lite";
+import React from "react";
+import { StyleSheet, TextStyle, ViewStyle, Platform } from "react-native";
+import { fuzzyMatch } from "../../utils";
+import Button from "../Button";
+import FlatList, { IFlatListProps } from "../FlatList";
+import Icon, { IIconProps } from "../Icon";
 import Input, { IInputProps } from "../Input";
 import Modal from "../Modal";
-import View, { IViewProps } from "../View";
+import Text, { ITextProps } from "../Text";
 import TopBar from "../TopBar";
-import FlatList, { IFlatListProps } from "../FlatList";
-import _ from "lodash";
-import { uuid } from "@src/libs/utils";
-import Icon, { IIconProps } from "../Icon";
-import { fuzzyMatch } from "../../utils";
-import { toJS } from "mobx";
+import View from "../View";
+import Container from "../Container";
 
 interface IItemProps {
   label: any;
@@ -74,10 +74,11 @@ export default observer((props: ISelectProps) => {
   const baseStyle: ViewStyle = {
     justifyContent: "space-between",
     alignItems: "center",
+    margin: 0,
   };
   const cstyle: any = StyleSheet.flatten([
     baseStyle,
-    Theme.UIInput,
+    // Theme.UIInput,
     style,
     {
       opacity: editable !== false ? 1 : 0.7,
@@ -167,6 +168,7 @@ const SelectComponent = observer((props: any) => {
   };
   const csearchstyle = StyleSheet.flatten([
     basesearchStyle,
+    Theme.UIInput,
     _.get(searchProps, "style", {}),
     _.get(selectProps, "styles.item.search", {}),
   ]);
@@ -205,22 +207,31 @@ const SelectComponent = observer((props: any) => {
           onChangeText={handleSearchInput}
         />
       </TopBar>
-      <FlatList
-        {...listProps}
-        data={items.filter((item) => {
-          if (!!meta.search)
-            return fuzzyMatch(
-              meta.search.toLowerCase(),
-              item.label.toLowerCase()
-            );
-          return true;
-        })}
-        renderItem={renderItem}
-        keyExtractor={() => uuid()}
-        ItemSeparatorComponent={itemSperator}
-        keyboardShouldPersistTaps={"handled"}
-        style={cstyle}
-      />
+      <View
+        type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
+        style={{
+          flexGrow: 1,
+          flexShrink: 1,
+          marginBottom: 10,
+        }}
+      >
+        <FlatList
+          {...listProps}
+          data={items.filter((item) => {
+            if (!!meta.search)
+              return fuzzyMatch(
+                meta.search.toLowerCase(),
+                item.label.toLowerCase()
+              );
+            return true;
+          })}
+          renderItem={renderItem}
+          keyExtractor={() => uuid()}
+          ItemSeparatorComponent={itemSperator}
+          keyboardShouldPersistTaps={"handled"}
+          style={cstyle}
+        />
+      </View>
     </Modal>
   );
 });

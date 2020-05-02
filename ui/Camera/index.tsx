@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import View from "../View";
 import Button from "../Button";
-import Theme from "@src/libs/theme";
+import Theme from "../../theme";
 import Image from "../Image";
 import _ from "lodash";
 import Icon, { IIconProps } from "../Icon";
@@ -209,7 +209,6 @@ const CameraPicker = observer((props: any) => {
   }, []);
   return (
     <Modal
-      animationType="slide"
       transparent={false}
       visible={state.isShown}
       onRequestClose={() => {

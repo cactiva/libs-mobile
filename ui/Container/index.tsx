@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollViewProps, StyleSheet, ViewStyle } from "react-native";
+import { ScrollViewProps, StyleSheet, ViewStyle, Platform } from "react-native";
 import View from "../View";
 
 export interface IContainerProps extends ScrollViewProps {
@@ -15,14 +15,22 @@ export default (props: IContainerProps) => {
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   return (
     <View
-      type={"ScrollView"}
-      {...props}
+      type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
       style={{
         flexGrow: 1,
         flexShrink: 1,
       }}
-      childRef={scrollRef}
-      contentContainerStyle={cstyle}
-    />
+    >
+      <View
+        type={"ScrollView"}
+        {...props}
+        style={{
+          flexGrow: 1,
+          flexShrink: 1,
+        }}
+        childRef={scrollRef}
+        contentContainerStyle={cstyle}
+      />
+    </View>
   );
 };
