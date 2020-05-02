@@ -98,6 +98,11 @@ export default (props: IFieldProps) => {
       flexGrow: 1,
       height: 44,
     },
+    (Component === Camera ||
+      Component === RadioGroup ||
+      Component === CheckboxGroup) && {
+      height: undefined,
+    },
     childprops.style,
   ]);
 

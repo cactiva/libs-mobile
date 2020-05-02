@@ -165,6 +165,7 @@ const SelectComponent = observer((props: any) => {
     margin: 0,
     borderWidth: 0,
     flexGrow: 1,
+    height: 44,
   };
   const csearchstyle = StyleSheet.flatten([
     basesearchStyle,
