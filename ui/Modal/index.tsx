@@ -17,7 +17,7 @@ export interface ModalProps extends ModalPropsOrigin {
 }
 
 export default observer((props: ModalProps) => {
-  const { style, children } = props;
+  const { style, children, screenProps } = props;
   const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
   const baseStyle = {};
   const cstyle = StyleSheet.flatten([
@@ -34,6 +34,7 @@ export default observer((props: ModalProps) => {
   return (
     <Modal animationType="fade" transparent={true} {...props}>
       <Screen
+        {...screenProps}
         style={cstyle}
         styles={{
           statusbar: statusbarStyle,

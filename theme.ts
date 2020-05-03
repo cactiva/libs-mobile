@@ -1,4 +1,5 @@
 import { default as overideTheme } from "../theme";
+import Fonts from "./fonts";
 
 const Theme = {
   UIShadow: {
@@ -19,7 +20,7 @@ const Theme = {
     background: "#fff",
   },
   UIFontSize: 16,
-  UIFontFamily: "NotoSans-Regular",
+  UIFontFamily: Fonts.NotoSansRegular,
   UIImageLoading: require("./assets/images/loading.png"),
   UIImageError: require("./assets/images/error.png"),
   UIField: {

@@ -1,15 +1,9 @@
-import React from "react";
-import View from "../View";
 import Constants from "expo-constants";
-import {
-  ViewStyle,
-  StyleSheet,
-  ViewProps,
-  StatusBar,
-  Platform,
-} from "react-native";
-import Theme from "../../theme";
 import _ from "lodash";
+import React from "react";
+import { StyleSheet, ViewProps, ViewStyle } from "react-native";
+import Theme from "../../theme";
+import View from "../View";
 
 interface IStyles {
   statusbar?: ViewStyle;

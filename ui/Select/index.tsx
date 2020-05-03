@@ -184,11 +184,7 @@ const SelectComponent = observer((props: any) => {
     meta.search = value;
   };
   return (
-    <Modal
-      transparent={false}
-      visible={meta.openSelect}
-      onRequestClose={handleReqClose}
-    >
+    <Modal visible={meta.openSelect} onRequestClose={handleReqClose}>
       <TopBar
         backButton
         actionBackButton={handleReqClose}
