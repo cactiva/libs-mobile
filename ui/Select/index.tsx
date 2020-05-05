@@ -3,18 +3,26 @@ import { uuid } from "../../utils";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import { StyleSheet, TextStyle, ViewStyle, Platform } from "react-native";
+import {
+  StyleSheet,
+  TextStyle,
+  ViewStyle,
+  Platform,
+  ViewProps,
+} from "react-native";
 import { fuzzyMatch } from "../../utils";
-import Button from "../Button";
+import Button, { IButtonProps } from "../Button";
 import FlatList, { IFlatListProps } from "../FlatList";
 import Icon, { IIconProps } from "../Icon";
 import Input, { IInputProps } from "../Input";
 import Modal from "../Modal";
 import Text, { ITextProps } from "../Text";
-import TopBar from "../TopBar";
+import TopBar, { ITopBarProps } from "../TopBar";
 import View from "../View";
-import Container from "../Container";
+import Container, { IContainerProps } from "../Container";
 import { toJS } from "mobx";
+import { shadeColor } from "@src/libs/utils/color";
+import { IScreenProps } from "../Screen";
 
 interface IItemProps {
   label: any;
@@ -25,12 +33,35 @@ interface IStyles {
   label?: TextStyle;
   icon?: ViewStyle;
   search?: ViewStyle;
-  list?: ViewStyle;
   item?: {
     sperator?: ViewStyle;
     button?: ViewStyle;
     label?: TextStyle;
     selected?: ViewStyle;
+  };
+  modal?: {
+    screen?: ViewStyle;
+    container?: ViewStyle;
+    list?: ViewStyle;
+  };
+}
+
+export interface IProps {
+  button?: IButtonProps;
+  label?: ITextProps;
+  icon?: IIconProps;
+  search?: IInputProps;
+  item?: {
+    sperator?: ViewProps;
+    button?: IButtonProps;
+    label?: ITextProps;
+  };
+  modal?: {
+    statusbar?: ViewStyle;
+    screen?: IScreenProps;
+    container?: IContainerProps;
+    list?: IFlatListProps;
+    topbar?: ITopBarProps;
   };
 }
 
@@ -45,6 +76,7 @@ export interface ISelectProps {
   editable?: boolean;
   style?: ViewStyle;
   styles?: IStyles;
+  customProps?: IProps;
   iconProps?: IIconProps | any;
   labelProps?: ITextProps | any;
   searchProps?: IInputProps | any;
@@ -114,6 +146,7 @@ export default observer((props: ISelectProps) => {
     <>
       <Button
         mode={"clean"}
+        {..._.get(props, "customProps.button", {})}
         style={cstyle}
         disabled={editable === false}
         onPress={handleSelect}
@@ -121,7 +154,7 @@ export default observer((props: ISelectProps) => {
         <Text
           ellipsizeMode={"tail"}
           numberOfLines={1}
-          {...labelProps}
+          {..._.get(props, "customProps.label", {})}
           style={clabelstyle}
         >
           {_.get(selectedItem, "label", placeholder || "")}
@@ -129,7 +162,7 @@ export default observer((props: ISelectProps) => {
         <Icon
           name={"ios-arrow-down"}
           size={18}
-          {...iconProps}
+          {..._.get(props, "customProps.icon", {})}
           style={ciconstyle}
         />
       </Button>
@@ -163,6 +196,7 @@ const SelectComponent = observer((props: any) => {
         },
         _.get(selectProps, "styles.item.sperator", {}),
       ])}
+      {..._.get(selectProps, "customProps.item.sperator", {})}
     />
   );
   const basesearchStyle: TextStyle = {
@@ -182,42 +216,63 @@ const SelectComponent = observer((props: any) => {
       paddingHorizontal: 0,
     },
     _.get(listProps, "style", {}),
-    _.get(selectProps, "styles.list", {}),
+    _.get(selectProps, "styles.modal.list", {}),
   ]);
   const handleSearchInput = (value) => {
     meta.search = value;
   };
+  const topbarStyle = StyleSheet.flatten([
+    {
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 0,
+      paddingLeft: 8,
+      paddingRight: 15,
+    },
+    _.get(selectProps, "styles.modal.topbar", {}),
+  ]);
+  const containerStyle = StyleSheet.flatten([
+    {
+      backgroundColor: "#fff",
+    },
+    _.get(selectProps, "styles.modal.container", {}),
+  ]);
   return (
-    <Modal visible={meta.openSelect} onRequestClose={handleReqClose}>
+    <Modal
+      visible={meta.openSelect}
+      onRequestClose={handleReqClose}
+      styles={{
+        screen: {
+          backgroundColor: "#fff",
+          ..._.get(selectProps, "styles.modal.screen", {}),
+        },
+        statusbar: {
+          backgroundColor: Theme.UIColors.primary,
+          ..._.get(selectProps, "styles.modal.statusbar", {}),
+        },
+      }}
+      screenProps={_.get(selectProps, "customProps.modal.screen", {})}
+    >
       <TopBar
         backButton
+        {..._.get(selectProps, "customProps.modal.topbar", {})}
         actionBackButton={handleReqClose}
-        style={{
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 0,
-          paddingLeft: 8,
-          paddingRight: 15,
-        }}
+        style={topbarStyle}
       >
         <Input
           autoFocus={true}
-          {...searchProps}
+          {..._.get(selectProps, "customProps.search", {})}
           style={csearchstyle}
           value={meta.search}
           onChangeText={handleSearchInput}
         />
       </TopBar>
-      <View
-        type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
-        style={{
-          flexGrow: 1,
-          flexShrink: 1,
-          marginBottom: 10,
-        }}
+      <Container
+        {..._.get(selectProps, "customProps.modal.container", {})}
+        contentContainerStyle={containerStyle}
       >
         <FlatList
-          {...listProps}
+          {..._.get(selectProps, "customProps.modal.list", {})}
           data={items.filter((item) => {
             if (!!meta.search)
               return fuzzyMatch(
@@ -232,7 +287,7 @@ const SelectComponent = observer((props: any) => {
           keyboardShouldPersistTaps={"handled"}
           style={cstyle}
         />
-      </View>
+      </Container>
     </Modal>
   );
 });
@@ -251,11 +306,12 @@ const RenderItem = (props: any) => {
     justifyContent: "flex-start",
     borderRadius: 0,
     margin: 0,
+    paddingHorizontal: 10,
   };
   const selectedStyle =
     item.value === selectProps.value
       ? {
-          backgroundColor: Theme.UIColors.primary + "24",
+          backgroundColor: shadeColor(Theme.UIColors.primary, 200),
           borderStyle: "solid",
           borderBottomWidth: 1,
           borderColor: Theme.UIColors.primary,
@@ -269,8 +325,16 @@ const RenderItem = (props: any) => {
     meta.openSelect = false;
   };
   return (
-    <Button mode="clean" onPress={handleSelect} style={cstyle}>
-      <Text {...labelProps} style={clabelstyle}>
+    <Button
+      mode="clean"
+      {..._.get(selectProps, "customProps.item.button", {})}
+      onPress={handleSelect}
+      style={cstyle}
+    >
+      <Text
+        {..._.get(selectProps, "customProps.item.label", {})}
+        style={clabelstyle}
+      >
         {item.label}
       </Text>
     </Button>

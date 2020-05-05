@@ -6,6 +6,7 @@ import {
   ModalProps as ModalPropsOrigin,
   Platform,
   StyleSheet,
+  ViewStyle,
 } from "react-native";
 import Screen, { IScreenProps } from "../Screen";
 import _ from "lodash";
@@ -14,6 +15,10 @@ export interface ModalProps extends ModalPropsOrigin {
   style?: any;
   children?: any;
   screenProps?: IScreenProps;
+  styles?: {
+    screen?: ViewStyle;
+    statusbar?: ViewStyle;
+  };
 }
 
 export default observer((props: ModalProps) => {
@@ -23,12 +28,14 @@ export default observer((props: ModalProps) => {
   const cstyle = StyleSheet.flatten([
     baseStyle,
     style,
+    _.get(props, "styles.screen", {}),
     _.get(props, "screenProps.style", {}),
   ]);
   const statusbarStyle = StyleSheet.flatten([
     {
       marginTop,
     },
+    _.get(props, "styles.statusbar", {}),
     _.get(props, "screenProps.styles.statusbar"),
   ]);
   return (
