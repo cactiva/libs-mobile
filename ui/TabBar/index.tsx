@@ -1,7 +1,7 @@
 import Theme from "../../theme";
 import React from "react";
 import { StyleSheet, ViewStyle } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Text from "../Text";

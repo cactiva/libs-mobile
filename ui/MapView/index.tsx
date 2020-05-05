@@ -3,9 +3,13 @@ import React, { useEffect, useRef } from "react";
 import MapViewNative, {
   MapViewProps as MapViewPropsOrigin,
   Marker as MarkerOrigin,
-  MarkerProps,
+  MarkerProps as MarkerPropsOrigin,
 } from "react-native-maps";
 import View from "../View";
+
+export interface MarkerProps extends MarkerPropsOrigin {
+  children?: any;
+}
 
 export interface MapViewProps extends MapViewPropsOrigin {
   style?: any;

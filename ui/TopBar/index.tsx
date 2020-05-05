@@ -11,7 +11,7 @@ import Text from "../Text";
 import Button from "../Button";
 import Icon from "../Icon";
 import Theme from "../../theme";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 export interface ITopBarProps extends ViewProps {
   backButton?: boolean;

@@ -2,7 +2,7 @@ import Theme from "../../theme";
 import { uuid } from "../../utils";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, TextStyle, ViewStyle, Platform } from "react-native";
 import { fuzzyMatch } from "../../utils";
 import Button from "../Button";
@@ -14,6 +14,7 @@ import Text, { ITextProps } from "../Text";
 import TopBar from "../TopBar";
 import View from "../View";
 import Container from "../Container";
+import { toJS } from "mobx";
 
 interface IItemProps {
   label: any;
@@ -44,10 +45,11 @@ export interface ISelectProps {
   editable?: boolean;
   style?: ViewStyle;
   styles?: IStyles;
-  iconProps?: IIconProps;
-  labelProps?: ITextProps;
-  searchProps?: IInputProps;
+  iconProps?: IIconProps | any;
+  labelProps?: ITextProps | any;
+  searchProps?: IInputProps | any;
   listProps?: IFlatListProps;
+  placeholder?: String;
 }
 
 export const formatedItems = (props: ISelectProps | any) => {
@@ -66,7 +68,7 @@ export const formatedItems = (props: ISelectProps | any) => {
 };
 
 export default observer((props: ISelectProps) => {
-  const { style, editable, value, iconProps, labelProps } = props;
+  const { style, editable, value, iconProps, labelProps, placeholder } = props;
   const meta = useObservable({
     openSelect: false,
     search: "",
@@ -74,6 +76,7 @@ export default observer((props: ISelectProps) => {
   const baseStyle: ViewStyle = {
     justifyContent: "space-between",
     alignItems: "center",
+    flexShrink: 1,
     margin: 0,
   };
   const cstyle: any = StyleSheet.flatten([
@@ -87,6 +90,7 @@ export default observer((props: ISelectProps) => {
   const baseLabelStyle: TextStyle = {
     flexWrap: "nowrap",
     flexShrink: 1,
+    flexGrow: 1,
   };
   const clabelstyle = StyleSheet.flatten([
     baseLabelStyle,
@@ -120,7 +124,7 @@ export default observer((props: ISelectProps) => {
           {...labelProps}
           style={clabelstyle}
         >
-          {_.get(selectedItem, "label", "")}
+          {_.get(selectedItem, "label", placeholder || "")}
         </Text>
         <Icon
           name={"ios-arrow-down"}

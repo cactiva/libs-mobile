@@ -9,6 +9,7 @@ import Select from "../Select";
 import Text from "../Text";
 import View from "../View";
 import CheckboxGroup from "../CheckboxGroup";
+import { observer } from "mobx-react-lite";
 
 interface IFieldProps {
   label?: string;
@@ -17,7 +18,6 @@ interface IFieldProps {
   value?: any;
   children?: any;
   isRequired?: boolean;
-  isValid?: boolean;
   readonly?: boolean;
   onChange?: (value) => void;
   style?: ViewStyle;
@@ -28,23 +28,20 @@ interface IFieldProps {
     wrapper?: ViewStyle;
     input?: ViewStyle;
   };
+  validate?: () => string[];
 }
 
-export default (props: IFieldProps) => {
+export default observer((props: IFieldProps) => {
   const {
     label,
-    isValid,
     readonly,
     style,
     prefix,
     suffix,
     disableBoxStyle,
+    validate,
   } = props;
   const Component = props.children.type;
-  const [meta, setMeta] = useState({
-    error: false,
-    init: true,
-  });
   const fieldStyle = StyleSheet.flatten([Theme.UIField, style]);
   const defLabelStyle: TextStyle = {
     fontSize: Theme.UIFontSize,
@@ -54,8 +51,8 @@ export default (props: IFieldProps) => {
   const labelStyle = StyleSheet.flatten([defLabelStyle, Theme.UILabel]);
   const defErrorLabelStyle: TextStyle = {
     fontSize: 12,
+    lineHeight: 12,
     color: Theme.UIColors.danger,
-    marginBottom: 5,
   };
   const errorLabelStyle = StyleSheet.flatten([
     defErrorLabelStyle,
@@ -85,7 +82,7 @@ export default (props: IFieldProps) => {
   ]);
 
   const handleOnChange = (value) => {
-    props.setValue(value);
+    props.setValue && props.setValue(value);
     props.onChange && props.onChange(value);
   };
   const childprops = _.clone(_.get(props, "children.props", {}));
@@ -93,18 +90,18 @@ export default (props: IFieldProps) => {
   childprops.value = _.get(props, "value", "");
   childprops.onChange = handleOnChange;
 
-  const inputStyle = StyleSheet.flatten([
-    {
-      flexGrow: 1,
-      height: 44,
-    },
-    (Component === Camera ||
-      Component === RadioGroup ||
-      Component === CheckboxGroup) && {
-      height: undefined,
-    },
-    childprops.style,
-  ]);
+  const baseInpStyle = {
+    flexGrow: 1,
+    height: 44,
+  };
+  if (
+    Component === Camera ||
+    Component === RadioGroup ||
+    Component === CheckboxGroup
+  ) {
+    delete baseInpStyle.height;
+  }
+  const inputStyle = StyleSheet.flatten([baseInpStyle, childprops.style]);
 
   switch (Component) {
     case Select:
@@ -121,17 +118,9 @@ export default (props: IFieldProps) => {
       childprops.onChangeText = handleOnChange;
       break;
   }
+  let errorMsg: string[] = [];
+  if (!!validate) errorMsg = validate();
 
-  useEffect(() => {
-    if (!meta.init) {
-      meta.error = !isValid;
-      setMeta({ ...meta });
-    }
-  }, [isValid]);
-  useEffect(() => {
-    meta.init = false;
-    setMeta({ ...meta });
-  }, []);
   return (
     <View style={fieldStyle}>
       {!!label && <Text style={labelStyle}>{label}</Text>}
@@ -140,7 +129,12 @@ export default (props: IFieldProps) => {
         <Component {...childprops} style={inputStyle} />
         {!!suffix && typeof suffix === "function" ? suffix() : suffix}
       </View>
-      {!!meta.error && <Text style={errorLabelStyle}>Field is required.</Text>}
+      {Array.isArray(errorMsg) &&
+        errorMsg.map((message, idx) => (
+          <Text key={idx} style={errorLabelStyle}>
+            {message}
+          </Text>
+        ))}
     </View>
   );
-};
+});

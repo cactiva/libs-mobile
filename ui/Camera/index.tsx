@@ -79,7 +79,7 @@ export default observer((props: ICameraProps) => {
   const height = (style && style.height) || 120;
   const baseStyle: any = {
     ...Theme.UIInput,
-    height: 120,
+    height: height,
     backgroundColor: "#a2a4ab",
     overflow: "hidden",
     paddingHorizontal: 0,

@@ -127,6 +127,7 @@ const getAsset = (uri) => {
       });
   });
 };
+
 export {
   formatMoney,
   getAsset,
