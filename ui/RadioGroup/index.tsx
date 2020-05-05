@@ -5,6 +5,7 @@ import Radio, { RadioModeType, IRadioProps } from "../Radio";
 import View from "../View";
 import _ from "lodash";
 import Text from "../Text";
+import { formatedItems } from "../Select";
 
 interface IItemProps {
   label: any;
@@ -23,20 +24,6 @@ export interface IRadioGroupProps {
   items?: (IItemProps | String | any)[];
   itenProps?: IRadioProps;
 }
-export const formatedItems = (props: IRadioGroupProps) => {
-  const labelPath = _.get(props, "labelPath", "label");
-  const valuePath = _.get(props, "valuePath", "value");
-  let items = [];
-  if (Array.isArray(props.items)) {
-    items = _.get(props, "items", []);
-  }
-  return items.map((item) => {
-    return {
-      label: item[labelPath],
-      value: item[valuePath],
-    };
-  });
-};
 
 export default (props: IRadioGroupProps) => {
   const { style, mode, children, items } = props;

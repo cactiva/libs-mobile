@@ -1,28 +1,20 @@
-import Theme from "../../theme";
-import { uuid } from "../../utils";
+import { shadeColor } from "@src/libs/utils/color";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
-import React, { useEffect } from "react";
-import {
-  StyleSheet,
-  TextStyle,
-  ViewStyle,
-  Platform,
-  ViewProps,
-} from "react-native";
-import { fuzzyMatch } from "../../utils";
+import React from "react";
+import { StyleSheet, TextStyle, ViewProps, ViewStyle } from "react-native";
+import Theme from "../../theme";
+import { fuzzyMatch, uuid } from "../../utils";
 import Button, { IButtonProps } from "../Button";
+import Container, { IContainerProps } from "../Container";
 import FlatList, { IFlatListProps } from "../FlatList";
 import Icon, { IIconProps } from "../Icon";
 import Input, { IInputProps } from "../Input";
 import Modal from "../Modal";
+import { IScreenProps } from "../Screen";
 import Text, { ITextProps } from "../Text";
 import TopBar, { ITopBarProps } from "../TopBar";
 import View from "../View";
-import Container, { IContainerProps } from "../Container";
-import { toJS } from "mobx";
-import { shadeColor } from "@src/libs/utils/color";
-import { IScreenProps } from "../Screen";
 
 interface IItemProps {
   label: any;
@@ -77,9 +69,6 @@ export interface ISelectProps {
   style?: ViewStyle;
   styles?: IStyles;
   customProps?: IProps;
-  iconProps?: IIconProps | any;
-  labelProps?: ITextProps | any;
-  searchProps?: IInputProps | any;
   listProps?: IFlatListProps;
   placeholder?: String;
 }
@@ -92,6 +81,12 @@ export const formatedItems = (props: ISelectProps | any) => {
     items = _.get(props, "items", []);
   }
   return items.map((item) => {
+    if (typeof item === "string") {
+      return {
+        label: item,
+        value: item,
+      };
+    }
     return {
       label: item[labelPath],
       value: item[valuePath],
@@ -100,7 +95,7 @@ export const formatedItems = (props: ISelectProps | any) => {
 };
 
 export default observer((props: ISelectProps) => {
-  const { style, editable, value, iconProps, labelProps, placeholder } = props;
+  const { style, editable, value, placeholder } = props;
   const meta = useObservable({
     openSelect: false,
     search: "",
@@ -178,7 +173,6 @@ export default observer((props: ISelectProps) => {
 
 const SelectComponent = observer((props: any) => {
   const { meta, selectProps, items } = props;
-  const { listProps, searchProps } = selectProps;
   const handleReqClose = () => {
     meta.openSelect = false;
   };
@@ -208,14 +202,14 @@ const SelectComponent = observer((props: any) => {
   const csearchstyle = StyleSheet.flatten([
     basesearchStyle,
     Theme.UIInput,
-    _.get(searchProps, "style", {}),
+    _.get(selectProps, "customProps.search.style", {}),
     _.get(selectProps, "styles.item.search", {}),
   ]);
   const cstyle = StyleSheet.flatten([
     {
       paddingHorizontal: 0,
     },
-    _.get(listProps, "style", {}),
+    _.get(selectProps, "customProps.modal.style", {}),
     _.get(selectProps, "styles.modal.list", {}),
   ]);
   const handleSearchInput = (value) => {
@@ -294,7 +288,6 @@ const SelectComponent = observer((props: any) => {
 
 const RenderItem = (props: any) => {
   const { item, meta, selectProps } = props;
-  const { labelProps } = selectProps;
   const labelStyle = {
     color: "#000",
   };

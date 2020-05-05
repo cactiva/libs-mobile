@@ -5,6 +5,7 @@ import View from "../View";
 import _ from "lodash";
 import Text from "../Text";
 import Checkbox, { ICheckboxProps, CheckboxType } from "../Checkbox";
+import { formatedItems } from "../Select";
 
 interface IItemProps {
   label: any;
@@ -23,20 +24,6 @@ export interface ICheckboxGroupProps {
   items?: (IItemProps | String | any)[];
   itenProps?: ICheckboxProps;
 }
-export const formatedItems = (props: ICheckboxGroupProps) => {
-  const labelPath = _.get(props, "labelPath", "label");
-  const valuePath = _.get(props, "valuePath", "value");
-  let items = [];
-  if (Array.isArray(props.items)) {
-    items = _.get(props, "items", []);
-  }
-  return items.map((item) => {
-    return {
-      label: item[labelPath],
-      value: item[valuePath],
-    };
-  });
-};
 
 export default (props: ICheckboxGroupProps) => {
   const { style, mode, children, items } = props;
