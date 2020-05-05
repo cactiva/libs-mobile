@@ -5,6 +5,7 @@ import Theme from "../../theme";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Text, { ITextProps } from "../Text";
+import { shadeColor } from "../../utils/color";
 
 export type RadioModeType = "default" | "button";
 
@@ -63,7 +64,7 @@ export default (props: IRadioProps) => {
     mode === "button" && !!checked
       ? {
           borderColor: Theme.UIColors.primary,
-          backgroundColor: "#fff",
+          backgroundColor: shadeColor(Theme.UIColors.primary, 200),
         }
       : {};
   const style: any = StyleSheet.flatten([
