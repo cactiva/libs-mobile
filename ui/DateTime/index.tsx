@@ -1,17 +1,15 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
+import _ from "lodash";
 import { toJS } from "mobx";
 import React, { useEffect, useState } from "react";
-import { Platform, ViewStyle, TextStyle } from "react-native";
+import { Platform, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
-import { dateFormat } from "../../utils/date";
+import { dateFormat, dateParse } from "../../utils/date";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
-import Text from "../Text";
 import Modal from "../Modal";
+import Text from "../Text";
 import View from "../View";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import _ from "lodash";
-import Container from "../Container";
 
 interface IStyles {
   label?: TextStyle;
@@ -41,9 +39,9 @@ export default (props: IDateTimeProps) => {
     visibility = "text-icon",
     mode = "date",
     iconProps,
+    value,
   } = props;
   const [visible, setVisible] = useState(false);
-  const [value, setValue] = useState(new Date(props.value || new Date()));
 
   const onChangePicker = (date: Date) => {
     if (!!onChange) {
@@ -55,17 +53,18 @@ export default (props: IDateTimeProps) => {
         onChange(date.toISOString());
       }
     }
-    setValue(date);
   };
 
-  const dateString = () => {
-    let date = toJS(value);
-    if (mode === "date") {
-      return dateFormat(date, "d MMMM yyyy");
-    } else if (mode === "time") {
-      return dateFormat(date, "HH:mm");
-    } else if (mode === "datetime") {
-      return dateFormat(date, "d MMMM yyyy - HH:mm");
+  const dateString = (value) => {
+    if (!!value) {
+      let date = new Date(value);
+      if (mode === "date") {
+        return dateFormat(date, "d MMMM yyyy");
+      } else if (mode === "time") {
+        return dateFormat(date, "HH:mm");
+      } else if (mode === "datetime") {
+        return dateFormat(date, "d MMMM yyyy - HH:mm");
+      }
     }
     return "";
   };
@@ -74,18 +73,11 @@ export default (props: IDateTimeProps) => {
     if (!!showPicker) setVisible(showPicker);
   }, [showPicker]);
 
-  useEffect(() => {
-    if (!props.value) {
-      onChangePicker(value);
-    }
-  }, []);
-
   const baseStyle: any = {
     margin: 0,
     backgroundColor: "transparent",
     padding: 0,
     paddingHorizontal: 10,
-    // ...Theme.UIInput,
     ...style,
   };
 
@@ -98,7 +90,6 @@ export default (props: IDateTimeProps) => {
   };
 
   const iconStyle = { margin: 0, ..._.get(props, "styles.icon") };
-
   return (
     <>
       <Button
@@ -111,7 +102,7 @@ export default (props: IDateTimeProps) => {
       >
         {["text-icon", "text-only"].indexOf(visibility) > -1 && (
           <Text style={labelStyle} numberOfLines={1} ellipsizeMode={"tail"}>
-            {dateString()}
+            {dateString(value)}
           </Text>
         )}
         {["text-icon", "icon-only"].indexOf(visibility) > -1 && (
@@ -147,7 +138,7 @@ const DatePickerModal = (props: any) => {
     value,
     visible,
   } = props;
-  const [val, setVal] = useState(new Date());
+  const [val, setVal] = useState(new Date(value));
   const [androidMode, setAndroidMode] = useState("date");
   const dismiss = () => {
     setVisible(false);
@@ -161,7 +152,6 @@ const DatePickerModal = (props: any) => {
     if (Platform.OS === "android") {
       if (ev.type === "dismissed") {
         if (androidMode === "time") setAndroidMode("date");
-        setVal(value);
         dismiss();
       } else {
         if (mode !== "datetime") {
@@ -184,11 +174,6 @@ const DatePickerModal = (props: any) => {
       setVal(date);
     }
   };
-
-  useEffect(() => {
-    setVal(value);
-    if (mode === "time") setAndroidMode(mode);
-  }, []);
 
   if (Platform.OS === "android") {
     if (!!visible)
@@ -262,7 +247,7 @@ const DatePickerModal = (props: any) => {
                 padding: 0,
               }}
               onPress={() => {
-                setVal(value);
+                setVal(new Date(value));
                 dismiss();
               }}
             >

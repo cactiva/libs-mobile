@@ -13,13 +13,13 @@ export const dateFormat = (value: any, format?: string) => {
   const inputFormat = format ? format : "dd MMM yyyy - HH:mm";
   if (typeof value === "string") {
     return formatFNS(parseISO(value), inputFormat, {
-      locale: locales[locale]
+      locale: locales[locale],
     });
   }
 
   try {
     return formatFNS(value, inputFormat, {
-      locale: locales[locale]
+      locale: locales[locale],
     });
   } catch (e) {
     return value;

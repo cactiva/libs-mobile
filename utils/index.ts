@@ -91,7 +91,8 @@ const textStyle = (style) => {
   return newTextStyle;
 };
 
-const capitalizeFLetter = (text: string) => {
+const capitalizeFLetter = (text: string = "") => {
+  if (text.length < 1) return text;
   return text[0].toUpperCase() + text.slice(1);
 };
 

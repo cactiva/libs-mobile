@@ -1,15 +1,15 @@
 import _ from "lodash";
-import React, { useEffect, useState } from "react";
+import { observer } from "mobx-react-lite";
+import React from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
 import Camera from "../Camera";
+import CheckboxGroup from "../CheckboxGroup";
 import Input from "../Input";
 import RadioGroup from "../RadioGroup";
 import Select from "../Select";
 import Text from "../Text";
 import View from "../View";
-import CheckboxGroup from "../CheckboxGroup";
-import { observer } from "mobx-react-lite";
 
 interface IFieldProps {
   label?: string;
