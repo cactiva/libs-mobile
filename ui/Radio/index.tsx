@@ -11,7 +11,10 @@ export type RadioModeType = "default" | "button";
 
 interface IStyle {
   label?: TextStyle;
-  selected?: ViewStyle;
+  selected?: {
+    button?: ViewStyle;
+    label?: TextStyle;
+  };
 }
 
 export interface IRadioProps {
@@ -43,6 +46,7 @@ export default (props: IRadioProps) => {
     _.get(props, "labelProps.style", {}),
     _.get(props, "styles.label", {}),
     labelActiveStyle,
+    !!checked && _.get(props, "styles.selected.label", {}),
   ]);
   const baseStyle = {
     margin: 0,
@@ -52,6 +56,7 @@ export default (props: IRadioProps) => {
     paddingHorizontal: mode === "button" ? 10 : 0,
     flexDirection: "row",
     alignItems: "center",
+    shadowColor: Theme.UIColors.primary,
   };
   const btnStyle =
     mode === "button"
@@ -70,8 +75,9 @@ export default (props: IRadioProps) => {
   const style: any = StyleSheet.flatten([
     baseStyle,
     btnStyle,
-    props.style,
+    _.get(props, "style", {}),
     btnActiveStyle,
+    !!checked && _.get(props, "styles.selected.button", {}),
   ]);
   return (
     <Button

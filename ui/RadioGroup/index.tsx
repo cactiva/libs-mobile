@@ -1,5 +1,5 @@
 import React from "react";
-import { ViewStyle, StyleSheet } from "react-native";
+import { ViewStyle, StyleSheet, TextStyle } from "react-native";
 import { uuid } from "../../utils";
 import Radio, { RadioModeType, IRadioProps } from "../Radio";
 import View from "../View";
@@ -23,6 +23,13 @@ export interface IRadioGroupProps {
   valuePath?: any;
   items?: (IItemProps | String | any)[];
   itenProps?: IRadioProps;
+  styles?: {
+    label?: TextStyle;
+    selected?: {
+      button?: ViewStyle;
+      label?: TextStyle;
+    };
+  };
 }
 
 export default (props: IRadioGroupProps) => {
@@ -81,6 +88,7 @@ const RenderChild = (props: any) => {
     return (
       <Radio
         {...child.props}
+        styles={_.get(radioGroupProps, "styles", {})}
         checked={checked}
         mode={mode}
         onPress={handleChange}
