@@ -127,28 +127,33 @@ const PreviewImage = (props: any) => {
         />
 
         <Button
+          shadow
+          activeOpacity={0.8}
           style={{
-            minWidth: 50,
-            minHeight: 50,
-            width: 50,
-            height: 50,
+            minWidth: 44,
+            minHeight: 44,
+            width: 44,
+            height: 44,
             position: "absolute",
             top: 10,
             left: 10,
-            backgroundColor: "rgba(255,255,255,0.5)",
+            backgroundColor: "#fff",
             borderRadius: 99,
             padding: 0,
-            paddingLeft: 0,
-            paddingRight: 0,
+            paddingHorizontal: 0,
+            justifyContent: "center",
+            alignItems: "center",
           }}
           onPress={onRequestClose}
         >
           <Icon
             source={"AntDesign"}
             name={"arrowleft"}
-            size={30}
+            color={Theme.UIColors.primary}
+            size={24}
             style={{
-              margin: 5,
+              margin: 0,
+              height: 24,
             }}
           />
         </Button>

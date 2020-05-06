@@ -1,8 +1,9 @@
+import _ from "lodash";
 import React from "react";
-import { ScrollViewProps, StyleSheet, ViewStyle, Platform } from "react-native";
-import View from "../View";
+import { Platform, StyleSheet, ViewStyle } from "react-native";
+import View, { IViewProps } from "../View";
 
-export interface IContainerProps extends ScrollViewProps {
+export interface IContainerProps extends IViewProps {
   children?: any;
   scrollRef?: any;
 }
@@ -12,7 +13,12 @@ export default (props: IContainerProps) => {
   const baseStyle: ViewStyle = {
     flexGrow: 1,
   };
-  const cstyle = StyleSheet.flatten([baseStyle, style]);
+  const cstyle = StyleSheet.flatten([
+    baseStyle,
+    style,
+    _.get(props, "contentContainerStyle", {}),
+  ]);
+
   return (
     <View
       type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
@@ -21,16 +27,20 @@ export default (props: IContainerProps) => {
         flexShrink: 1,
       }}
     >
-      <View
-        type={"ScrollView"}
-        {...props}
-        style={{
-          flexGrow: 1,
-          flexShrink: 1,
-        }}
-        childRef={scrollRef}
-        contentContainerStyle={cstyle}
-      />
+      {!_.get(props, "scrollEnabled", false) ? (
+        <View {...props} style={cstyle} childRef={scrollRef} />
+      ) : (
+        <View
+          type={"ScrollView"}
+          {...props}
+          style={{
+            flexGrow: 1,
+            flexShrink: 1,
+          }}
+          childRef={scrollRef}
+          contentContainerStyle={cstyle}
+        />
+      )}
     </View>
   );
 };

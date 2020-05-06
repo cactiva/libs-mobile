@@ -255,6 +255,7 @@ const SelectComponent = observer((props: any) => {
       >
         <Input
           autoFocus={true}
+          placeholder={_.get(selectProps, "placeholder", "")}
           {..._.get(selectProps, "customProps.search", {})}
           style={csearchstyle}
           value={meta.search}
@@ -264,6 +265,7 @@ const SelectComponent = observer((props: any) => {
       <Container
         {..._.get(selectProps, "customProps.modal.container", {})}
         contentContainerStyle={containerStyle}
+        scrollEnabled={false}
       >
         <FlatList
           {..._.get(selectProps, "customProps.modal.list", {})}

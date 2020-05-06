@@ -1,10 +1,9 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import _ from "lodash";
-import { toJS } from "mobx";
 import React, { useEffect, useState } from "react";
 import { Platform, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
-import { dateFormat, dateParse } from "../../utils/date";
+import { dateFormat } from "../../utils/date";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Modal from "../Modal";
@@ -138,7 +137,8 @@ const DatePickerModal = (props: any) => {
     value,
     visible,
   } = props;
-  const [val, setVal] = useState(new Date(value));
+  const currentValue = !!value ? new Date(value) : new Date();
+  const [val, setVal] = useState(currentValue);
   const [androidMode, setAndroidMode] = useState("date");
   const dismiss = () => {
     setVisible(false);
@@ -195,7 +195,7 @@ const DatePickerModal = (props: any) => {
         transparent={true}
         visible={visible}
         onRequestClose={() => {
-          setVal(value);
+          setVal(currentValue);
           dismiss();
         }}
         screenProps={{
@@ -247,7 +247,7 @@ const DatePickerModal = (props: any) => {
                 padding: 0,
               }}
               onPress={() => {
-                setVal(new Date(value));
+                setVal(currentValue);
                 dismiss();
               }}
             >

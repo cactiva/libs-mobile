@@ -90,9 +90,10 @@ const RenderChild = observer((props: any) => {
   const onPress = () => {
     meta.submit = true;
     let err = meta.fields.filter((e) => !e.status);
-    onError && onError(toJS(err));
     if (err.length === 0) {
       onSubmit && onSubmit(data);
+    } else {
+      onError && onError(toJS(err));
     }
   };
 
