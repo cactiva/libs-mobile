@@ -19,6 +19,8 @@ export default (props: IContainerProps) => {
     _.get(props, "contentContainerStyle", {}),
   ]);
 
+  console.log(_.get(props, "scrollEnabled", false));
+
   return (
     <View
       type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
@@ -27,7 +29,7 @@ export default (props: IContainerProps) => {
         flexShrink: 1,
       }}
     >
-      {!_.get(props, "scrollEnabled", false) ? (
+      {_.get(props, "scrollEnabled", true) === false ? (
         <View {...props} style={cstyle} childRef={scrollRef} />
       ) : (
         <View
