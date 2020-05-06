@@ -76,6 +76,7 @@ export default (props: IRadioProps) => {
   return (
     <Button
       mode={"clean"}
+      shadow={mode === "button" && !!checked}
       onPress={() => {
         onPress && onPress(!checked);
       }}
