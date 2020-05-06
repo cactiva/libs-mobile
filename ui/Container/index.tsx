@@ -19,8 +19,6 @@ export default (props: IContainerProps) => {
     _.get(props, "contentContainerStyle", {}),
   ]);
 
-  console.log(_.get(props, "scrollEnabled", false));
-
   return (
     <View
       type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
