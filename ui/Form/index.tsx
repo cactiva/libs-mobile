@@ -118,7 +118,7 @@ const RenderChild = observer((props: any) => {
     custProps = {
       ...custProps,
       validate,
-      value: _.get(data, custProps.path, ""),
+      value: _.get(custProps, "value", "") || _.get(data, custProps.path, ""),
       setValue: (value: any) => defaultSetValue(value, custProps.path),
     };
 

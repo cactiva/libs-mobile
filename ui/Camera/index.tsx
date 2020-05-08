@@ -112,9 +112,7 @@ export default observer((props: ICameraProps) => {
       />
     );
   }
-  const source = !!value
-    ? { uri: value }
-    : _.get(previewProps, "source", undefined);
+  const source = { uri: value, ...(_.get(previewProps, "source", {}) as any) };
   return (
     <>
       <Button
