@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollViewProps, StyleSheet, ViewStyle } from "react-native";
+import { ScrollViewProps, StyleSheet, ViewStyle, Platform } from "react-native";
 import View from "../View";
 import _ from "lodash";
 
@@ -17,7 +17,7 @@ export default (props: IContainerProps) => {
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   return (
     <View
-      type={KeyboardAvoidingView != false ? "KeyboardAvoidingView" : "View"}
+      type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
       style={{
         flexGrow: 1,
         flexShrink: 1,
