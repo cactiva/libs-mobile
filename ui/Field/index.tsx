@@ -40,6 +40,7 @@ export default observer((props: IFieldProps) => {
     suffix,
     disableBoxStyle,
     validate,
+    isRequired,
   } = props;
   const Component = props.children.type;
   const fieldStyle = StyleSheet.flatten([Theme.UIField, style]);
@@ -123,7 +124,11 @@ export default observer((props: IFieldProps) => {
 
   return (
     <View style={fieldStyle}>
-      {!!label && <Text style={labelStyle}>{label}</Text>}
+      {!!label && (
+        <Text style={labelStyle}>
+          {label} {!!isRequired && "*"}
+        </Text>
+      )}
       <View style={wrapperStyle}>
         {!!prefix && typeof prefix === "function" ? prefix() : prefix}
         <Component {...childprops} style={inputStyle} />

@@ -18,43 +18,25 @@ export interface IFromProps extends IViewProps {
 }
 
 export default observer((props: IFromProps) => {
-  const {
-    children,
-    data,
-    setValue,
-    style,
-    onSubmit,
-    onError,
-    reinitValidate,
-  } = props;
+  const { children, style } = props;
   const meta = useObservable({
     fields: [],
     submit: false,
   });
+  meta.fields = [];
 
   return (
     <View style={style}>
       {Array.isArray(children) ? (
         children.map((el) => (
-          <RenderChild
-            data={data}
-            setValue={setValue}
-            child={el}
-            key={uuid()}
-            onSubmit={onSubmit}
-            meta={meta}
-            onError={onError}
-          />
+          <RenderChild key={uuid()} child={el} meta={meta} formProps={props} />
         ))
       ) : (
         <RenderChild
-          data={data}
-          setValue={setValue}
-          child={children}
           key={uuid()}
-          onSubmit={onSubmit}
+          child={children}
           meta={meta}
-          onError={onError}
+          formProps={props}
         />
       )}
     </View>
@@ -62,7 +44,8 @@ export default observer((props: IFromProps) => {
 });
 
 const RenderChild = observer((props: any) => {
-  const { data, child, setValue, onSubmit, meta, onError } = props;
+  const { child, meta, formProps } = props;
+  const { data, setValue, onSubmit, onError } = formProps;
   let custProps: any = child.props;
   const updateFields = (path, status, label) => {
     let field = meta.fields.find((x) => x.path === path);
@@ -98,11 +81,7 @@ const RenderChild = observer((props: any) => {
   };
 
   if (child.type === Field) {
-    let val = true;
     let cstmValidate = custProps.validate;
-    if (custProps.isRequired) {
-      val = !!_.get(data, custProps.path, null);
-    }
 
     const validate = () => {
       let msgs: string[] = [];
@@ -123,8 +102,13 @@ const RenderChild = observer((props: any) => {
     };
 
     useEffect(() => {
+      let val = true;
+      if (custProps.isRequired) {
+        val = !!_.get(data, custProps.path, null);
+      }
       updateFields(custProps.path, val, custProps.label);
-    }, []);
+      console.log(toJS(meta.fields));
+    }, [formProps.reinitValidate, _.get(data, custProps.path, undefined)]);
     const Component = child.type;
     return <Component {...custProps} />;
   } else if (
@@ -140,15 +124,7 @@ const RenderChild = observer((props: any) => {
     return <Component {...custProps} />;
   } else if (Array.isArray(child)) {
     return child.map((el) => (
-      <RenderChild
-        data={data}
-        setValue={setValue}
-        child={el}
-        key={uuid()}
-        onSubmit={onSubmit}
-        meta={meta}
-        onError={onError}
-      />
+      <RenderChild key={uuid()} child={el} meta={meta} formProps={formProps} />
     ));
   } else if (!child || !child.type || !child.props || !child.props.children) {
     return child;
@@ -161,24 +137,14 @@ const RenderChild = observer((props: any) => {
         {Array.isArray(children) ? (
           children.map((el) => (
             <RenderChild
-              data={data}
-              setValue={setValue}
-              child={el}
               key={uuid()}
-              onSubmit={onSubmit}
+              child={el}
               meta={meta}
-              onError={onError}
+              formProps={formProps}
             />
           ))
         ) : (
-          <RenderChild
-            data={data}
-            setValue={setValue}
-            child={children}
-            onSubmit={onSubmit}
-            meta={meta}
-            onError={onError}
-          />
+          <RenderChild child={children} meta={meta} formProps={formProps} />
         )}
       </Component>
     );
