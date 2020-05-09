@@ -107,7 +107,6 @@ const RenderChild = observer((props: any) => {
         val = !!_.get(data, custProps.path, null);
       }
       updateFields(custProps.path, val, custProps.label);
-      console.log(toJS(meta.fields));
     }, [formProps.reinitValidate, _.get(data, custProps.path, undefined)]);
     const Component = child.type;
     return <Component {...custProps} />;

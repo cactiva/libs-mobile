@@ -1,17 +1,17 @@
 import basefonts from "./assets/fonts";
 import overideFonts from "../assets/fonts";
-import fonts from "./assets/fonts";
-
 export const sourceFonts = { ...basefonts, ...overideFonts };
-function generateFont<T, S>(a: T, b: S): T & S {
-  const fonts: any = {};
-  Object.keys(sourceFonts).map((x) => {
-    let key = x.replace(/[^a-zA-Z]/g, "");
-    fonts[key] = x;
+
+function generateFont<T>(source: T) {
+  let fonts = {};
+  Object.keys(source).map((x: string) => {
+    fonts[x] = x;
   });
-  return fonts;
+  return {
+    ...fonts,
+  } as T;
 }
 
-const Fonts = generateFont(basefonts, overideFonts);
+const Fonts = generateFont(sourceFonts);
 
 export default Fonts;

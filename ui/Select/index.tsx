@@ -39,21 +39,21 @@ interface IStyles {
 }
 
 export interface IProps {
-  button?: IButtonProps;
-  label?: ITextProps;
-  icon?: IIconProps;
-  search?: IInputProps;
+  button?: IButtonProps | any;
+  label?: ITextProps | any;
+  icon?: IIconProps | any;
+  search?: IInputProps | any;
   item?: {
-    sperator?: ViewProps;
-    button?: IButtonProps;
-    label?: ITextProps;
+    sperator?: ViewProps | any;
+    button?: IButtonProps | any;
+    label?: ITextProps | any;
   };
   modal?: {
-    statusbar?: ViewStyle;
-    screen?: IScreenProps;
-    container?: IContainerProps;
-    list?: IFlatListProps;
-    topbar?: ITopBarProps;
+    statusbar?: ViewStyle | any;
+    screen?: IScreenProps | any;
+    container?: IContainerProps | any;
+    list?: IFlatListProps | any;
+    topbar?: ITopBarProps | any;
   };
 }
 

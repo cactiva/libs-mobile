@@ -3,10 +3,11 @@ import {
   TextProps as OriginTextProps,
   Text,
   StyleSheet,
-  TextStyle
+  TextStyle,
 } from "react-native";
 import _ from "lodash";
 import Theme from "../../theme";
+import Fonts from "../../assets/fonts";
 
 export interface ITextProps extends OriginTextProps {
   children: any;
@@ -18,7 +19,7 @@ export default (props: ITextProps) => {
   const baseStyle: TextStyle = {
     fontFamily: Theme.UIFontFamily,
     fontSize: Theme.UIFontSize,
-    color: color || Theme.UIColors.text
+    color: color || Theme.UIColors.text,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
 
