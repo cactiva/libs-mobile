@@ -32,10 +32,22 @@ export default (props: IImageProps) => {
     height: 150,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
-  const loadingStyle = StyleSheet.flatten([
+  let width = 240;
+  if (!!cstyle.width) {
+    if (typeof cstyle.width === "string") {
+      let w: string = cstyle.width;
+      w = w.replace("%", "");
+      width = parseInt(w) * 0.8;
+    } else {
+      width = cstyle.width * 0.8;
+    }
+  }
+  const loadingStyle: ImageStyle = StyleSheet.flatten([
     cstyle,
     {
-      backgroundColor: Theme.UIColors.primary,
+      backgroundColor: "#fff",
+      alignSelf: "center",
+      width,
     },
   ]);
   let csource: any = source;
@@ -81,7 +93,7 @@ export default (props: IImageProps) => {
               source={csource}
               style={cstyle}
               onError={(e) => {
-                const err = _.get(e, "mativeEvent.error", "");
+                const err = _.get(e, "nativeEvent.error", "");
                 if (!!err) setError(true);
               }}
             />
@@ -89,9 +101,9 @@ export default (props: IImageProps) => {
         </Button>
       ) : (
         <Image
-          resizeMode={"contain"}
           defaultSource={Theme.UIImageLoading}
           {...props}
+          resizeMode={"contain"}
           source={csource}
           style={loadingStyle}
         />
