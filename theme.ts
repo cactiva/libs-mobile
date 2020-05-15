@@ -27,7 +27,7 @@ const Theme = {
     margin: 4,
     minHeight: 30,
     minWidth: 10,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   UIInput: {
     padding: 0,

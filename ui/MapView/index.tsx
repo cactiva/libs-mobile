@@ -1,5 +1,5 @@
 import { observer, useObservable } from "mobx-react-lite";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MapViewNative, {
   MapViewProps as MapViewPropsOrigin,
   Marker as MarkerOrigin,
@@ -37,11 +37,11 @@ export default observer((props: MapViewProps) => {
   const mapProps = { ...props };
   delete mapProps.markers;
   delete mapProps.location;
-  const meta = useObservable({
-    defaultLatitudeDelta: 0.0922,
-    defaultLongitudeDelta: 0.0922,
-    mapReady: false,
-  });
+  const defaultDelta = {
+    latitudeDelta: 0.02,
+    longitudeDelta: 0.02,
+  };
+  const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef(null);
 
   let region = {
@@ -53,11 +53,11 @@ export default observer((props: MapViewProps) => {
 
   if (!!location) {
     let newregion: any = location;
-    if (!newregion.latitudeDelta) {
-      newregion.latitudeDelta = meta.defaultLatitudeDelta;
-    }
-    if (!newregion.longitudeDelta) {
-      newregion.longitudeDelta = meta.defaultLongitudeDelta;
+    if (!newregion.latitudeDelta || !newregion.longitudeDelta) {
+      newregion = {
+        ...newregion,
+        ...defaultDelta,
+      };
     }
     region = newregion;
   }
@@ -66,25 +66,22 @@ export default observer((props: MapViewProps) => {
     if (
       fitToSuppliedMarkers !== false &&
       mapRef.current !== null &&
-      meta.mapReady &&
-      markerIds &&
+      !!mapReady &&
+      Array.isArray(markerIds) &&
       markerIds.length > 0
     ) {
       setTimeout(() => {
         mapRef.current.fitToSuppliedMarkers(markerIds);
       }, 0);
     }
-  }, [meta.mapReady, markerIds]);
+  }, [mapReady, markerIds]);
 
   return (
     <View
       style={style}
-      onLayout={(event) => {
-        const { width, height } = event.nativeEvent.layout;
-        meta.defaultLongitudeDelta =
-          (meta.defaultLatitudeDelta + width / height) * 10;
-        meta.mapReady = true;
-        onMapViewReady && onMapViewReady(meta.mapReady);
+      onLayout={() => {
+        setMapReady(true);
+        onMapViewReady && onMapViewReady(mapReady);
       }}
     >
       <MapViewNative
@@ -105,30 +102,26 @@ export const Marker = (props: MarkerProps) => {
   return <MarkerOrigin {...props} />;
 };
 
-export function getRegionForCoordinates(points) {
+export function getRegionForCoordinate(point) {
   // points should be an array of { latitude: X, longitude: Y }
   let minX, maxX, minY, maxY;
 
   // init first point
-  ((point) => {
-    minX = point.latitude;
-    maxX = point.latitude;
-    minY = point.longitude;
-    maxY = point.longitude;
-  })(points[0]);
+  minX = point.latitude;
+  maxX = point.latitude;
+  minY = point.longitude;
+  maxY = point.longitude;
 
   // calculate rect
-  points.map((point) => {
-    minX = Math.min(minX, point.latitude);
-    maxX = Math.max(maxX, point.latitude);
-    minY = Math.min(minY, point.longitude);
-    maxY = Math.max(maxY, point.longitude);
-  });
+  minX = Math.min(minX, point.latitude);
+  maxX = Math.max(maxX, point.latitude);
+  minY = Math.min(minY, point.longitude);
+  maxY = Math.max(maxY, point.longitude);
 
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
-  const deltaX = maxX - minX;
-  const deltaY = maxY - minY;
+  const deltaX = maxX - minX + 0.02;
+  const deltaY = maxY - minY + 0.02;
 
   return {
     latitude: midX,
