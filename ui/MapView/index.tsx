@@ -59,6 +59,10 @@ export default observer((props: MapViewProps) => {
         ...defaultDelta,
       };
     }
+    if (!!newregion.latitude && typeof newregion.latitude !== "number")
+      newregion.latitude = parseInt(newregion.latitude);
+    if (!!newregion.longitude && typeof newregion.longitude !== "number")
+      newregion.longitude = parseInt(newregion.longitude);
     region = newregion;
   }
 
