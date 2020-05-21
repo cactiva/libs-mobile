@@ -18,6 +18,7 @@ const Theme = {
     danger: "#f25454",
     text: "#333",
     background: "#fff",
+    success: "#4caf50",
   },
   UIFontSize: 16,
   UIFontFamily: Fonts.NotoSansRegular,
