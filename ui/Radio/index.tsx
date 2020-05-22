@@ -69,7 +69,7 @@ export default (props: IRadioProps) => {
     mode === "button" && !!checked
       ? {
           borderColor: Theme.UIColors.primary,
-          backgroundColor: shadeColor(Theme.UIColors.primary, 200),
+          backgroundColor: shadeColor(Theme.UIColors.primary, 190),
         }
       : {};
   const style: any = StyleSheet.flatten([

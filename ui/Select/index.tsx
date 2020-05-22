@@ -118,6 +118,7 @@ export default observer((props: ISelectProps) => {
     flexWrap: "nowrap",
     flexShrink: 1,
     flexGrow: 1,
+    paddingRight: 10,
   };
   const clabelstyle = StyleSheet.flatten([
     baseLabelStyle,

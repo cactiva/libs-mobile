@@ -245,10 +245,12 @@ const CameraPicker = observer((props: any) => {
         >
           <Icon source="AntDesign" name="arrowleft" color="white" size={24} />
         </Button>
-        <CameraToolsTop
-          state={meta}
-          cameraTools={_.get(props, "cameraTools", {})}
-        />
+        {(!value || !!state.resnap) && (
+          <CameraToolsTop
+            state={meta}
+            cameraTools={_.get(props, "cameraTools", {})}
+          />
+        )}
       </View>
       {!!value && !state.resnap ? (
         <Image
@@ -273,11 +275,13 @@ const CameraPicker = observer((props: any) => {
           {state.snap && <Spinner color={"white"} size="large" />}
         </Camera>
       )}
-      <CameraToolsBottom
-        imagePicker={imagePicker}
-        meta={meta}
-        cameraTools={_.get(props, "cameraTools", {})}
-      />
+      {(!value || !!state.resnap) && (
+        <CameraToolsBottom
+          imagePicker={imagePicker}
+          meta={meta}
+          cameraTools={_.get(props, "cameraTools", {})}
+        />
+      )}
       <CameraAction imageSnap={imageSnap} state={state} value={value} />
     </Modal>
   );

@@ -18,6 +18,7 @@ const Theme = {
     danger: "#f25454",
     text: "#333",
     background: "#fff",
+    success: "#4caf50",
   },
   UIFontSize: 16,
   UIFontFamily: Fonts.NotoSansRegular,
@@ -27,7 +28,7 @@ const Theme = {
     margin: 4,
     minHeight: 30,
     minWidth: 10,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   UIInput: {
     padding: 0,
