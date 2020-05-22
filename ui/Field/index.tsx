@@ -14,7 +14,7 @@ import View from "../View";
 interface IFieldProps {
   label?: string;
   path?: string;
-  setValue?: any;
+  setValue?: (value) => void;
   value?: any;
   children?: any;
   isRequired?: boolean;
