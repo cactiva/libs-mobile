@@ -25,6 +25,7 @@ export interface IImageProps extends OriginImageProps {
 
 export default (props: IImageProps) => {
   const { style, source, preview } = props;
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [show, setShow] = useState(false);
   const baseStyle: ImageStyle = {
@@ -37,15 +38,15 @@ export default (props: IImageProps) => {
     if (typeof cstyle.width === "string") {
       let w: string = cstyle.width;
       w = w.replace("%", "");
-      width = parseInt(w) * 0.8;
+      width = parseInt(w) * 0.7;
     } else {
-      width = cstyle.width * 0.8;
+      width = cstyle.width * 0.7;
     }
   }
   const loadingStyle: ImageStyle = StyleSheet.flatten([
     cstyle,
     {
-      backgroundColor: "#fff",
+      // backgroundColor: "#fff",
       alignSelf: "center",
       width,
     },
@@ -65,6 +66,8 @@ export default (props: IImageProps) => {
     paddingRight: 0,
     backgroundColor: "transparent",
     opacity: !preview ? 1 : undefined,
+    width: _.get(cstyle, "width", undefined),
+    height: _.get(cstyle, "height", undefined),
   };
 
   const onPress = () => {
@@ -85,26 +88,29 @@ export default (props: IImageProps) => {
             },
           }}
         >
-          {!error && (
-            <Image
-              resizeMode={"contain"}
-              defaultSource={Theme.UIImageLoading}
-              {...props}
-              source={csource}
-              style={cstyle}
-              onError={(e) => {
-                const err = _.get(e, "nativeEvent.error", "");
-                if (!!err) setError(true);
-              }}
-            />
-          )}
+          <Image
+            defaultSource={Theme.UIImageLoading}
+            {...props}
+            resizeMode={
+              loading ? "contain" : _.get(props, "resizeMode", "contain")
+            }
+            source={csource}
+            style={loading ? loadingStyle : cstyle}
+            onError={(e) => {
+              const err = _.get(e, "nativeEvent.error", "");
+              if (!!err) setError(true);
+            }}
+            onLoadEnd={() => {
+              setLoading(false);
+            }}
+          />
         </Button>
       ) : (
         <Image
           defaultSource={Theme.UIImageLoading}
           {...props}
-          resizeMode={"contain"}
-          source={csource}
+          resizeMode={"center"}
+          source={Theme.UIImageError}
           style={loadingStyle}
         />
       )}
