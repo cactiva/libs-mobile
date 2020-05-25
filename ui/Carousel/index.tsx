@@ -57,7 +57,7 @@ export default observer((props: ICarouselProps) => {
   );
 });
 
-export const Pagination = observer((props: any | PaginationPropsOrigin) => {
+export const Pagination = observer((props: Partial<PaginationPropsOrigin>) => {
   return (
     <PaginationOrigin
       dotsLength={0}

@@ -12,7 +12,7 @@ import Screen, { IScreenProps } from "../Screen";
 import _ from "lodash";
 
 export interface ModalProps extends ModalPropsOrigin {
-  style?: any;
+  style?: ViewStyle;
   children?: any;
   screenProps?: IScreenProps;
   styles?: {
@@ -24,7 +24,9 @@ export interface ModalProps extends ModalPropsOrigin {
 export default observer((props: ModalProps) => {
   const { style, children, screenProps } = props;
   const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
-  const baseStyle = {};
+  const baseStyle = {
+    backgroundColor: "transparent",
+  };
   const cstyle = StyleSheet.flatten([
     baseStyle,
     style,
@@ -39,7 +41,12 @@ export default observer((props: ModalProps) => {
     _.get(props, "screenProps.styles.statusbar"),
   ]);
   return (
-    <Modal animationType="fade" transparent={true} {...props}>
+    <Modal
+      animationType="fade"
+      transparent={true}
+      {...props}
+      hardwareAccelerated={true}
+    >
       <Screen
         {...screenProps}
         style={cstyle}

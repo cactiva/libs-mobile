@@ -21,11 +21,14 @@ export interface IImageProps extends OriginImageProps {
   loadingSize?: "small" | "large";
   preview?: boolean;
   styles?: IStyle;
+  disableLoading?: boolean;
 }
 
 export default (props: IImageProps) => {
-  const { style, source, preview } = props;
-  const [loading, setLoading] = useState(true);
+  const { style, source, preview, disableLoading } = props;
+  const [loading, setLoading] = useState(
+    disableLoading === true ? false : true
+  );
   const [error, setError] = useState(false);
   const [show, setShow] = useState(false);
   const baseStyle: ImageStyle = {
@@ -92,10 +95,10 @@ export default (props: IImageProps) => {
             defaultSource={Theme.UIImageLoading}
             {...props}
             resizeMode={
-              loading ? "contain" : _.get(props, "resizeMode", "contain")
+              !!loading ? "contain" : _.get(props, "resizeMode", "contain")
             }
             source={csource}
-            style={loading ? loadingStyle : cstyle}
+            style={!!loading ? loadingStyle : cstyle}
             onError={(e) => {
               const err = _.get(e, "nativeEvent.error", "");
               if (!!err) setError(true);
