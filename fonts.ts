@@ -1,11 +1,18 @@
-function importAllFonts(r) {
-  const fonts = {};
-  r.keys().map(name => {
-    const finalName = name.substr(2, name.length - 6);
-    fonts[finalName] = r(name);
+
+import basefonts from "./assets/fonts";
+import overideFonts from "../assets/fonts";
+export const sourceFonts = { ...basefonts, ...overideFonts };
+
+function generateFont<T>(source: T) {
+  let fonts = {};
+  Object.keys(source).map((x: string) => {
+    fonts[x] = x;
   });
-  return fonts;
+  return {
+    ...fonts,
+  } as T;
 }
-export const fonts = importAllFonts(
-  require.context("../assets/fonts", true, /\.(ttf)$/)
-);
+
+const Fonts = generateFont(sourceFonts);
+
+export default Fonts;

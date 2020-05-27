@@ -16,7 +16,7 @@ export interface ITextProps extends OriginTextProps {
 export default (props: ITextProps) => {
   const { style, color } = props;
   const baseStyle: TextStyle = {
-    fontFamily: Theme.UIFontFamily,
+    // fontFamily: Theme.UIFontFamily,
     fontSize: Theme.UIFontSize,
     color: color || Theme.UIColors.text
   };

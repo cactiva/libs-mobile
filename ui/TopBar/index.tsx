@@ -39,8 +39,8 @@ export default (props: ITopBarProps) => {
   const baseStyle: ViewStyle = {
     flexDirection: "row",
     alignItems: "center",
-    height: 56,
-    minHeight: 56,
+    height: 80,
+    minHeight: 80,
     backgroundColor: Theme.UIColors.primary,
     zIndex: 9,
     margin: 0,
