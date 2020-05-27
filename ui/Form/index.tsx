@@ -6,10 +6,11 @@ import { uuid } from "../../utils";
 import Button from "../Button";
 import Field from "../Field";
 import View, { IViewProps } from "../View";
+import { ViewStyle } from "react-native";
 
 export interface IFromProps extends IViewProps {
   data?: any;
-  style?: any;
+  style?: ViewStyle;
   children?: any;
   setValue?: (value, path) => void;
   onSubmit?: (data) => void;

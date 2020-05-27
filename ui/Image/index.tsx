@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ImageStyle,
   ViewStyle,
+  TextStyle,
 } from "react-native";
 import _ from "lodash";
 import Theme from "../../theme";
@@ -12,9 +13,11 @@ import Button from "../Button";
 import Modal from "../Modal";
 import Icon from "../Icon";
 import View from "../View";
+import Text from "../Text";
 
 interface IStyle {
   preview?: ViewStyle;
+  caption?: TextStyle;
 }
 
 export interface IImageProps extends OriginImageProps {
@@ -22,6 +25,7 @@ export interface IImageProps extends OriginImageProps {
   preview?: boolean;
   styles?: IStyle;
   disableLoading?: boolean;
+  caption?: string;
 }
 
 export default (props: IImageProps) => {
@@ -107,6 +111,28 @@ export default (props: IImageProps) => {
               setLoading(false);
             }}
           />
+          {!!props.caption && (
+            <Text
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: 15,
+                paddingVertical: 10,
+                color: "white",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                textAlign: "center",
+                flex: 1,
+                flexWrap: "wrap",
+                overflow: "hidden",
+              }}
+              ellipsizeMode={"tail"}
+              numberOfLines={2}
+            >
+              {props.caption}
+            </Text>
+          )}
         </Button>
       ) : (
         <Image
@@ -157,7 +183,7 @@ const PreviewImage = (props: any) => {
             height: 44,
             position: "absolute",
             top: 10,
-            left: 10,
+            right: 10,
             backgroundColor: "#fff",
             borderRadius: 99,
             padding: 0,
@@ -168,16 +194,31 @@ const PreviewImage = (props: any) => {
           onPress={onRequestClose}
         >
           <Icon
-            source={"AntDesign"}
-            name={"arrowleft"}
+            name={"md-close"}
             color={Theme.UIColors.primary}
             size={24}
             style={{
               margin: 0,
-              height: 24,
             }}
           />
         </Button>
+        {!!imgProps.caption && (
+          <Text
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              padding: 15,
+              color: "white",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              textAlign: "center",
+              flex: 1,
+            }}
+          >
+            {imgProps.caption}
+          </Text>
+        )}
       </View>
     </Modal>
   );
