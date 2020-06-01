@@ -83,6 +83,7 @@ export default observer((props: ICameraProps) => {
     backgroundColor: "#a2a4ab",
     overflow: "hidden",
     paddingHorizontal: 0,
+    flex: 1,
     ...style,
   };
   const iconStyle = {
@@ -92,8 +93,8 @@ export default observer((props: ICameraProps) => {
   const previewStyle = {
     height: height,
     width: width,
-    flexGrow: 1,
-    flexShrink: 1,
+    flex: 1,
+    overflow: "hidden",
     ..._.get(props, "styles.preview", {}),
   };
 

@@ -15,10 +15,11 @@ const Theme = {
   UIColors: {
     primary: "#311B92",
     secondary: "#F4F7FF",
-    danger: "#f25454",
+    danger: "#eb4559",
     text: "#333",
     background: "#fff",
     success: "#4caf50",
+    warning: "#ffb367",
   },
   UIFontSize: 16,
   UIFontFamily: Fonts.NotoSansRegular,

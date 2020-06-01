@@ -87,10 +87,12 @@ const RenderChild = observer((props: any) => {
     const validate = () => {
       let msgs: string[] = [];
       let field = meta.fields.find((x) => x.path === custProps.path);
-      if (!!field && !field.status) msgs.push("Field is required.");
+      if (!!field && !field.status && !custProps.value)
+        msgs.push("Field is required.");
       if (!!cstmValidate) {
         let customMsgs: string[] = cstmValidate();
         msgs = [...msgs, ...customMsgs];
+        if (msgs.length > 0 && !!field) field.status = false;
       }
       return !!meta.submit ? msgs : [];
     };

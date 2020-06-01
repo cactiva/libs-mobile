@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { observer } from "mobx-react-lite";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
 import Camera from "../Camera";
@@ -10,9 +10,12 @@ import RadioGroup from "../RadioGroup";
 import Select from "../Select";
 import Text from "../Text";
 import View from "../View";
+import Button from "../Button";
+import Icon from "../Icon";
 
 interface IFieldProps {
   label?: string;
+  hiddenLabel?: boolean;
   path?: string;
   setValue?: (value) => void;
   value?: any;
@@ -32,7 +35,7 @@ interface IFieldProps {
 }
 
 export default observer((props: IFieldProps) => {
-  const {
+  let {
     label,
     readonly,
     style,
@@ -41,7 +44,9 @@ export default observer((props: IFieldProps) => {
     disableBoxStyle,
     validate,
     isRequired,
+    hiddenLabel,
   } = props;
+  const [password, setPassword] = useState(true);
   const Component = props.children.type;
   const fieldStyle = StyleSheet.flatten([Theme.UIField, style]);
   const defLabelStyle: TextStyle = {
@@ -122,9 +127,36 @@ export default observer((props: IFieldProps) => {
   let errorMsg: string[] = [];
   if (!!validate) errorMsg = validate();
 
+  if (childprops.type === "password") {
+    let exist = suffix;
+    suffix = () => {
+      return (
+        <>
+          <Button
+            mode={"clean"}
+            style={{
+              paddingHorizontal: 0,
+              minWidth: 35,
+              width: 35,
+              minHeight: 35,
+              height: 35,
+            }}
+            onPress={() => {
+              setPassword(!password);
+            }}
+          >
+            <Icon name={!!password ? "md-eye-off" : "md-eye"} size={18} />
+          </Button>
+          {!!exist && typeof exist === "function" ? exist() : exist}
+        </>
+      );
+    };
+    childprops.type = !!password ? "password" : "text";
+  }
+
   return (
     <View style={fieldStyle}>
-      {!!label && (
+      {!!label && hiddenLabel != true && (
         <Text style={labelStyle}>
           {label} {!!isRequired && "*"}
         </Text>
