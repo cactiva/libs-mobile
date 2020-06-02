@@ -166,18 +166,21 @@ const CameraPicker = observer((props: any) => {
     if (!!value && !state.resnap) {
       state.resnap = true;
     } else if (camera.current) {
+      let param: any = {
+        quality: 0.5,
+        base64: false,
+      };
+
+      if (Platform.OS === "android") {
+        param.skipProcessing = true;
+      }
       state.snap = true;
-      camera.current
-        .takePictureAsync({
-          quality: 0.5,
-          skipProcessing: true,
-        })
-        .then((res: any) => {
-          onCapture && onCapture(res.uri);
-          state.isShown = false;
-          state.snap = false;
-          !!state.resnap && (state.resnap = false);
-        });
+      camera.current.takePictureAsync(param).then((res: any) => {
+        onCapture && onCapture(res.uri);
+        state.isShown = false;
+        state.snap = false;
+        !!state.resnap && (state.resnap = false);
+      });
     }
   };
   const imagePicker = async () => {
