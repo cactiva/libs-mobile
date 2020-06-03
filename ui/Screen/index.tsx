@@ -1,7 +1,13 @@
 import Constants from "expo-constants";
 import _ from "lodash";
 import React from "react";
-import { StyleSheet, ViewProps, ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  ViewProps,
+  ViewStyle,
+  StatusBarStyle,
+  StatusBar,
+} from "react-native";
 import Theme from "../../theme";
 import View from "../View";
 
@@ -12,10 +18,11 @@ interface IStyles {
 export interface IScreenProps extends ViewProps {
   children?: any;
   styles?: IStyles;
+  setBarStyle?: StatusBarStyle;
 }
 
 export default (props: IScreenProps) => {
-  const { style } = props;
+  const { style, setBarStyle, children } = props;
   // const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
   let cstyle = StyleSheet.flatten([
     {
@@ -41,6 +48,7 @@ export default (props: IScreenProps) => {
     defStatusbarStyle,
     _.get(props, "styles.statusbar", {}),
   ]);
+  if (setBarStyle) StatusBar.setBarStyle(setBarStyle);
   return (
     <>
       <View style={cstatusbarStyle} />
