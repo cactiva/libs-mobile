@@ -135,13 +135,15 @@ export default (props: IImageProps) => {
           )}
         </Button>
       ) : (
-        <Image
-          defaultSource={Theme.UIImageLoading}
-          {...props}
-          resizeMode={"center"}
-          source={Theme.UIImageError}
-          style={loadingStyle}
-        />
+        <View style={btnStyle}>
+          <Image
+            defaultSource={Theme.UIImageLoading}
+            {...props}
+            resizeMode={"center"}
+            source={Theme.UIImageError}
+            style={loadingStyle}
+          />
+        </View>
       )}
       <PreviewImage show={show} setShow={setShow} imgProps={props} />
     </>
