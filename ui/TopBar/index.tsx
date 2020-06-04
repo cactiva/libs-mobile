@@ -65,6 +65,7 @@ export default (props: ITopBarProps) => {
     color: "white",
     overflow: "hidden",
     flexGrow: 1,
+    paddingHorizontal: 10,
   };
   const onPressBack = !!actionBackButton
     ? actionBackButton
