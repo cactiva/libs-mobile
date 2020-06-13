@@ -12,8 +12,7 @@ import Modal from "../Modal";
 import Text from "../Text";
 import TopBar from "../TopBar";
 import View from "../View";
-import Container from "../Container";
-import Screen from "../Screen";
+import { Dimensions } from "react-native";
 
 export interface SelectItemProps {
   label: any;
@@ -34,6 +33,7 @@ export interface SelectProps {
   valuePath?: ((item: any) => any) | string;
   icon?: boolean;
   searchStyle?: any;
+  renderItemStyle?: any
 }
 
 const parsePath = (item, path) => {
@@ -176,8 +176,8 @@ const ModalItems = observer((props: any) => {
           placeholder={props.placeholder || "Search..."}
           value={meta.filter}
           onChangeText={onSearch}
-          autoFocus={true}
           style={{
+            width: Dimensions.get("window").width - 50,
             padding: 10,
             color: "#fff",
             ..._.get(props, "searchStyle", {})
@@ -220,7 +220,8 @@ const RenderItem = observer((props: any) => {
         <Text
           style={{
             margin: 30,
-            textAlign: "center"
+            fontSize: Theme.UIFontSize,
+            textAlign: "center",
           }}
         >
           No item to display.
@@ -233,6 +234,7 @@ const RenderItem = observer((props: any) => {
             value={value}
             meta={meta}
             onSelect={onSelect}
+            renderItemStyle={props.renderItemStyle}
           ></RenderItemRow>
         );
       }}
@@ -265,7 +267,8 @@ const RenderItemRow = observer((props: any) => {
     >
       <Text
         style={{
-          color: active ? "#fff" : "black"
+          color: active ? "#fff" : "black",
+          ..._.get(props, "renderItemStyle", {})
         }}
       >
         {textLabel}

@@ -39,12 +39,12 @@ export default (props: ITopBarProps) => {
   const baseStyle: ViewStyle = {
     flexDirection: "row",
     alignItems: "center",
-    height: 80,
-    minHeight: 80,
+    // height: 80,
+    // minHeight: 80,
     backgroundColor: Theme.UIColors.primary,
     zIndex: 9,
     margin: 0,
-    padding: 8,
+    // padding: 8,
     flexShrink: 1,
   };
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);

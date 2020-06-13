@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollViewProps, StyleSheet, ViewStyle, Platform } from "react-native";
+import { ScrollViewProps, StyleSheet, ViewStyle, Platform, StatusBar } from "react-native";
 import View from "../View";
 import _ from "lodash";
 
@@ -19,16 +19,15 @@ export default (props: IContainerProps) => {
     <View
       type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
       style={{
-        flexGrow: 1,
-        flexShrink: 1,
+        flex: 1,
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
       }}
     >
       <View
         type={"ScrollView"}
         {...props}
         style={{
-          flexGrow: 1,
-          flexShrink: 1,
+          backgroundColor: "#ffffff"
         }}
         childRef={scrollRef}
         contentContainerStyle={cstyle}
