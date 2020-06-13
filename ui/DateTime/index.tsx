@@ -151,8 +151,8 @@ const DatePickerModal = (props: any) => {
   const setValue = (ev, date) => {
     if (Platform.OS === "android") {
       if (ev.type === "dismissed") {
-        if (androidMode === "time") setAndroidMode("date");
         dismiss();
+        if (androidMode === "time") setAndroidMode("date");
       } else {
         if (mode !== "datetime") {
           dismiss();
@@ -161,9 +161,9 @@ const DatePickerModal = (props: any) => {
         } else {
           if (androidMode === "time") {
             dismiss();
-            onChangePicker(date);
             setVal(date);
             setAndroidMode("date");
+            onChangePicker(date);
           } else {
             setVal(date);
             setAndroidMode("time");
@@ -174,6 +174,7 @@ const DatePickerModal = (props: any) => {
       setVal(date);
     }
   };
+  console.log("haloo");
 
   if (Platform.OS === "android") {
     if (!!visible)
