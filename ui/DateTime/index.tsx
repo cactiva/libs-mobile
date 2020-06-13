@@ -174,7 +174,6 @@ const DatePickerModal = (props: any) => {
       setVal(date);
     }
   };
-  console.log("haloo");
 
   if (Platform.OS === "android") {
     if (!!visible)
