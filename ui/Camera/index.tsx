@@ -129,6 +129,7 @@ export default observer((props: ICameraProps) => {
             style={previewStyle}
             {...previewProps}
             source={source}
+            disableLoading
           />
         ) : (
           <Icon
@@ -171,18 +172,25 @@ const CameraPicker = observer((props: any) => {
       let param: any = {
         quality: 0.5,
         base64: false,
+        onPictureSaved: (res) => {
+          state.isShown = false;
+          state.snap = false;
+          !!state.resnap && (state.resnap = false);
+          onCapture && onCapture(res.uri);
+        },
       };
 
       // if (Platform.OS === "android") {
       //   param.skipProcessing = true;
       // }
       state.snap = true;
-      camera.current.takePictureAsync(param).then((res: any) => {
-        onCapture && onCapture(res.uri);
-        state.isShown = false;
-        state.snap = false;
-        !!state.resnap && (state.resnap = false);
-      });
+      camera.current.takePictureAsync(param);
+      // .then((res: any) => {
+      //   onCapture && onCapture(res.uri);
+      //   state.isShown = false;
+      //   state.snap = false;
+      //   !!state.resnap && (state.resnap = false);
+      // });
     }
   };
   const imagePicker = async () => {
