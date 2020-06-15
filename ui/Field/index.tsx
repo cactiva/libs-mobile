@@ -28,8 +28,9 @@ interface IFieldProps {
   suffix?: any;
   disableBoxStyle?: Boolean;
   styles?: {
+    label?: TextStyle;
     wrapper?: ViewStyle;
-    input?: ViewStyle;
+    input?: TextStyle;
   };
   validate?: () => string[];
 }
@@ -54,7 +55,11 @@ export default observer((props: IFieldProps) => {
     color: Theme.UIColors.primary,
     marginBottom: 5,
   };
-  const labelStyle = StyleSheet.flatten([defLabelStyle, Theme.UILabel]);
+  const labelStyle = StyleSheet.flatten([
+    defLabelStyle,
+    Theme.UILabel,
+    _.get(props, "styles.label"),
+  ]);
   const defErrorLabelStyle: TextStyle = {
     fontSize: 12,
     lineHeight: 12,
@@ -84,7 +89,7 @@ export default observer((props: IFieldProps) => {
     },
     Theme.UIInput,
     boxStyle,
-    _.get(props, "styles.input"),
+    _.get(props, "styles.wrapper"),
   ]);
 
   const handleOnChange = (value) => {
@@ -92,7 +97,7 @@ export default observer((props: IFieldProps) => {
     props.onChange && props.onChange(value);
   };
   const childprops = _.clone(_.get(props, "children.props", {}));
-  childprops.readonly = readonly;
+  childprops.editable = !readonly;
   childprops.value = _.get(props, "value", "");
   childprops.onChange = handleOnChange;
 
@@ -107,7 +112,12 @@ export default observer((props: IFieldProps) => {
   ) {
     delete baseInpStyle.height;
   }
-  const inputStyle = StyleSheet.flatten([baseInpStyle, childprops.style]);
+
+  const inputStyle = StyleSheet.flatten([
+    baseInpStyle,
+    childprops.style,
+    _.get(props, "styles.input"),
+  ]);
 
   switch (Component) {
     case Select:

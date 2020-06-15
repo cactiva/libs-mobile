@@ -43,10 +43,11 @@ export interface ICameraProps {
     picker?: boolean;
     reverse?: boolean;
   };
+  editable?: boolean;
 }
 
 export default observer((props: ICameraProps) => {
-  const { style, value, previewProps, iconProps } = props;
+  const { style, value, previewProps, iconProps, editable } = props;
   const meta = useObservable({
     hasCameraPermission: null,
     hasImagePickPermission: null,
@@ -120,6 +121,7 @@ export default observer((props: ICameraProps) => {
         mode={"clean"}
         style={baseStyle}
         onPress={() => (meta.isShown = true)}
+        disabled={editable === false && !value}
       >
         {!!value ? (
           <Image
@@ -145,7 +147,7 @@ export default observer((props: ICameraProps) => {
 });
 
 const CameraPicker = observer((props: any) => {
-  const { state, cameraProps, value, onCapture } = props;
+  const { state, cameraProps, value, onCapture, editable } = props;
   const meta = useObservable({
     cameraProps: {
       type: Camera.Constants.Type.back,
@@ -171,9 +173,9 @@ const CameraPicker = observer((props: any) => {
         base64: false,
       };
 
-      if (Platform.OS === "android") {
-        param.skipProcessing = true;
-      }
+      // if (Platform.OS === "android") {
+      //   param.skipProcessing = true;
+      // }
       state.snap = true;
       camera.current.takePictureAsync(param).then((res: any) => {
         onCapture && onCapture(res.uri);
@@ -209,6 +211,7 @@ const CameraPicker = observer((props: any) => {
   useEffect(() => {
     setCameraProps();
   }, []);
+
   return (
     <Modal
       transparent={false}
@@ -286,7 +289,9 @@ const CameraPicker = observer((props: any) => {
           cameraTools={_.get(props, "cameraTools", {})}
         />
       )}
-      <CameraAction imageSnap={imageSnap} state={state} value={value} />
+      {editable !== false && (
+        <CameraAction imageSnap={imageSnap} state={state} value={value} />
+      )}
     </Modal>
   );
 });

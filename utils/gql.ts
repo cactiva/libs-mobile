@@ -14,7 +14,7 @@ interface QueryOptions {
 export const queryAll = async (q: string, options?: QueryOptions) => {
   const headers = {
     "content-type": "application/json",
-    ..._.get(options, "headers", {})
+    ..._.get(options, "headers", {}),
   };
 
   if (_.get(options, "auth", true) && session && session.jwt) {
@@ -40,15 +40,15 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
       data: {
         operationName: _.get(options, "operationName"),
         query: q,
-        variables: _.get(options, "variables", {})
-      }
+        variables: _.get(options, "variables", {}),
+      },
     });
 
     if (res && res.data) {
       const keys = Object.keys(res.data);
 
       const mutate = keys.filter(
-        e => e.indexOf("insert_") === 0 || e.indexOf("update_") === 0
+        (e) => e.indexOf("insert_") === 0 || e.indexOf("update_") === 0
       );
       if (mutate.length > 0) {
         if (res.data[mutate[0]].returning.length === 1) {
