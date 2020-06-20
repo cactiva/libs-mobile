@@ -6,23 +6,25 @@ import {
   ScrollViewProps,
   StyleSheet,
   View,
-  ViewProps as OriViewProps
+  ViewProps as OriViewProps,
+  Platform
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaViewProps } from "react-navigation";
 import Theme from "../../theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export interface IViewProps
   extends OriViewProps,
-    ScrollViewProps,
-    SafeAreaViewProps,
-    KeyboardAvoidingViewProps {
+  ScrollViewProps,
+  SafeAreaViewProps,
+  KeyboardAvoidingViewProps {
   type?:
-    | "View"
-    | "SafeAreaView"
-    | "AnimatedView"
-    | "ScrollView"
-    | "KeyboardAvoidingView";
+  | "View"
+  | "SafeAreaView"
+  | "AnimatedView"
+  | "ScrollView"
+  | "KeyboardAvoidingView";
   shadow?: boolean;
   childRef?: any;
 }
@@ -33,6 +35,8 @@ export default (props: IViewProps) => {
   let cstyle = StyleSheet.flatten([shadowStyle, style]);
 
   switch (type) {
+    case "SafeAreaView":
+      return <SafeAreaView ref={childRef} {...props} style={cstyle}></SafeAreaView>;
     case "AnimatedView":
       return <Animated.View ref={childRef} {...props} style={cstyle} />;
     case "ScrollView":
@@ -47,7 +51,7 @@ export default (props: IViewProps) => {
     case "KeyboardAvoidingView":
       return (
         <KeyboardAvoidingView
-          behavior="padding"
+          behavior={Platform.OS === "ios" ? "padding" : null}
           enabled
           {...props}
           ref={childRef}

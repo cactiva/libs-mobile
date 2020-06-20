@@ -17,20 +17,19 @@ export default (props: IContainerProps) => {
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   return (
     <View
-      type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
+      type={"KeyboardAvoidingView"}
       style={{
         flex: 1,
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
       }}
     >
       <View
-        type={"ScrollView"}
         {...props}
         style={{
+          flex: 1,
           backgroundColor: "#ffffff"
         }}
         childRef={scrollRef}
-        contentContainerStyle={cstyle}
       />
     </View>
   );
