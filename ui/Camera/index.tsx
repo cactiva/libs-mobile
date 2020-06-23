@@ -114,7 +114,11 @@ export default observer((props: ICameraProps) => {
       />
     );
   }
-  const source = { uri: value, ...(_.get(previewProps, "source", {}) as any) };
+  const source = {
+    cache: "reload",
+    ...(_.get(previewProps, "source", {}) as any),
+    uri: value,
+  };
   return (
     <>
       <Button
