@@ -47,16 +47,14 @@ const LoadingScreen = (props: any) => {
       }}
     >
       <Image
-        source={Theme.UIImageLoading}
+        source={_.get(props, "webViewProps.loadingImage", Theme.UIImageLoading)}
         style={{
           width: dim.width,
           height: dim.width / 2,
           marginBottom: 20,
         }}
-        {..._.get(props, "webViewProps.loadingImage")}
       ></Image>
       <Spinner
-        size={"large"}
         style={{
           alignSelf: "center",
         }}
