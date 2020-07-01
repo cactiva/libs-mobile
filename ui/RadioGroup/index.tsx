@@ -33,7 +33,7 @@ export interface IRadioGroupProps {
 }
 
 export default (props: IRadioGroupProps) => {
-  const { style, mode, children, items } = props;
+  const { style, mode, children, items, editable } = props;
   let customChildren = children;
 
   if (!children && Array.isArray(items) && items.length > 0) {
@@ -68,7 +68,7 @@ export default (props: IRadioGroupProps) => {
           );
         })
       ) : (
-        <RenderChild {...customChildren.props} />
+        <RenderChild {...customChildren.props} editable={editable} />
       )}
     </View>
   );
@@ -76,7 +76,13 @@ export default (props: IRadioGroupProps) => {
 
 const RenderChild = (props: any) => {
   const { child, mode, radioGroupProps } = props;
-  const { editable, onChange, value } = radioGroupProps;
+  const { onChange, value } = radioGroupProps;
+  const editable =
+    radioGroupProps.editable === false
+      ? radioGroupProps.editable
+      : props.editable === false
+      ? props.editable
+      : true;
   if (child.type === Radio) {
     const handleChange = () => {
       editable !== false &&
@@ -92,6 +98,7 @@ const RenderChild = (props: any) => {
         checked={checked}
         mode={mode}
         onPress={handleChange}
+        editable={editable}
       />
     );
   } else if (!child || !child.type || !child.props) {

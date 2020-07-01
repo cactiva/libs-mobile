@@ -28,6 +28,7 @@ export interface IDateTimeProps {
   mode?: "date" | "time" | "datetime";
   visibility?: "text-icon" | "text-only" | "icon-only";
   styles?: IStyles;
+  editable?: boolean;
 }
 
 export default (props: IDateTimeProps) => {
@@ -39,6 +40,7 @@ export default (props: IDateTimeProps) => {
     mode = "date",
     iconProps,
     value,
+    editable,
   } = props;
   const [visible, setVisible] = useState(false);
 
@@ -98,6 +100,7 @@ export default (props: IDateTimeProps) => {
           e.preventDefault();
           setVisible(!visible);
         }}
+        disabled={editable === false}
       >
         {["text-icon", "text-only"].indexOf(visibility) > -1 && (
           <Text style={labelStyle} numberOfLines={1} ellipsizeMode={"tail"}>

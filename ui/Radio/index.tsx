@@ -27,10 +27,11 @@ export interface IRadioProps {
   styles?: IStyle;
   labelProps?: ITextProps;
   iconProps?: IIconProps | FunctionComponent;
+  editable?: boolean;
 }
 
 export default (props: IRadioProps) => {
-  const { label, onPress, mode, labelProps, iconProps } = props;
+  const { label, onPress, mode, labelProps, iconProps, editable } = props;
   const checked = props.checked === true ? true : false;
   const baseLabelStyle = {
     color: Theme.UIColors.text,
@@ -87,6 +88,7 @@ export default (props: IRadioProps) => {
         onPress && onPress(!checked);
       }}
       style={style}
+      disabled={editable === false}
     >
       {mode === "default" || !mode || typeof iconProps === "object" ? (
         <Icon
