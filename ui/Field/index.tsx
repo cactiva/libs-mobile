@@ -23,6 +23,7 @@ interface IFieldProps {
   isRequired?: boolean;
   readonly?: boolean;
   onChange?: (value) => void;
+  onBlur?: () => void;
   style?: ViewStyle;
   prefix?: any;
   suffix?: any;
@@ -100,6 +101,7 @@ export default observer((props: IFieldProps) => {
   childprops.editable = !readonly;
   childprops.value = _.get(props, "value", "");
   childprops.onChange = handleOnChange;
+  childprops.onBlur = _.get(props, "onBlur", undefined);
 
   const baseInpStyle = {
     flexGrow: 1,
@@ -136,6 +138,7 @@ export default observer((props: IFieldProps) => {
   }
   let errorMsg: string[] = [];
   if (!!validate) errorMsg = validate();
+  console.log(errorMsg);
 
   if (childprops.type === "password") {
     let exist = suffix;

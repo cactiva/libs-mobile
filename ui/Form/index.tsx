@@ -61,7 +61,11 @@ const RenderChild = observer((props: any) => {
     }
   };
   const defaultSetValue = (value: any, path: any) => {
-    updateFields(path, !!value, custProps.label);
+    updateFields(
+      path,
+      !(value === undefined || value === null),
+      custProps.label
+    );
     if (!!setValue) setValue(value, path);
     else {
       if (data) {
@@ -87,7 +91,11 @@ const RenderChild = observer((props: any) => {
     const validate = () => {
       let msgs: string[] = [];
       let field = meta.fields.find((x) => x.path === custProps.path);
-      if (!!field && !field.status && !custProps.value)
+      if (
+        !!field &&
+        !field.status &&
+        !(custProps.value === undefined || custProps.value === null)
+      )
         msgs.push("Field is required.");
       if (!!cstmValidate) {
         let customMsgs: string[] = cstmValidate();
@@ -107,7 +115,8 @@ const RenderChild = observer((props: any) => {
     useEffect(() => {
       let val = true;
       if (custProps.isRequired) {
-        val = !!_.get(data, custProps.path, null);
+        let v = _.get(data, custProps.path, undefined);
+        val = !(v === undefined || v === null);
       }
       updateFields(custProps.path, val, custProps.label);
     }, [formProps.reinitValidate, _.get(data, custProps.path, undefined)]);

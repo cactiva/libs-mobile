@@ -32,7 +32,7 @@ export default (props: IInputProps) => {
         v = parseFloat(e);
         break;
       case "currency":
-        v = parseInt(e.replace(/,/g, "") || "0")
+        v = parseInt(e.replace(/[^0-9]/g, "") || "0")
           .toString()
           .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         break;
@@ -68,7 +68,7 @@ export default (props: IInputProps) => {
     type !== "currency"
   ) {
     originalType.current = "number";
-    value = !!value ? String(value) : "";
+    value = !!value || value == 0 ? String(value) : "";
   }
 
   if (type === "currency") {
@@ -101,7 +101,7 @@ export default (props: IInputProps) => {
       ComponentProps = {
         keyboardType: "number-pad",
         ...ComponentProps,
-        value: !!value ? String(value) : "",
+        value: !!value || value == "0" ? String(value) : "",
       };
       break;
     case "multiline":
