@@ -32,9 +32,9 @@ export default (props: IInputProps) => {
         v = parseFloat(e);
         break;
       case "currency":
-        v = parseInt(e.replace(/[^0-9]/g, "") || "0")
-          .toString()
-          .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        v = parseInt(e.replace(/[^0-9]/g, "") || "0");
+        // .toString()
+        // .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         break;
     }
 

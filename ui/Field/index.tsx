@@ -138,7 +138,6 @@ export default observer((props: IFieldProps) => {
   }
   let errorMsg: string[] = [];
   if (!!validate) errorMsg = validate();
-  console.log(errorMsg);
 
   if (childprops.type === "password") {
     let exist = suffix;
