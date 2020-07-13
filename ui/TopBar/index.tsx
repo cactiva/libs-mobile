@@ -1,12 +1,13 @@
 import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Platform,
   StyleSheet,
   TextStyle,
   ViewProps,
   ViewStyle,
+  BackHandler,
 } from "react-native";
 import Theme from "../../theme";
 import Button, { IButtonProps } from "../Button";
@@ -89,6 +90,18 @@ export default (props: ITopBarProps) => {
     : () => {
         goBack();
       };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        onPressBack();
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   return (
     <View {...props} style={cstyle}>
