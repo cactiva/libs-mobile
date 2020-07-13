@@ -10,7 +10,8 @@ export type IInputType =
   | "password"
   | "decimal"
   | "multiline"
-  | "currency";
+  | "currency"
+  | "email";
 export interface IInputProps extends TextInputProps {
   type?: IInputType;
   editable?: boolean;
@@ -35,6 +36,9 @@ export default (props: IInputProps) => {
         v = parseInt(e.replace(/[^0-9]/g, "") || "0");
         // .toString()
         // .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        break;
+      case "email":
+        v = String(e).toLocaleLowerCase().replace(/\s/g, "");
         break;
     }
 
@@ -119,6 +123,12 @@ export default (props: IInputProps) => {
     case "currency":
       ComponentProps = {
         keyboardType: "number-pad",
+        ...ComponentProps,
+      };
+      break;
+    case "email":
+      ComponentProps = {
+        keyboardType: "email-address",
         ...ComponentProps,
       };
       break;
