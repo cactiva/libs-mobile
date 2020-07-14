@@ -21,16 +21,16 @@ export default observer((props: ICarouselProps) => {
   const dim = Dimensions.get("window");
   const meta = useObservable({
     activeSlide: 0,
-    dataLength: data.length,
+    // dataLength: ,
   });
   const onSnapItem = (index) => {
     meta.activeSlide = index;
     carouselProps.onSnapToItem && carouselProps.onSnapToItem(index);
   };
 
-  useEffect(() => {
-    meta.dataLength = data.length;
-  }, [data]);
+  // useEffect(() => {
+  //   meta.dataLength = data.length;
+  // }, [data]);
 
   return (
     <>
@@ -51,7 +51,7 @@ export default observer((props: ICarouselProps) => {
             return <RenderChild key={uuid()} child={child} meta={meta} />;
           })
         ) : (
-          <RenderChild child={children} meta={meta} />
+          <RenderChild child={children} meta={meta} length={data.length} />
         ))}
     </>
   );
@@ -83,10 +83,10 @@ export const Pagination = observer((props: Partial<PaginationPropsOrigin>) => {
   );
 });
 
-const RenderChild = observer(({ child, meta }: any) => {
+const RenderChild = observer(({ child, meta, length }: any) => {
   if (child.type === Pagination) {
     let cprops = {
-      dotsLength: meta.dataLength,
+      dotsLength: length || 0,
       activeDotIndex: meta.activeSlide,
     };
     const Component = child.type;

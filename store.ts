@@ -2,14 +2,13 @@ import { observable, observe, toJS } from "mobx";
 import { AsyncStorage } from "react-native";
 
 const storage = AsyncStorage;
-
-export default (name: string, data: any) => {
+const store = (name: string, data: any) => {
   const initData = data;
   const obs = observable(initData);
   const vname = `store.${name}`;
   storage
     .getItem(vname)
-    .then(res => {
+    .then((res) => {
       if (res) {
         let newData = JSON.parse(res);
         for (let i in newData) {
@@ -27,3 +26,9 @@ export default (name: string, data: any) => {
 
   return obs as any;
 };
+
+export const resetStore = (name: string, initData: Object) => {
+  store(name, initData);
+};
+
+export default store;

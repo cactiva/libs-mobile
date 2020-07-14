@@ -24,6 +24,15 @@ export interface MapViewProps extends MapViewPropsOrigin {
   markerIds?: string[];
   children?: any;
   fitToSuppliedMarkers?: boolean;
+  fitToSuppliedMarkersOption?: {
+    edgePadding?: {
+      top: Number;
+      right: Number;
+      bottom: Number;
+      left: Number;
+    };
+    animated?: boolean;
+  };
   onMapViewReady?: (status: boolean) => void;
 }
 export default observer((props: MapViewProps) => {
@@ -31,6 +40,7 @@ export default observer((props: MapViewProps) => {
     style,
     location,
     fitToSuppliedMarkers,
+    fitToSuppliedMarkersOption,
     markerIds,
     onMapViewReady,
   } = props;
@@ -75,9 +85,13 @@ export default observer((props: MapViewProps) => {
       markerIds.length > 0
     ) {
       setTimeout(() => {
-        mapRef.current.fitToSuppliedMarkers(markerIds);
+        mapRef.current.fitToSuppliedMarkers(
+          markerIds,
+          fitToSuppliedMarkersOption
+        );
       }, 0);
     }
+    onMapViewReady && onMapViewReady(mapReady);
   }, [mapReady, markerIds]);
 
   return (
@@ -85,7 +99,6 @@ export default observer((props: MapViewProps) => {
       style={style}
       onLayout={() => {
         setMapReady(true);
-        onMapViewReady && onMapViewReady(mapReady);
       }}
     >
       <MapViewNative
