@@ -27,8 +27,16 @@ const store = (name: string, data: any) => {
   return obs as any;
 };
 
-export const resetStore = (name: string, initData: Object) => {
-  store(name, initData);
+export const resetStore = (store: Object, initData: Object) => {
+  let keys = Object.keys(store);
+  let initKeys = Object.keys(initData);
+  keys.map((k) => {
+    if (initKeys.findIndex((x) => x === k) > -1) {
+      store[k] = initKeys[k];
+    } else {
+      delete store[k];
+    }
+  });
 };
 
 export default store;
