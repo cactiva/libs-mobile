@@ -63,8 +63,9 @@ export default observer((props: IFieldProps) => {
   ]);
   const defErrorLabelStyle: TextStyle = {
     fontSize: 12,
-    lineHeight: 12,
+    lineHeight: 14,
     color: Theme.UIColors.danger,
+    paddingVertical: 5,
   };
   const errorLabelStyle = StyleSheet.flatten([
     defErrorLabelStyle,

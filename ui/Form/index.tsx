@@ -63,7 +63,7 @@ const RenderChild = observer((props: any) => {
   const defaultSetValue = (value: any, path: any) => {
     updateFields(
       path,
-      !(value === undefined || value === null),
+      !(value === undefined || value === null || value === ""),
       custProps.label
     );
     if (!!setValue) setValue(value, path);
@@ -91,17 +91,14 @@ const RenderChild = observer((props: any) => {
     const validate = () => {
       let msgs: string[] = [];
       let field = meta.fields.find((x) => x.path === custProps.path);
-      if (
-        !!field &&
-        !field.status &&
-        !(custProps.value === undefined || custProps.value === null)
-      )
-        msgs.push("Field is required.");
+      if (!!field && !field.status) msgs.push("Field is required.");
+      else msgs = [];
       if (!!cstmValidate) {
         let customMsgs: string[] = cstmValidate();
         msgs = [...msgs, ...customMsgs];
         if (msgs.length > 0 && !!field) field.status = false;
       }
+
       return !!meta.submit ? msgs : [];
     };
 
@@ -116,10 +113,10 @@ const RenderChild = observer((props: any) => {
       let val = true;
       if (custProps.isRequired) {
         let v = _.get(data, custProps.path, undefined);
-        val = !(v === undefined || v === null);
+        val = !(v === undefined || v === null || v === "");
       }
       updateFields(custProps.path, val, custProps.label);
-    }, [formProps.reinitValidate, _.get(data, custProps.path, undefined)]);
+    }, [_.get(data, custProps.path, undefined)]);
     const Component = child.type;
     return <Component {...custProps} />;
   } else if (
