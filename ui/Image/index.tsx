@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Image,
   ImageProps as OriginImageProps,
@@ -14,6 +14,10 @@ import Modal from "../Modal";
 import Icon from "../Icon";
 import View from "../View";
 import Text from "../Text";
+import * as FileSystem from "expo-file-system";
+import Path from "path";
+import Constants from "expo-constants";
+import Axios from "axios";
 
 interface IStyle {
   preview?: ViewStyle;
@@ -29,12 +33,13 @@ export interface IImageProps extends OriginImageProps {
 }
 
 export default (props: IImageProps) => {
-  const { style, source, preview, disableLoading } = props;
+  const { style, source, preview, disableLoading }: any = props;
   const [loading, setLoading] = useState(
     disableLoading === true ? false : true
   );
   const [error, setError] = useState(false);
   const [show, setShow] = useState(false);
+  const [imageUri, setImage] = useState(Theme.UIImageLoading);
   const baseStyle: ImageStyle = {
     width: 300,
     height: 150,
@@ -58,13 +63,13 @@ export default (props: IImageProps) => {
       width,
     },
   ]);
-  let csource: any = source;
-  if (typeof source === "object") {
-    csource = {
-      ...source,
-      cache: "force-cache",
-    };
-  }
+  // let csource: any = source;
+  // if (typeof source === "object") {
+  //   csource = {
+  //     ...source,
+  //     cache: "force-cache",
+  //   };
+  // }
 
   const btnStyle: ViewStyle = {
     padding: 0,
@@ -80,6 +85,56 @@ export default (props: IImageProps) => {
   const onPress = () => {
     setShow(!show);
   };
+
+  const getImage = async () => {
+    try {
+      const fileName = Path.basename(source.uri);
+      const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
+      const pathFile = pathDir + fileName;
+      const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
+        console.log(error)
+      );
+      if (!dirs) {
+        await FileSystem.makeDirectoryAsync(pathDir).catch((error) =>
+          console.log(error)
+        );
+      }
+      const { exists, size }: any = await FileSystem.getInfoAsync(
+        pathFile
+      ).catch((error) => {
+        console.log(error);
+      });
+      if (!!exists) {
+        setImage({ uri: pathFile });
+        setLoading(false);
+      } else {
+        FileSystem.downloadAsync(source.uri, pathFile)
+          .then(({ uri }) => {
+            setImage({ uri });
+            setLoading(false);
+          })
+          .catch((error) => {
+            console.log(error);
+            setError(true);
+            setLoading(false);
+          });
+      }
+    } catch (error) {
+      console.log(error);
+      setError(true);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof source === "object") {
+      getImage();
+    }
+
+    return () => {
+      getImage;
+    };
+  }, [source]);
 
   return (
     <>
@@ -101,15 +156,15 @@ export default (props: IImageProps) => {
             resizeMode={
               !!loading ? "contain" : _.get(props, "resizeMode", "contain")
             }
-            source={csource}
+            source={typeof source === "object" ? imageUri : source}
             style={!!loading ? loadingStyle : cstyle}
-            onError={(e) => {
-              const err = _.get(e, "nativeEvent.error", "");
-              if (!!err) setError(true);
-            }}
-            onLoadEnd={() => {
-              setLoading(false);
-            }}
+            // onError={(e) => {
+            //   const err = _.get(e, "nativeEvent.error", "");
+            //   if (!!err) setError(true);
+            // }}
+            // onLoadEnd={() => {
+            //   setLoading(false);
+            // }}
           />
           {!!props.caption && (
             <Text
@@ -139,7 +194,7 @@ export default (props: IImageProps) => {
           <Image
             defaultSource={Theme.UIImageLoading}
             {...props}
-            resizeMode={"center"}
+            resizeMode={"contain"}
             source={Theme.UIImageError}
             style={loadingStyle}
           />
