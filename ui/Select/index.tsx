@@ -279,7 +279,7 @@ const SelectComponent = observer((props: any) => {
             return true;
           })}
           renderItem={renderItem}
-          keyExtractor={() => uuid()}
+          keyExtractor={(index) => String(index)}
           ItemSeparatorComponent={itemSperator}
           keyboardShouldPersistTaps={"handled"}
           style={cstyle}

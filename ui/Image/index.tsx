@@ -89,8 +89,14 @@ export default (props: IImageProps) => {
   const getImage = async () => {
     try {
       const fileName = Path.basename(source.uri);
+      const ext = Path.extname(source.uri);
       const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
       const pathFile = pathDir + fileName;
+      if (!ext) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
       const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
         console.log(error)
       );
@@ -134,7 +140,7 @@ export default (props: IImageProps) => {
     return () => {
       getImage;
     };
-  }, [source]);
+  }, []);
 
   return (
     <>
