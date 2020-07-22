@@ -48,7 +48,7 @@ export default (props: ITopBarProps) => {
     customProps,
     styles,
   } = props;
-  const { goBack } = useNavigation();
+  const { goBack, canGoBack } = useNavigation();
   const shadowStyle = enableShadow !== false ? Theme.UIShadow : {};
   const baseStyle: ViewStyle = {
     flexDirection: "row",
@@ -88,7 +88,11 @@ export default (props: ITopBarProps) => {
   const onPressBack = !!actionBackButton
     ? actionBackButton
     : () => {
-        goBack();
+        if (!!canGoBack()) {
+          goBack();
+        } else {
+          BackHandler.exitApp();
+        }
       };
 
   useEffect(() => {
