@@ -65,7 +65,7 @@ const ModalScanner = observer((props: any) => {
 
   const dim = Dimensions.get("window");
   const onBarCodeScanned = (props) => {
-    if (!!props.onBarCodeScanned) props.onBarCodeScanned(props);
+    if (!!barCodeProps.onBarCodeScanned) barCodeProps.onBarCodeScanned(props);
     else console.log(props);
     setisShow(false);
   };

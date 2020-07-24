@@ -88,6 +88,10 @@ export default (props: IImageProps) => {
 
   const getImage = async () => {
     try {
+      if (source.uri.indexOf("file://") > -1) {
+        setImage({ uri: source.uri });
+        return;
+      }
       const fileName = Path.basename(source.uri);
       const ext = Path.extname(source.uri);
       const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";

@@ -1,26 +1,25 @@
-import React, { useEffect, useRef } from "react";
-import { observer, useObservable } from "mobx-react-lite";
-import * as Permissions from "expo-permissions";
-import {
-  Platform,
-  Dimensions,
-  ViewStyle,
-  ImageProps,
-  AsyncStorage,
-} from "react-native";
-import View from "../View";
-import Button from "../Button";
-import Theme from "../../theme";
-import Image from "../Image";
-import _ from "lodash";
-import Icon, { IIconProps } from "../Icon";
-import Modal from "../Modal";
-import Container from "../Container";
-import { CameraProps, Camera } from "expo-camera";
+import { Camera, CameraProps } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
+import * as Permissions from "expo-permissions";
+import _ from "lodash";
+import { toJS } from "mobx";
+import { observer, useObservable } from "mobx-react-lite";
+import React, { useEffect, useRef } from "react";
+import {
+  AsyncStorage,
+  Dimensions,
+  ImageProps,
+  Platform,
+  ViewStyle,
+} from "react-native";
+import Theme from "../../theme";
+import Button from "../Button";
+import Icon, { IIconProps } from "../Icon";
+import Image from "../Image";
+import Modal from "../Modal";
 import Spinner from "../Spinner";
 import Text from "../Text";
-import { toJS } from "mobx";
+import View from "../View";
 
 const storage = AsyncStorage;
 
@@ -84,7 +83,6 @@ export default observer((props: ICameraProps) => {
     backgroundColor: "#a2a4ab",
     overflow: "hidden",
     paddingHorizontal: 0,
-    flex: 1,
     ...style,
   };
   const iconStyle = {
@@ -160,21 +158,13 @@ const CameraPicker = observer((props: any) => {
       flashMode: "auto",
     },
   });
-  const dim = Dimensions.get("window");
   const camera = useRef(null as any);
-  const getRatio = () => {
-    const ratio = _.get(meta, "cameraProps.ratio", "16:9").split(":");
-    return {
-      width: dim.width,
-      height: (dim.width / parseInt(ratio[1])) * parseInt(ratio[0]),
-    };
-  };
   const imageSnap = () => {
     if (!!value && !state.resnap) {
       state.resnap = true;
     } else if (camera.current) {
       let param: any = {
-        quality: 0.5,
+        quality: 0.8,
         base64: false,
         onPictureSaved: (res) => {
           state.isShown = false;
@@ -183,18 +173,8 @@ const CameraPicker = observer((props: any) => {
           onCapture && onCapture(res.uri);
         },
       };
-
-      // if (Platform.OS === "android") {
-      //   param.skipProcessing = true;
-      // }
-      state.snap = true;
       camera.current.takePictureAsync(param);
-      // .then((res: any) => {
-      //   onCapture && onCapture(res.uri);
-      //   state.isShown = false;
-      //   state.snap = false;
-      //   !!state.resnap && (state.resnap = false);
-      // });
+      state.snap = true;
     }
   };
   const imagePicker = async () => {
@@ -264,52 +244,35 @@ const CameraPicker = observer((props: any) => {
         >
           <Icon source="AntDesign" name="arrowleft" color="white" size={24} />
         </Button>
-        {(!value || !!state.resnap) && (
-          <CameraToolsTop
-            state={meta}
-            cameraTools={_.get(props, "cameraTools", {})}
-          />
-        )}
-      </View>
-      {!!value && !state.resnap ? (
-        <Image
-          source={{ uri: value }}
-          resizeMode="cover"
-          style={{
-            ...getRatio(),
-          }}
-        />
-      ) : (
-        <Camera
-          {...meta.cameraProps}
-          style={{
-            opacity: state.snap ? 0.6 : 1,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "transparent",
-            ...getRatio(),
-          }}
-          ref={camera}
-        >
-          {state.snap && <Spinner color={"white"} size="large" />}
-        </Camera>
-      )}
-      {(!value || !!state.resnap) && (
-        <CameraToolsBottom
-          imagePicker={imagePicker}
-          meta={meta}
+        <CameraToolsTop
+          value={value}
+          state={meta}
           cameraTools={_.get(props, "cameraTools", {})}
         />
-      )}
-      {editable !== false && (
-        <CameraAction imageSnap={imageSnap} state={state} value={value} />
-      )}
+      </View>
+      <CameraView camera={camera} meta={meta} {...props} />
+      <CameraToolsBottom
+        imagePicker={imagePicker}
+        meta={meta}
+        cameraTools={_.get(props, "cameraTools", {})}
+        value={value}
+        state={state}
+      />
+      <CameraAction
+        imageSnap={imageSnap}
+        state={state}
+        value={value}
+        editable={editable}
+      />
     </Modal>
   );
 });
 
 const CameraToolsTop = observer((props: any) => {
-  const { state, cameraTools } = props;
+  const { state, cameraTools, value } = props;
+  console.log(!!value, !state.resnap);
+  if (!!value && !state.resnap) return null;
+
   const handleFlash = () => {
     if (state.cameraProps.flashMode === "auto") {
       state.cameraProps.flashMode = "on";
@@ -405,7 +368,8 @@ const CameraToolsTop = observer((props: any) => {
 });
 
 const CameraToolsBottom = observer((props: any) => {
-  const { imagePicker, meta, cameraTools } = props;
+  const { imagePicker, meta, cameraTools, value, state } = props;
+  if (!!value && !state.resnap) return null;
   const handleReverse = () => {
     meta.cameraProps.type =
       meta.cameraProps.type === Camera.Constants.Type.back
@@ -467,7 +431,9 @@ const CameraToolsBottom = observer((props: any) => {
 });
 
 const CameraAction = observer((props: any) => {
-  const { imageSnap, state, value } = props;
+  const { imageSnap, state, value, editable } = props;
+  if (!editable) return null;
+
   return (
     <Button
       mode={"clean"}
@@ -507,5 +473,42 @@ const CameraAction = observer((props: any) => {
         )}
       </View>
     </Button>
+  );
+});
+
+const CameraView = observer((props: any) => {
+  const { meta, state, camera, value } = props;
+  const dim = Dimensions.get("window");
+  const getRatio = () => {
+    const ratio = _.get(meta, "cameraProps.ratio", "16:9").split(":");
+    return {
+      width: dim.width,
+      height: (dim.width / parseInt(ratio[1])) * parseInt(ratio[0]),
+    };
+  };
+  if (!!value && !state.resnap)
+    return (
+      <Image
+        source={{ uri: value }}
+        resizeMode="cover"
+        style={{
+          ...getRatio(),
+        }}
+      />
+    );
+  return (
+    <Camera
+      {...meta.cameraProps}
+      style={{
+        opacity: state.snap ? 0.6 : 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "transparent",
+        ...getRatio(),
+      }}
+      ref={camera}
+    >
+      {state.snap && <Spinner color={"white"} size="large" />}
+    </Camera>
   );
 });
