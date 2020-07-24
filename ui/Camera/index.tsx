@@ -92,7 +92,7 @@ export default observer((props: ICameraProps) => {
   };
   const previewStyle = {
     height: height,
-    width: width,
+    width: "100%",
     flex: 1,
     overflow: "hidden",
     ..._.get(props, "styles.preview", {}),
