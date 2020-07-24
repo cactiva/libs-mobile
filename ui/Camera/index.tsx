@@ -11,6 +11,7 @@ import {
   ImageProps,
   Platform,
   ViewStyle,
+  Animated,
 } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
@@ -46,12 +47,12 @@ export interface ICameraProps {
 }
 
 export default observer((props: ICameraProps) => {
-  const { style, value, previewProps, iconProps, editable } = props;
+  const { style, value, previewProps, iconProps, editable, onCapture } = props;
   const meta = useObservable({
     hasCameraPermission: null,
     hasImagePickPermission: null,
     isShown: false,
-    resanp: false,
+    resnap: false,
     snap: false,
   });
   const requestPermission = () => {
@@ -73,7 +74,7 @@ export default observer((props: ICameraProps) => {
       });
     });
   };
-
+  const camera = useRef(null as any);
   const dim = Dimensions.get("window");
   const width = (style && style.width) || dim.width;
   const height = (style && style.height) || 120;
@@ -144,13 +145,13 @@ export default observer((props: ICameraProps) => {
           />
         )}
       </Button>
-      <CameraPicker {...props} state={meta} />
+      <CameraPicker {...props} state={meta} camera={camera} />
     </>
   );
 });
 
 const CameraPicker = observer((props: any) => {
-  const { state, cameraProps, value, onCapture, editable } = props;
+  const { state, cameraProps, value, editable, camera, onCapture } = props;
   const meta = useObservable({
     cameraProps: {
       type: Camera.Constants.Type.back,
@@ -158,23 +159,35 @@ const CameraPicker = observer((props: any) => {
       flashMode: "auto",
     },
   });
-  const camera = useRef(null as any);
-  const imageSnap = () => {
+  const backgroundColor = new Animated.Value(0);
+  const setCameraProps = async () => {
+    let camProps = { ...meta.cameraProps, ...cameraProps };
+    await storage.getItem("cameraProps").then((res) => {
+      if (!!res) {
+        camProps = { ...camProps, ...JSON.parse(res) };
+      }
+    });
+    meta.cameraProps = camProps;
+    storage.setItem("cameraProps", JSON.stringify(camProps));
+  };
+  const imageSnap = async () => {
     if (!!value && !state.resnap) {
       state.resnap = true;
     } else if (camera.current) {
+      Animated.timing(backgroundColor, {
+        toValue: 100,
+        duration: 1000,
+        useNativeDriver: false,
+      }).start();
       let param: any = {
         quality: 0.8,
         base64: false,
-        onPictureSaved: (res) => {
-          state.isShown = false;
-          state.snap = false;
-          !!state.resnap && (state.resnap = false);
-          onCapture && onCapture(res.uri);
-        },
       };
-      camera.current.takePictureAsync(param);
-      state.snap = true;
+      await camera.current.takePictureAsync(param).then((res) => {
+        !!state.resnap && (state.resnap = false);
+        onCapture && onCapture(res.uri);
+        state.isShown = false;
+      });
     }
   };
   const imagePicker = async () => {
@@ -190,23 +203,15 @@ const CameraPicker = observer((props: any) => {
       }
     });
   };
-  const setCameraProps = async () => {
-    let camProps = { ...meta.cameraProps, ...cameraProps };
-    await storage.getItem("cameraProps").then((res) => {
-      if (!!res) {
-        camProps = { ...camProps, ...JSON.parse(res) };
-      }
-    });
-    meta.cameraProps = camProps;
-    storage.setItem("cameraProps", JSON.stringify(camProps));
-  };
   useEffect(() => {
     setCameraProps();
   }, []);
-
+  const bg = backgroundColor.interpolate({
+    inputRange: [0, 0, 100],
+    outputRange: ["rgba(0,0,0,0)", "rgb(255,255,255)", "rgba(0,0,0,0)"],
+  });
   return (
     <Modal
-      transparent={false}
       visible={state.isShown}
       onRequestClose={() => {
         state.isShown = false;
@@ -251,6 +256,16 @@ const CameraPicker = observer((props: any) => {
         />
       </View>
       <CameraView camera={camera} meta={meta} {...props} />
+      <Animated.View
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          backgroundColor: bg,
+        }}
+      />
       <CameraToolsBottom
         imagePicker={imagePicker}
         meta={meta}
@@ -270,7 +285,6 @@ const CameraPicker = observer((props: any) => {
 
 const CameraToolsTop = observer((props: any) => {
   const { state, cameraTools, value } = props;
-  console.log(!!value, !state.resnap);
   if (!!value && !state.resnap) return null;
 
   const handleFlash = () => {
@@ -432,7 +446,7 @@ const CameraToolsBottom = observer((props: any) => {
 
 const CameraAction = observer((props: any) => {
   const { imageSnap, state, value, editable } = props;
-  if (!editable) return null;
+  if (editable === false) return null;
 
   return (
     <Button

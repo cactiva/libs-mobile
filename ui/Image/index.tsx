@@ -89,6 +89,7 @@ export default (props: IImageProps) => {
   const getImage = async () => {
     try {
       if (source.uri.indexOf("file://") > -1) {
+        setLoading(false);
         setImage({ uri: source.uri });
         return;
       }
@@ -144,7 +145,7 @@ export default (props: IImageProps) => {
     return () => {
       getImage;
     };
-  }, []);
+  }, [source]);
 
   return (
     <>
