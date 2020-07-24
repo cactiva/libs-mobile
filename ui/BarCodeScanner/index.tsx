@@ -112,7 +112,7 @@ const ModalScanner = observer((props: any) => {
       </Button>
       <BarCodeScanner
         type={_.get(barCodeProps, "type", "back")}
-        barCodeTypes={_.get(barCodeProps, "barCodeTypes", ["256"])}
+        barCodeTypes={_.get(barCodeProps, "barCodeTypes", undefined)}
         onBarCodeScanned={!!isShow ? onBarCodeScanned : undefined}
         style={{
           width: dim.width,
