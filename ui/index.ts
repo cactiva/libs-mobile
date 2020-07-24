@@ -27,3 +27,4 @@ export { default as TopBar } from "./TopBar";
 export { default as Container } from "./Container";
 export { default as ProgressBar } from "./ProgressBar";
 export { default as SectionList } from "./SectionList";
+export { default as BarCodeScanner } from "./BarCodeScanner";
