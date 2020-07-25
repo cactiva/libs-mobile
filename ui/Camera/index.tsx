@@ -170,7 +170,7 @@ const CameraPicker = observer((props: any) => {
     meta.cameraProps = camProps;
     storage.setItem("cameraProps", JSON.stringify(camProps));
   };
-  const imageSnap = async () => {
+  const imageSnap = () => {
     if (!!value && !state.resnap) {
       state.resnap = true;
     } else if (camera.current) {
@@ -182,12 +182,13 @@ const CameraPicker = observer((props: any) => {
       let param: any = {
         quality: 0.8,
         base64: false,
+        onPictureSaved: (res) => {
+          !!state.resnap && (state.resnap = false);
+          onCapture && onCapture(res.uri);
+          state.isShown = false;
+        },
       };
-      await camera.current.takePictureAsync(param).then((res) => {
-        !!state.resnap && (state.resnap = false);
-        onCapture && onCapture(res.uri);
-        state.isShown = false;
-      });
+      camera.current.takePictureAsync(param);
     }
   };
   const imagePicker = async () => {

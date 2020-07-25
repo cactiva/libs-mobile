@@ -1,28 +1,128 @@
-import React, { useState, useEffect } from "react";
+import store from "@src/libs/store";
+import Constants from "expo-constants";
+import * as FileSystem from "expo-file-system";
+import _ from "lodash";
+import { observer } from "mobx-react-lite";
+import Path from "path";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ImageProps as OriginImageProps,
-  StyleSheet,
   ImageStyle,
-  ViewStyle,
+  StyleSheet,
   TextStyle,
+  ViewStyle,
 } from "react-native";
-import _ from "lodash";
 import Theme from "../../theme";
 import Button from "../Button";
-import Modal from "../Modal";
 import Icon from "../Icon";
-import View from "../View";
+import Modal from "../Modal";
 import Text from "../Text";
-import * as FileSystem from "expo-file-system";
-import Path from "path";
-import Constants from "expo-constants";
-import Axios from "axios";
+import View from "../View";
 
 interface IStyle {
   preview?: ViewStyle;
   caption?: TextStyle;
 }
+
+const storage = store("fs.image", {});
+const callback = (downloadProgress, uri) => {
+  const progress =
+    downloadProgress.totalBytesWritten /
+    downloadProgress.totalBytesExpectedToWrite;
+  _.set(storage[uri], "progress", progress);
+};
+
+const downloadImage = async (uri, pathFile, resumeData = null) => {
+  const downloadResumable = FileSystem.createDownloadResumable(
+    uri,
+    pathFile,
+    {},
+    (data) => {
+      callback(data, uri);
+    },
+    resumeData
+  );
+  let res;
+  try {
+    if (!resumeData) {
+      res = await downloadResumable.downloadAsync();
+    } else {
+      res = await downloadResumable.resumeAsync();
+    }
+    if (_.get(storage[uri], "progress", 0) < 1) {
+      downloadImage(uri, pathFile, downloadResumable.savable());
+    } else {
+      storage[uri] = {
+        error: false,
+        loading: false,
+        uri: res.uri,
+      };
+    }
+  } catch (error) {
+    console.log(error);
+    storage[uri] = {
+      error: true,
+      loading: false,
+    };
+  }
+};
+
+const getImage = async (uri) => {
+  if (!!storage[uri]) {
+    return;
+  }
+  storage[uri] = {};
+  try {
+    if (uri.indexOf("file://") > -1) {
+      storage[uri] = {
+        error: false,
+        loading: false,
+        uri,
+      };
+      return;
+    }
+    const fileName = Path.basename(uri);
+    const ext = Path.extname(uri);
+    const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
+    const pathFile = pathDir + fileName;
+    if (!ext) {
+      storage[uri] = {
+        error: true,
+        loading: false,
+      };
+      return;
+    }
+    const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
+      console.log(error)
+    );
+    if (!dirs) {
+      await FileSystem.makeDirectoryAsync(pathDir).catch((error) =>
+        console.log(error)
+      );
+    }
+    const { exists, size }: any = await FileSystem.getInfoAsync(pathFile).catch(
+      (error) => {
+        console.log(error);
+      }
+    );
+    if (!!exists) {
+      storage[uri] = {
+        error: false,
+        loading: false,
+        uri: pathFile,
+      };
+    } else {
+      downloadImage(uri, pathFile);
+    }
+  } catch (error) {
+    console.log(error);
+    storage[uri] = {
+      error: true,
+      loading: false,
+    };
+  }
+};
 
 export interface IImageProps extends OriginImageProps {
   loadingSize?: "small" | "large";
@@ -32,7 +132,7 @@ export interface IImageProps extends OriginImageProps {
   caption?: string;
 }
 
-export default (props: IImageProps) => {
+export default observer((props: IImageProps) => {
   const { style, source, preview, disableLoading }: any = props;
   const [loading, setLoading] = useState(
     disableLoading === true ? false : true
@@ -86,66 +186,24 @@ export default (props: IImageProps) => {
     setShow(!show);
   };
 
-  const getImage = async () => {
-    try {
-      if (source.uri.indexOf("file://") > -1) {
-        setLoading(false);
-        setImage({ uri: source.uri });
-        return;
-      }
-      const fileName = Path.basename(source.uri);
-      const ext = Path.extname(source.uri);
-      const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
-      const pathFile = pathDir + fileName;
-      if (!ext) {
-        setError(true);
-        setLoading(false);
-        return;
-      }
-      const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
-        console.log(error)
-      );
-      if (!dirs) {
-        await FileSystem.makeDirectoryAsync(pathDir).catch((error) =>
-          console.log(error)
-        );
-      }
-      const { exists, size }: any = await FileSystem.getInfoAsync(
-        pathFile
-      ).catch((error) => {
-        console.log(error);
-      });
-      if (!!exists) {
-        setImage({ uri: pathFile });
-        setLoading(false);
-      } else {
-        FileSystem.downloadAsync(source.uri, pathFile)
-          .then(({ uri }) => {
-            setImage({ uri });
-            setLoading(false);
-          })
-          .catch((error) => {
-            console.log(error);
-            setError(true);
-            setLoading(false);
-          });
-      }
-    } catch (error) {
-      console.log(error);
-      setError(true);
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (typeof source === "object") {
-      getImage();
+      getImage(source.uri);
     }
-
-    return () => {
-      getImage;
-    };
   }, [source]);
+
+  useEffect(() => {
+    if (!!storage[source.uri]) {
+      let { error, loading, uri } = storage[source.uri];
+      setError(error);
+      setLoading(loading);
+      if (!!uri) setImage({ uri });
+
+      setTimeout(() => {
+        delete storage[uri];
+      }, 5000);
+    }
+  }, [storage[source.uri]]);
 
   return (
     <>
@@ -214,7 +272,7 @@ export default (props: IImageProps) => {
       <PreviewImage show={show} setShow={setShow} imgProps={props} />
     </>
   );
-};
+});
 
 const PreviewImage = (props: any) => {
   const { show, setShow, imgProps } = props;
