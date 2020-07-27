@@ -71,6 +71,7 @@ export interface ISelectProps {
   customProps?: IProps;
   listProps?: IFlatListProps;
   placeholder?: String;
+  emptyListMessage?: string;
 }
 
 export const formatedItems = (props: ISelectProps | any) => {
@@ -132,7 +133,8 @@ export default observer((props: ISelectProps) => {
     _.get(props, "styles.icon", {}),
   ]);
   const handleSelect = () => {
-    if (props.items.length === 0) alert("No item to display.");
+    if (props.items.length === 0)
+      alert(_.get(props, "emptyListMessage", "No item to display."));
     else meta.openSelect = !meta.openSelect;
   };
   const items = formatedItems(props);
