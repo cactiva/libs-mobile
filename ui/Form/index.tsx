@@ -68,9 +68,9 @@ const RenderChild = observer((props: any) => {
     );
     if (!!setValue) setValue(value, path);
     else {
-      if (data) {
+      if (!!data && !!path) {
         _.set(data, path, value);
-      } else {
+      } else if (!data) {
         alert(`Failed to set value to ${path}: Form data props is undefined`);
       }
     }
@@ -116,7 +116,7 @@ const RenderChild = observer((props: any) => {
         val = !(v === undefined || v === null || v === "");
       }
       updateFields(custProps.path, val, custProps.label);
-    }, [_.get(data, custProps.path, undefined)]);
+    }, [_.get(data, custProps.path)]);
     const Component = child.type;
     return <Component {...custProps} />;
   } else if (

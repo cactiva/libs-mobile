@@ -118,6 +118,7 @@ export default observer((props: ICameraProps) => {
     ...(_.get(previewProps, "source", {}) as any),
     uri: value,
   };
+
   return (
     <>
       <Button
@@ -183,8 +184,8 @@ const CameraPicker = observer((props: any) => {
         quality: 0.8,
         base64: false,
         onPictureSaved: (res) => {
-          !!state.resnap && (state.resnap = false);
           onCapture && onCapture(res.uri);
+          !!state.resnap && (state.resnap = false);
           state.isShown = false;
         },
       };
