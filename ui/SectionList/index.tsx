@@ -2,7 +2,7 @@ import React from "react";
 import { SectionList, SectionListProps, StyleSheet } from "react-native";
 
 export interface ISectionListProps extends SectionListProps<any> {
-  flatListRef?: any;
+  sectionListRef?: any;
 }
 export default (props: ISectionListProps) => {
   const { contentContainerStyle, style } = props;
@@ -29,7 +29,7 @@ export default (props: ISectionListProps) => {
       {...props}
       style={cstyle}
       contentContainerStyle={ccontentContainerStyle}
-      ref={props.flatListRef}
+      ref={props.sectionListRef}
     />
   );
 };

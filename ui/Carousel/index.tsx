@@ -1,13 +1,14 @@
 import Theme from "../../theme";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
-import { Dimensions, ViewStyle } from "react-native";
+import { Dimensions, ViewStyle, StyleSheet } from "react-native";
 import Carousel, {
   CarouselProps as OriginCarouselProps,
   Pagination as PaginationOrigin,
   PaginationProps as PaginationPropsOrigin,
 } from "react-native-snap-carousel";
 import { uuid } from "../../utils";
+import _ from "lodash";
 
 export interface ICarouselProps extends OriginCarouselProps<any> {
   children?: any;
@@ -58,14 +59,17 @@ export default observer((props: ICarouselProps) => {
 });
 
 export const Pagination = observer((props: Partial<PaginationPropsOrigin>) => {
+  const baseContainerStyle = StyleSheet.flatten([
+    {
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+    },
+    _.get(props, "containerStyle", {}),
+  ]);
   return (
     <PaginationOrigin
       dotsLength={0}
       activeDotIndex={0}
-      containerStyle={{
-        paddingHorizontal: 0,
-        paddingVertical: 0,
-      }}
       dotStyle={{
         height: 8,
         width: 8,
@@ -79,6 +83,7 @@ export const Pagination = observer((props: Partial<PaginationPropsOrigin>) => {
       inactiveDotOpacity={0.3}
       inactiveDotScale={1}
       {...props}
+      containerStyle={baseContainerStyle}
     />
   );
 });
