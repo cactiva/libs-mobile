@@ -235,6 +235,7 @@ const CameraPicker = observer((props: any) => {
           flexGrow: 1,
           paddingHorizontal: 15,
           maxHeight: 44,
+          zIndex: 9,
         }}
       >
         <Button
