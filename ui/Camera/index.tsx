@@ -130,27 +130,56 @@ export default observer((props: ICameraProps) => {
         onPress={() => (meta.isShown = true)}
         disabled={editable === false && !value}
       >
-        {!!value ? (
-          <Image
-            resizeMode="cover"
-            style={previewStyle}
-            {...previewProps}
-            source={source}
-            disableLoading
-          />
-        ) : (
-          <Icon
-            source="Entypo"
-            name="camera"
-            size={45}
-            color="white"
-            style={iconStyle}
-            {...iconProps}
-          />
-        )}
+        <Preview
+          meta={meta}
+          value={value}
+          previewProps={previewProps}
+          height={height}
+          iconProps={iconProps}
+        />
       </Button>
       <CameraPicker {...props} state={meta} camera={camera} />
     </>
+  );
+});
+
+const Preview = observer((props: any) => {
+  const { meta, value, previewProps, iconProps, height } = props;
+  const source = {
+    cache: "reload",
+    ...(_.get(previewProps, "source", {}) as any),
+    uri: meta.tempValue || value,
+  };
+  const iconStyle = {
+    ...Theme.UIShadow,
+    ..._.get(props, "styles.icon", {}),
+  };
+  const previewStyle = {
+    height: height,
+    width: "100%",
+    flex: 1,
+    overflow: "hidden",
+    ..._.get(props, "styles.preview", {}),
+  };
+  if (!!value)
+    return (
+      <Image
+        resizeMode="cover"
+        style={previewStyle}
+        {...previewProps}
+        source={source}
+        disableLoading
+      />
+    );
+  return (
+    <Icon
+      source="Entypo"
+      name="camera"
+      size={45}
+      color="white"
+      style={iconStyle}
+      {...iconProps}
+    />
   );
 });
 
