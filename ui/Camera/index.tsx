@@ -12,6 +12,7 @@ import {
   Platform,
   ViewStyle,
   Animated,
+  Image as RNImage,
 } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
@@ -21,6 +22,7 @@ import Modal from "../Modal";
 import Spinner from "../Spinner";
 import Text from "../Text";
 import View from "../View";
+import * as ImageManipulator from "expo-image-manipulator";
 
 const storage = AsyncStorage;
 
@@ -44,6 +46,7 @@ export interface ICameraProps {
     reverse?: boolean;
   };
   editable?: boolean;
+  compress?: boolean;
 }
 
 export default observer((props: ICameraProps) => {
@@ -152,7 +155,15 @@ export default observer((props: ICameraProps) => {
 });
 
 const CameraPicker = observer((props: any) => {
-  const { state, cameraProps, value, editable, camera, onCapture } = props;
+  const {
+    state,
+    cameraProps,
+    value,
+    editable,
+    camera,
+    onCapture,
+    compress,
+  } = props;
   const meta = useObservable({
     cameraProps: {
       type: Camera.Constants.Type.back,
@@ -183,8 +194,32 @@ const CameraPicker = observer((props: any) => {
       let param: any = {
         quality: 0.8,
         base64: false,
-        onPictureSaved: (res) => {
-          onCapture && onCapture(res.uri);
+        onPictureSaved: async (res) => {
+          if (compress == true) {
+            await RNImage.getSize(
+              res.uri,
+              async (w, h) => {
+                let width = 0;
+                let height = 0;
+                if (w > h) {
+                  width = 1080;
+                  height = width / (w / h);
+                } else if (h > w) {
+                  height = 1080;
+                  width = height * (w / h);
+                }
+                const resizedPhoto = await ImageManipulator.manipulateAsync(
+                  res.uri,
+                  [{ resize: { width, height } }], // resize to width of 300 and preserve aspect ratio
+                  { compress: 0.9, format: ImageManipulator.SaveFormat.PNG }
+                );
+                onCapture && onCapture(resizedPhoto.uri);
+              },
+              (e) => console.log(e)
+            );
+          } else {
+            onCapture && onCapture(res.uri);
+          }
           !!state.resnap && (state.resnap = false);
           state.isShown = false;
         },
