@@ -89,17 +89,6 @@ export default observer((props: ICameraProps) => {
     paddingHorizontal: 0,
     ...style,
   };
-  const iconStyle = {
-    ...Theme.UIShadow,
-    ..._.get(props, "styles.icon", {}),
-  };
-  const previewStyle = {
-    height: height,
-    width: "100%",
-    flex: 1,
-    overflow: "hidden",
-    ..._.get(props, "styles.preview", {}),
-  };
 
   useEffect(() => {
     requestPermission();
@@ -116,11 +105,6 @@ export default observer((props: ICameraProps) => {
       />
     );
   }
-  const source = {
-    cache: "reload",
-    ...(_.get(previewProps, "source", {}) as any),
-    uri: value,
-  };
 
   return (
     <>
@@ -148,7 +132,7 @@ const Preview = observer((props: any) => {
   const source = {
     cache: "reload",
     ...(_.get(previewProps, "source", {}) as any),
-    uri: meta.tempValue || value,
+    uri: value,
   };
   const iconStyle = {
     ...Theme.UIShadow,
@@ -161,7 +145,7 @@ const Preview = observer((props: any) => {
     overflow: "hidden",
     ..._.get(props, "styles.preview", {}),
   };
-  if (!!value)
+  if (!!source.uri)
     return (
       <Image
         resizeMode="cover"
