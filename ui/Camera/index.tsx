@@ -23,6 +23,7 @@ import Spinner from "../Spinner";
 import Text from "../Text";
 import View from "../View";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system";
 
 const storage = AsyncStorage;
 
@@ -223,8 +224,8 @@ const CameraPicker = observer((props: any) => {
                 }
                 const resizedPhoto = await ImageManipulator.manipulateAsync(
                   res.uri,
-                  [{ resize: { width, height } }], // resize to width of 300 and preserve aspect ratio
-                  { compress: 0.9, format: ImageManipulator.SaveFormat.PNG }
+                  [{ resize: { width, height } }],
+                  { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
                 );
                 onCapture && onCapture(resizedPhoto.uri);
               },
