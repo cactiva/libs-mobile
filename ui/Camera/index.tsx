@@ -1,30 +1,54 @@
 import { Camera, CameraProps } from "expo-camera";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import _ from "lodash";
-import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import {
-  AsyncStorage,
+  Animated,
   Dimensions,
-  ImageProps,
+  Image as RNImage,
   Platform,
   ViewStyle,
-  Animated,
-  Image as RNImage,
 } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Image from "../Image";
 import Modal from "../Modal";
-import Spinner from "../Spinner";
+import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
-import * as ImageManipulator from "expo-image-manipulator";
 
-const storage = AsyncStorage;
+const reSizeImage = (uri) => {
+  return new Promise((resolve, reject) => {
+    RNImage.getSize(
+      uri,
+      async (w, h) => {
+        let width = w;
+        let height = h;
+        if (w > h && w > 1080) {
+          width = 1080;
+          height = width / (w / h);
+        } else if (h > w && h > 1080) {
+          height = 1080;
+          width = height * (w / h);
+        }
+        const resizedPhoto = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width, height } }],
+          { compress: 0.6, format: ImageManipulator.SaveFormat.PNG }
+        );
+        resolve(resizedPhoto.uri);
+      },
+      (e) => {
+        console.log(e);
+        reject();
+      }
+    );
+  });
+};
 
 interface IStyles {
   preview?: ViewStyle;
@@ -36,7 +60,6 @@ export interface ICameraProps {
   style?: ViewStyle;
   onCapture?: (value: any) => void;
   styles?: IStyles;
-  previewProps?: ImageProps;
   iconProps?: IIconProps;
   cameraProps?: CameraProps;
   cameraTools?: {
@@ -50,14 +73,12 @@ export interface ICameraProps {
 }
 
 export default observer((props: ICameraProps) => {
-  const { style, value, previewProps, iconProps, editable, onCapture } = props;
+  const { style, value, iconProps, editable } = props;
   const meta = useObservable({
-    hasCameraPermission: null,
-    hasImagePickPermission: null,
     isShown: false,
     resnap: false,
     snap: false,
-    tempValue: null,
+    tempValue: value,
   });
   const requestPermission = () => {
     let permissionsRequest = [Permissions.CAMERA] as any;
@@ -69,18 +90,18 @@ export default observer((props: ICameraProps) => {
         if (res.permissions[key].status !== "granted") {
           Permissions.askAsync(key);
         } else {
-          if (key == Permissions.CAMERA) {
-            meta.hasCameraPermission = true;
-          } else if (key == Permissions.CAMERA_ROLL) {
-            meta.hasImagePickPermission = true;
+          if (key == Permissions.CAMERA && !libsStorage.hasCameraPermission) {
+            libsStorage.hasCameraPermission = true;
+          } else if (
+            key == Permissions.CAMERA_ROLL &&
+            !libsStorage.hasImagePickPermission
+          ) {
+            libsStorage.hasImagePickPermission = true;
           }
         }
       });
     });
   };
-  const camera = useRef(null as any);
-  const dim = Dimensions.get("window");
-  const width = (style && style.width) || dim.width;
   const height = (style && style.height) || 120;
   const baseStyle: any = {
     ...Theme.UIInput,
@@ -91,12 +112,28 @@ export default observer((props: ICameraProps) => {
     ...style,
   };
 
+  const onPress = () => {
+    if (
+      (Platform.OS == "android" && !!libsStorage.hasCameraPermission) ||
+      (Platform.OS == "ios" &&
+        !!libsStorage.hasCameraPermission &&
+        !!libsStorage.hasImagePickPermission)
+    ) {
+      meta.isShown = true;
+    } else {
+      requestPermission();
+    }
+  };
+
   useEffect(() => {
     requestPermission();
   }, []);
+
   if (
-    meta.hasCameraPermission === false ||
-    (Platform.OS === "ios" && meta.hasImagePickPermission === false)
+    (Platform.OS == "android" && libsStorage.hasCameraPermission == false) ||
+    (Platform.OS == "ios" &&
+      libsStorage.hasCameraPermission == false &&
+      libsStorage.hasImagePickPermission == false)
   ) {
     return (
       <Button
@@ -106,34 +143,30 @@ export default observer((props: ICameraProps) => {
       />
     );
   }
-
   return (
     <>
       <Button
         mode={"clean"}
         style={baseStyle}
-        onPress={() => (meta.isShown = true)}
+        onPress={onPress}
         disabled={editable === false && !value}
       >
         <Preview
           meta={meta}
-          value={value}
-          previewProps={previewProps}
+          camprops={props}
           height={height}
           iconProps={iconProps}
         />
       </Button>
-      <CameraPicker {...props} state={meta} camera={camera} />
+      <CameraPicker {...props} meta={meta} />
     </>
   );
 });
 
 const Preview = observer((props: any) => {
-  const { meta, value, previewProps, iconProps, height } = props;
+  const { meta, iconProps, height } = props;
   const source = {
-    cache: "reload",
-    ...(_.get(previewProps, "source", {}) as any),
-    uri: meta.tempValue || value,
+    uri: meta.tempValue,
   };
   const iconStyle = {
     ...Theme.UIShadow,
@@ -146,12 +179,11 @@ const Preview = observer((props: any) => {
     overflow: "hidden",
     ..._.get(props, "styles.preview", {}),
   };
-  if (!!value)
+  if (!!source.uri)
     return (
       <Image
         resizeMode="cover"
         style={previewStyle}
-        {...previewProps}
         source={source}
         disableLoading
       />
@@ -169,37 +201,13 @@ const Preview = observer((props: any) => {
 });
 
 const CameraPicker = observer((props: any) => {
-  const {
-    state,
-    cameraProps,
-    value,
-    editable,
-    camera,
-    onCapture,
-    compress,
-  } = props;
-  const meta = useObservable({
-    cameraProps: {
-      type: Camera.Constants.Type.back,
-      ratio: "16:9",
-      flashMode: "auto",
-    },
-  });
+  const { value, onCapture, compress, meta } = props;
+  const camera = useRef(null as any);
   const backgroundColor = new Animated.Value(0);
-  const setCameraProps = async () => {
-    let camProps = { ...meta.cameraProps, ...cameraProps };
-    await storage.getItem("cameraProps").then((res) => {
-      if (!!res) {
-        camProps = { ...camProps, ...JSON.parse(res) };
-      }
-    });
-    meta.cameraProps = camProps;
-    storage.setItem("cameraProps", JSON.stringify(camProps));
-  };
-  const imageSnap = () => {
-    if (!!value && !state.resnap) {
-      state.resnap = true;
-    } else if (camera.current) {
+  const imageSnap = async () => {
+    if (!!value && !meta.resnap) {
+      meta.resnap = true;
+    } else if (!!camera.current) {
       Animated.timing(backgroundColor, {
         toValue: 100,
         duration: 1000,
@@ -209,65 +217,61 @@ const CameraPicker = observer((props: any) => {
         quality: 0.8,
         base64: false,
         onPictureSaved: async (res) => {
-          state.tempValue = res.uri;
+          onRequestClose();
+          let uri = res.uri;
           if (compress == true) {
-            await RNImage.getSize(
-              res.uri,
-              async (w, h) => {
-                let width = 0;
-                let height = 0;
-                if (w > h) {
-                  width = 1080;
-                  height = width / (w / h);
-                } else if (h > w) {
-                  height = 1080;
-                  width = height * (w / h);
-                }
-                const resizedPhoto = await ImageManipulator.manipulateAsync(
-                  res.uri,
-                  [{ resize: { width, height } }], // resize to width of 300 and preserve aspect ratio
-                  { compress: 0.9, format: ImageManipulator.SaveFormat.PNG }
-                );
-                onCapture && onCapture(resizedPhoto.uri);
-              },
-              (e) => console.log(e)
-            );
-          } else {
-            onCapture && onCapture(res.uri);
+            uri = await reSizeImage(res.uri);
           }
-          !!state.resnap && (state.resnap = false);
-          state.isShown = false;
+          if (typeof onCapture == "function") {
+            onCapture(uri);
+          }
+          meta.tempValue = uri;
+          !!meta.resnap && (meta.resnap = false);
         },
       };
-      camera.current.takePictureAsync(param);
+      await camera.current.takePictureAsync(param);
     }
   };
   const imagePicker = async () => {
     ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
-      quality: 0.8,
+      quality: 0.6,
     }).then((res: any) => {
       if (res.cancelled === false) {
-        onCapture && onCapture(res.uri);
-        state.isShown = false;
-        !!state.resnap && (state.resnap = false);
+        onRequestClose();
+        if (typeof onCapture == "function") {
+          onCapture(res.uri);
+        }
+        !!meta.resnap && (meta.resnap = false);
       }
     });
   };
+
+  const onRequestClose = () => {
+    meta.isShown = false;
+  };
+
   useEffect(() => {
-    setCameraProps();
+    let camProps = {
+      type: Camera.Constants.Type.back,
+      ratio: "16:9",
+      flashMode: "auto",
+      ..._.get(props, "cameraProps", {}),
+      ..._.get(libsStorage, "camera", {}),
+    };
+    libsStorage.camera = camProps;
   }, []);
+
   const bg = backgroundColor.interpolate({
     inputRange: [0, 0, 100],
     outputRange: ["rgba(0,0,0,0)", "rgb(255,255,255)", "rgba(0,0,0,0)"],
   });
+
   return (
     <Modal
-      visible={state.isShown}
-      onRequestClose={() => {
-        state.isShown = false;
-      }}
+      visible={meta.isShown}
+      onRequestClose={onRequestClose}
       screenProps={{
         style: {
           backgroundColor: "black",
@@ -286,6 +290,9 @@ const CameraPicker = observer((props: any) => {
           paddingHorizontal: 15,
           maxHeight: 44,
           zIndex: 9,
+          position: "absolute",
+          top: 0,
+          backgroundColor: "rgba(0,0,0,0.2)",
         }}
       >
         <Button
@@ -296,70 +303,105 @@ const CameraPicker = observer((props: any) => {
             paddingHorizontal: 0,
             minWidth: 44,
           }}
-          onPress={() => {
-            state.isShown = false;
-          }}
+          onPress={onRequestClose}
         >
           <Icon source="AntDesign" name="arrowleft" color="white" size={24} />
         </Button>
-        <CameraToolsTop
-          value={value}
-          state={meta}
-          cameraTools={_.get(props, "cameraTools", {})}
-        />
+        <CameraToolsTop {...props} />
       </View>
-      <CameraView camera={camera} meta={meta} {...props} />
-      <Animated.View
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-          backgroundColor: bg,
-        }}
-      />
       <CameraToolsBottom
-        imagePicker={imagePicker}
-        meta={meta}
-        cameraTools={_.get(props, "cameraTools", {})}
-        value={value}
-        state={state}
-      />
-      <CameraAction
         imageSnap={imageSnap}
-        state={state}
-        value={value}
-        editable={editable}
+        imagePicker={imagePicker}
+        {...props}
       />
+      <CameraView camera={camera} {...props} bg={bg} />
     </Modal>
   );
 });
 
-const CameraToolsTop = observer((props: any) => {
-  const { state, cameraTools, value } = props;
-  if (!!value && !state.resnap) return null;
-
-  const handleFlash = () => {
-    if (state.cameraProps.flashMode === "auto") {
-      state.cameraProps.flashMode = "on";
-    } else if (state.cameraProps.flashMode === "on") {
-      state.cameraProps.flashMode = "off";
-    } else {
-      state.cameraProps.flashMode = "auto";
-    }
-    storage.setItem("cameraProps", JSON.stringify(toJS(state.cameraProps)));
-  };
+const RatioButton = observer(({ cameraTools }: any) => {
+  let ratio = _.get(cameraTools, "ratio", true);
   const handleRatio = () => {
-    if (state.cameraProps.ratio === "1:1") {
-      state.cameraProps.ratio = "4:3";
-    } else if (state.cameraProps.ratio === "4:3") {
-      state.cameraProps.ratio = "16:9";
+    if (libsStorage.camera.ratio === "1:1") {
+      libsStorage.camera.ratio = "4:3";
+    } else if (libsStorage.camera.ratio === "4:3") {
+      libsStorage.camera.ratio = "16:9";
     } else {
-      state.cameraProps.ratio = "1:1";
+      libsStorage.camera.ratio = "1:1";
     }
-    storage.setItem("cameraProps", JSON.stringify(toJS(state.cameraProps)));
   };
+  if (!ratio) return null;
+  return (
+    <Button
+      mode={"clean"}
+      onPress={handleRatio}
+      style={{
+        minWidth: 44,
+        margin: 0,
+        paddingHorizontal: 10,
+      }}
+    >
+      <Text
+        style={{
+          color: "white",
+          fontSize: 14,
+          fontWeight: "bold",
+        }}
+      >
+        {libsStorage.camera.ratio}
+      </Text>
+    </Button>
+  );
+});
+
+const FlashButton = observer(({ cameraTools }: any) => {
+  let flash = _.get(cameraTools, "flash", true);
+  const handleFlash = () => {
+    if (libsStorage.camera.flashMode === "auto") {
+      libsStorage.camera.flashMode = "on";
+    } else if (libsStorage.camera.flashMode === "on") {
+      libsStorage.camera.flashMode = "off";
+    } else {
+      libsStorage.camera.flashMode = "auto";
+    }
+  };
+  if (!flash) return null;
+  return (
+    <Button
+      mode={"clean"}
+      onPress={handleFlash}
+      style={{
+        minWidth: 44,
+        margin: 0,
+        paddingHorizontal: 10,
+      }}
+    >
+      {libsStorage.camera.flashMode === "auto" ? (
+        <>
+          <Icon source="Ionicons" name="ios-flash" color="white" size={22} />
+          <Text
+            style={{
+              color: "white",
+              fontSize: 14,
+              fontWeight: "bold",
+            }}
+          >
+            Auto
+          </Text>
+        </>
+      ) : libsStorage.camera.flashMode === "on" ? (
+        <Icon source="Ionicons" name="ios-flash" color="white" size={26} />
+      ) : (
+        <Icon source="Ionicons" name="ios-flash-off" color="white" size={26} />
+      )}
+    </Button>
+  );
+});
+
+const CameraToolsTop = observer((props: any) => {
+  const { value, meta, cameraTools } = props;
+  if (!!value && !meta.resnap) return null;
+
   return (
     <View
       style={{
@@ -369,77 +411,61 @@ const CameraToolsTop = observer((props: any) => {
         maxHeight: 44,
       }}
     >
-      {!!_.get(cameraTools, "ratio", true) && (
-        <Button
-          mode={"clean"}
-          onPress={handleRatio}
-          style={{
-            minWidth: 44,
-            margin: 0,
-            paddingHorizontal: 10,
-          }}
-        >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 14,
-              fontWeight: "bold",
-            }}
-          >
-            {state.cameraProps.ratio}
-          </Text>
-        </Button>
-      )}
-      {!!_.get(cameraTools, "flash", true) && (
-        <Button
-          mode={"clean"}
-          onPress={handleFlash}
-          style={{
-            minWidth: 44,
-            margin: 0,
-            paddingHorizontal: 10,
-          }}
-        >
-          {state.cameraProps.flashMode === "auto" ? (
-            <>
-              <Icon
-                source="Ionicons"
-                name="ios-flash"
-                color="white"
-                size={22}
-              />
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 14,
-                  fontWeight: "bold",
-                }}
-              >
-                Auto
-              </Text>
-            </>
-          ) : state.cameraProps.flashMode === "on" ? (
-            <Icon source="Ionicons" name="ios-flash" color="white" size={26} />
-          ) : (
-            <Icon
-              source="Ionicons"
-              name="ios-flash-off"
-              color="white"
-              size={26}
-            />
-          )}
-        </Button>
-      )}
+      <RatioButton cameraTools={cameraTools} />
+      <FlashButton cameraTools={cameraTools} />
     </View>
   );
 });
 
+const PickerButton = observer(({ cameraTools, imagePicker, meta }: any) => {
+  let picker = _.get(cameraTools, "picker", true);
+  if (!picker) return null;
+  if (!!meta.tempValue && !meta.resnap) return null;
+
+  return (
+    <Button
+      mode={"clean"}
+      onPress={imagePicker}
+      style={{
+        flexGrow: 0,
+        paddingHorizontal: 10,
+      }}
+    >
+      <Icon source="Ionicons" name="md-images" color="white" size={35} />
+    </Button>
+  );
+});
+
+const ReverseButton = observer(({ cameraTools, handleReverse, meta }: any) => {
+  let reverse = _.get(cameraTools, "reverse", true);
+  if (!reverse) return null;
+  if (!!meta.tempValue && !meta.resnap) return null;
+
+  return (
+    <Button
+      mode={"clean"}
+      onPress={handleReverse}
+      style={{
+        flexGrow: 0,
+        paddingHorizontal: 10,
+        alignSelf: "flex-end",
+      }}
+    >
+      <Icon
+        source="Ionicons"
+        name="ios-reverse-camera"
+        color="white"
+        size={45}
+      />
+    </Button>
+  );
+});
+
 const CameraToolsBottom = observer((props: any) => {
-  const { imagePicker, meta, cameraTools, value, state } = props;
-  if (!!value && !state.resnap) return null;
+  const { imagePicker, cameraTools, meta } = props;
   const handleReverse = () => {
-    meta.cameraProps.type =
-      meta.cameraProps.type === Camera.Constants.Type.back
+    libsStorage.camera.type =
+      libsStorage.camera.type === Camera.Constants.Type.back
         ? Camera.Constants.Type.front
         : Camera.Constants.Type.back;
   };
@@ -452,53 +478,41 @@ const CameraToolsBottom = observer((props: any) => {
         bottom: 0,
         left: 0,
         right: 0,
-        paddingHorizontal: 30,
+        height: 70,
+        paddingHorizontal: 15,
         backgroundColor: "rgba(0,0,0,0.4)",
+        zIndex: 9,
       }}
     >
-      {!!_.get(cameraTools, "picker", true) && (
-        <Button
-          mode={"clean"}
-          onPress={imagePicker}
-          style={{
-            flexGrow: 0,
-            paddingHorizontal: 10,
-          }}
-        >
-          <Icon source="Ionicons" name="md-images" color="white" size={35} />
-        </Button>
-      )}
+      <View style={{ width: 100 }}>
+        <PickerButton
+          cameraTools={cameraTools}
+          imagePicker={imagePicker}
+          meta={meta}
+        />
+      </View>
       <View
         style={{
-          flexGrow: 1,
-          justifyContent: "flex-end",
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        {!!_.get(cameraTools, "reverse", true) && (
-          <Button
-            mode={"clean"}
-            onPress={handleReverse}
-            style={{
-              flexGrow: 0,
-              paddingHorizontal: 10,
-              alignSelf: "flex-end",
-            }}
-          >
-            <Icon
-              source="Ionicons"
-              name="ios-reverse-camera"
-              color="white"
-              size={45}
-            />
-          </Button>
-        )}
+        <CameraAction {...props} />
+      </View>
+      <View style={{ width: 100 }}>
+        <ReverseButton
+          cameraTools={cameraTools}
+          handleReverse={handleReverse}
+          meta={meta}
+        />
       </View>
     </View>
   );
 });
 
 const CameraAction = observer((props: any) => {
-  const { imageSnap, state, value, editable } = props;
+  const { imageSnap, meta, value, editable } = props;
   if (editable === false) return null;
 
   return (
@@ -513,9 +527,9 @@ const CameraAction = observer((props: any) => {
         padding: 0,
         paddingHorizontal: 0,
         position: "absolute",
-        bottom: 0,
+        margin: 0,
       }}
-      disabled={state.snap}
+      disabled={meta.snap}
       onPress={imageSnap}
     >
       <View
@@ -530,7 +544,7 @@ const CameraAction = observer((props: any) => {
           justifyContent: "center",
         }}
       >
-        {!!value && !state.resnap && (
+        {!!meta.tempValue && !meta.resnap && (
           <Icon
             source="Ionicons"
             name="ios-refresh"
@@ -544,38 +558,62 @@ const CameraAction = observer((props: any) => {
 });
 
 const CameraView = observer((props: any) => {
-  const { meta, state, camera, value } = props;
+  const { meta, camera, value, bg } = props;
   const dim = Dimensions.get("window");
-  const getRatio = () => {
-    const ratio = _.get(meta, "cameraProps.ratio", "16:9").split(":");
-    return {
-      width: dim.width,
-      height: (dim.width / parseInt(ratio[1])) * parseInt(ratio[0]),
-    };
+  const ratio = _.get(libsStorage, "camera.ratio", "16:9").split(":"),
+    width = dim.width,
+    height = dim.width * (ratio[0] / ratio[1]);
+  // height = (dim.width / parseInt(ratio[1])) * parseInt(ratio[0]);
+  const source = {
+    uri: meta.tempValue || value,
   };
-  if (!!value && !state.resnap)
+  if (!!source.uri && !meta.resnap)
     return (
-      <Image
-        source={{ uri: value }}
-        resizeMode="cover"
+      <View
         style={{
-          ...getRatio(),
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Image
+          source={source}
+          resizeMode="cover"
+          style={{
+            width,
+            height,
+          }}
+        />
+      </View>
+    );
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Camera
+        {...libsStorage.camera}
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "transparent",
+          width,
+          height,
+        }}
+        ref={camera}
+      ></Camera>
+      <Animated.View
+        style={{
+          position: "absolute",
+          backgroundColor: bg,
+          width,
+          height,
         }}
       />
-    );
-  return (
-    <Camera
-      {...meta.cameraProps}
-      style={{
-        opacity: state.snap ? 0.6 : 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "transparent",
-        ...getRatio(),
-      }}
-      ref={camera}
-    >
-      {state.snap && <Spinner color={"white"} size="large" />}
-    </Camera>
+    </View>
   );
 });

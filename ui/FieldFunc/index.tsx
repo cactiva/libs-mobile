@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { observer } from "mobx-react-lite";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
 import Camera from "../Camera";
@@ -12,17 +12,18 @@ import Text from "../Text";
 import View from "../View";
 import Button from "../Button";
 import Icon from "../Icon";
+import { IInitializeForm } from "../FormFunc";
 
 interface IFieldProps {
   label?: string;
   hiddenLabel?: boolean;
   path: string;
-  setValue?: (path, value) => void;
-  value?: any;
+  value?: string | number | null | undefined;
+  onChange?: (path: string, value: any) => void;
   children?: any;
-  isRequired?: ((path) => boolean) | boolean;
+  isRequired?: boolean;
   readonly?: boolean;
-  onChange?: (value) => void;
+  validate?: string[];
   onBlur?: () => void;
   style?: ViewStyle;
   prefix?: any;
@@ -33,21 +34,23 @@ interface IFieldProps {
     wrapper?: ViewStyle;
     input?: TextStyle;
   };
-  validate?: string[] | any;
+  initialize?: IInitializeForm;
 }
 
 export default observer((props: IFieldProps) => {
   let {
+    path,
     label,
     readonly,
     style,
     prefix,
     suffix,
     disableBoxStyle,
-    validate,
     isRequired,
     hiddenLabel,
+    initialize,
   } = props;
+  const childprops = _.clone(_.get(props, "children.props", {}));
   const [password, setPassword] = useState(true);
   const Component = props.children.type;
   const fieldStyle = StyleSheet.flatten([Theme.UIField, style]);
@@ -71,7 +74,6 @@ export default observer((props: IFieldProps) => {
     defErrorLabelStyle,
     Theme.UILabel,
   ]);
-
   const boxStyle =
     Component === Camera ||
     Component === RadioGroup ||
@@ -93,21 +95,6 @@ export default observer((props: IFieldProps) => {
     boxStyle,
     _.get(props, "styles.wrapper"),
   ]);
-
-  const handleOnChange = (value) => {
-    props.setValue && props.setValue(props.path, value);
-    props.onChange && props.onChange(value);
-  };
-  let value =
-    typeof props.value == "function"
-      ? props.value(props.path)
-      : _.get(props, "value", "");
-  const childprops = _.clone(_.get(props, "children.props", {}));
-  childprops.editable = !readonly;
-  childprops.value = value;
-  childprops.onChange = handleOnChange;
-  childprops.onBlur = _.get(props, "onBlur", undefined);
-
   const baseInpStyle = {
     flexGrow: 1,
     height: 44,
@@ -119,12 +106,34 @@ export default observer((props: IFieldProps) => {
   ) {
     delete baseInpStyle.height;
   }
-
   const inputStyle = StyleSheet.flatten([
     baseInpStyle,
     childprops.style,
     _.get(props, "styles.input"),
   ]);
+
+  const handleOnChange = (value) => {
+    if (!!initialize && typeof initialize.setValue == "function") {
+      initialize.setValue(path, value);
+    }
+    if (typeof props.onChange == "function") {
+      props.onChange(path, value);
+    }
+  };
+
+  let value;
+  if (!!props.value) {
+    value = props.value;
+  } else if (!!initialize && typeof initialize.getValue == "function") {
+    value = initialize.getValue(path);
+  }
+  if (!value) {
+    value = "";
+  }
+  childprops.editable = !readonly;
+  childprops.value = value;
+  childprops.onChange = handleOnChange;
+  childprops.onBlur = props.onBlur;
 
   switch (Component) {
     case Select:
@@ -141,13 +150,6 @@ export default observer((props: IFieldProps) => {
       childprops.onChangeText = handleOnChange;
       break;
   }
-  let errorMsg: string[] = [];
-  if (!!validate && typeof validate == "function")
-    errorMsg = validate(
-      props.path
-      // !!isRequired && !!value ? ["Field is required."] : []
-    );
-  else if (!!validate && Array.isArray(validate)) errorMsg = validate;
 
   if (childprops.type === "password") {
     let exist = suffix;
@@ -176,18 +178,26 @@ export default observer((props: IFieldProps) => {
     childprops.type = !!password ? "password" : "text";
   }
 
-  let required = false;
-  if (typeof isRequired == "function") {
-    required = isRequired(props.path);
-  } else {
-    required = isRequired;
+  let errorMsg: string[] = [];
+  if (Array.isArray(props.validate)) {
+    errorMsg = props.validate;
   }
+  if (!!initialize && typeof initialize.validate == "function") {
+    errorMsg = initialize.validate(path);
+  }
+
+  useEffect(() => {
+    initialize.field(path, label, isRequired);
+    return () => {
+      initialize.remove(path);
+    };
+  }, []);
 
   return (
     <View style={fieldStyle}>
       {!!label && hiddenLabel != true && (
         <Text style={labelStyle}>
-          {label} {!!required && "*"}
+          {label} {!!isRequired && "*"}
         </Text>
       )}
       <View style={wrapperStyle}>

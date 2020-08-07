@@ -2,7 +2,7 @@ import store from "@src/libs/store";
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system";
 import _ from "lodash";
-import { observer } from "mobx-react-lite";
+import { observer, useObservable } from "mobx-react-lite";
 import Path from "path";
 import React, { useEffect, useState } from "react";
 import {
@@ -19,18 +19,24 @@ import Icon from "../Icon";
 import Modal from "../Modal";
 import Text from "../Text";
 import View from "../View";
+import libsStorage from "../store";
+import { toJS } from "mobx";
 
 interface IStyle {
   preview?: ViewStyle;
   caption?: TextStyle;
 }
 
-const storage = store("fs.image", {});
 const callback = (downloadProgress, uri) => {
   const progress =
     downloadProgress.totalBytesWritten /
     downloadProgress.totalBytesExpectedToWrite;
-  _.set(storage[uri], "progress", progress);
+  let img = toJS(libsStorage.images[uri]);
+  img = {
+    ...img,
+    progress,
+  };
+  libsStorage.images[uri] = img;
 };
 
 const downloadImage = async (uri, pathFile, resumeData = null) => {
@@ -50,32 +56,35 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
     } else {
       res = await downloadResumable.resumeAsync();
     }
-    if (_.get(storage[uri], "progress", 0) < 1) {
+    let progress = _.get(libsStorage.images[uri], "progress", 0);
+    if (progress < 1) {
       downloadImage(uri, pathFile, downloadResumable.savable());
     } else {
-      storage[uri] = {
+      let img = toJS(libsStorage.images[uri]);
+      img = {
+        ...img,
         error: false,
         loading: false,
         uri: res.uri,
       };
+      libsStorage.images[uri] = img;
     }
   } catch (error) {
     console.log(error);
-    storage[uri] = {
+    let img = toJS(libsStorage.images[uri]);
+    img = {
+      ...img,
       error: true,
       loading: false,
     };
+    libsStorage.images[uri] = img;
   }
 };
 
-const getImage = async (uri) => {
-  if (!!storage[uri]) {
-    return;
-  }
-  storage[uri] = {};
+const getImage = async ({ uri, cache }) => {
   try {
     if (uri.indexOf("file://") > -1) {
-      storage[uri] = {
+      libsStorage.images[uri] = {
         error: false,
         loading: false,
         uri,
@@ -87,7 +96,7 @@ const getImage = async (uri) => {
     const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
     const pathFile = pathDir + fileName;
     if (!ext) {
-      storage[uri] = {
+      libsStorage.images[uri] = {
         error: true,
         loading: false,
       };
@@ -101,23 +110,29 @@ const getImage = async (uri) => {
         console.log(error)
       );
     }
-    const { exists, size }: any = await FileSystem.getInfoAsync(pathFile).catch(
+    const { exists }: any = await FileSystem.getInfoAsync(pathFile).catch(
       (error) => {
         console.log(error);
       }
     );
-    if (!!exists) {
-      storage[uri] = {
+    if (!!exists && cache != "reload") {
+      libsStorage.images[uri] = {
         error: false,
         loading: false,
         uri: pathFile,
       };
+      return;
     } else {
-      downloadImage(uri, pathFile);
+      libsStorage.images[uri] = {
+        error: false,
+        loading: true,
+      };
+      await downloadImage(uri, pathFile);
+      return;
     }
   } catch (error) {
     console.log(error);
-    storage[uri] = {
+    libsStorage.images[uri] = {
       error: true,
       loading: false,
     };
@@ -133,13 +148,43 @@ export interface IImageProps extends OriginImageProps {
 }
 
 export default observer((props: IImageProps) => {
-  const { style, source, preview, disableLoading }: any = props;
-  const [loading, setLoading] = useState(
-    disableLoading === true ? false : true
+  const { source, disableLoading }: any = props;
+  const meta = useObservable({
+    error: false,
+    show: false,
+    loading: disableLoading === true ? false : true,
+    imageUri: Theme.UIImageLoading,
+  });
+
+  useEffect(() => {
+    if (typeof source === "object") {
+      getImage(source);
+    }
+  }, [source]);
+
+  useEffect(() => {
+    if (!!libsStorage.images[source.uri]) {
+      let { error, loading, uri } = libsStorage.images[source.uri];
+      if (!loading) {
+        meta.error = error;
+        meta.loading = loading;
+        if (!!uri) {
+          meta.imageUri = { uri };
+        }
+        delete libsStorage.images[source.uri];
+      }
+    }
+  }, [libsStorage.images[source.uri]]);
+  return (
+    <>
+      <Thumbnail {...props} meta={meta} />
+      <PreviewImage imgProps={props} meta={meta} />
+    </>
   );
-  const [error, setError] = useState(false);
-  const [show, setShow] = useState(false);
-  const [imageUri, setImage] = useState(Theme.UIImageLoading);
+});
+
+const Thumbnail = observer((props: any) => {
+  const { source, style, preview, meta }: any = props;
   const baseStyle: ImageStyle = {
     width: 300,
     height: 150,
@@ -158,18 +203,10 @@ export default observer((props: IImageProps) => {
   const loadingStyle: ImageStyle = StyleSheet.flatten([
     cstyle,
     {
-      // backgroundColor: "#fff",
       alignSelf: "center",
       width,
     },
   ]);
-  // let csource: any = source;
-  // if (typeof source === "object") {
-  //   csource = {
-  //     ...source,
-  //     cache: "force-cache",
-  //   };
-  // }
 
   const btnStyle: ViewStyle = {
     padding: 0,
@@ -183,104 +220,76 @@ export default observer((props: IImageProps) => {
   };
 
   const onPress = () => {
-    setShow(!show);
+    meta.show = true;
   };
 
-  useEffect(() => {
-    if (typeof source === "object") {
-      getImage(source.uri);
-    }
-  }, [source]);
-
-  useEffect(() => {
-    if (!!storage[source.uri]) {
-      let { error, loading, uri } = storage[source.uri];
-      setError(error);
-      setLoading(loading);
-      if (!!uri) setImage({ uri });
-
-      setTimeout(() => {
-        delete storage[uri];
-      }, 5000);
-    }
-  }, [storage[source.uri]]);
-
+  if (!meta.error) {
+    return (
+      <Button
+        activeOpacity={preview ? 0.7 : 1}
+        style={btnStyle}
+        disabled={!preview}
+        onPress={onPress}
+        styles={{
+          disabled: {
+            opacity: 1,
+          },
+        }}
+      >
+        <Image
+          defaultSource={Theme.UIImageLoading}
+          {...props}
+          resizeMode={
+            !!meta.loading ? "contain" : _.get(props, "resizeMode", "contain")
+          }
+          source={typeof source === "object" ? meta.imageUri : source}
+          style={!!meta.loading ? loadingStyle : cstyle}
+        />
+        {!!props.caption && (
+          <Text
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              padding: 15,
+              paddingVertical: 10,
+              color: "white",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              textAlign: "center",
+              flex: 1,
+              flexWrap: "wrap",
+              overflow: "hidden",
+            }}
+            ellipsizeMode={"tail"}
+            numberOfLines={2}
+          >
+            {props.caption}
+          </Text>
+        )}
+      </Button>
+    );
+  }
   return (
-    <>
-      {!error ? (
-        <Button
-          activeOpacity={preview ? 0.7 : 1}
-          style={btnStyle}
-          disabled={!preview}
-          onPress={onPress}
-          styles={{
-            disabled: {
-              opacity: 1,
-            },
-          }}
-        >
-          <Image
-            defaultSource={Theme.UIImageLoading}
-            {...props}
-            resizeMode={
-              !!loading ? "contain" : _.get(props, "resizeMode", "contain")
-            }
-            source={typeof source === "object" ? imageUri : source}
-            style={!!loading ? loadingStyle : cstyle}
-            // onError={(e) => {
-            //   const err = _.get(e, "nativeEvent.error", "");
-            //   if (!!err) setError(true);
-            // }}
-            // onLoadEnd={() => {
-            //   setLoading(false);
-            // }}
-          />
-          {!!props.caption && (
-            <Text
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                padding: 15,
-                paddingVertical: 10,
-                color: "white",
-                backgroundColor: "rgba(0,0,0,0.5)",
-                textAlign: "center",
-                flex: 1,
-                flexWrap: "wrap",
-                overflow: "hidden",
-              }}
-              ellipsizeMode={"tail"}
-              numberOfLines={2}
-            >
-              {props.caption}
-            </Text>
-          )}
-        </Button>
-      ) : (
-        <View style={btnStyle}>
-          <Image
-            defaultSource={Theme.UIImageLoading}
-            {...props}
-            resizeMode={"contain"}
-            source={Theme.UIImageError}
-            style={loadingStyle}
-          />
-        </View>
-      )}
-      <PreviewImage show={show} setShow={setShow} imgProps={props} />
-    </>
+    <View style={btnStyle}>
+      <Image
+        defaultSource={Theme.UIImageLoading}
+        {...props}
+        resizeMode={"contain"}
+        source={Theme.UIImageError}
+        style={loadingStyle}
+      />
+    </View>
   );
 });
 
-const PreviewImage = (props: any) => {
-  const { show, setShow, imgProps } = props;
+const PreviewImage = observer((props: any) => {
+  const { meta, imgProps } = props;
   const onRequestClose = () => {
-    setShow(!show);
+    meta.show = false;
   };
   return (
-    <Modal visible={show} onRequestClose={onRequestClose}>
+    <Modal visible={meta.show} onRequestClose={onRequestClose}>
       <View
         style={{
           backgroundColor: "rgba(0,0,0,0.8)",
@@ -348,4 +357,4 @@ const PreviewImage = (props: any) => {
       </View>
     </Modal>
   );
-};
+});

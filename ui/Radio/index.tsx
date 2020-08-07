@@ -63,7 +63,7 @@ export default (props: IRadioProps) => {
     mode === "button"
       ? {
           ...Theme.UIInput,
-          backgroundColor: "transparent",
+          backgroundColor: "white",
         }
       : {};
   const btnActiveStyle =

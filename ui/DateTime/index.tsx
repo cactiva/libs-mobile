@@ -70,10 +70,6 @@ export default (props: IDateTimeProps) => {
     }
   };
 
-  useEffect(() => {
-    if (!!showPicker) setVisible(showPicker);
-  }, [showPicker]);
-
   const baseStyle: any = {
     margin: 0,
     backgroundColor: "transparent",
@@ -91,6 +87,10 @@ export default (props: IDateTimeProps) => {
   };
 
   const iconStyle = { margin: 0, ..._.get(props, "styles.icon") };
+
+  useEffect(() => {
+    if (!!showPicker) setVisible(showPicker);
+  }, [showPicker]);
   return (
     <>
       <Button
