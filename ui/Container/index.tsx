@@ -2,13 +2,14 @@ import _ from "lodash";
 import React from "react";
 import { Platform, StyleSheet, ViewStyle } from "react-native";
 import View, { IViewProps } from "../View";
+import { observer } from "mobx-react-lite";
 
 export interface IContainerProps extends IViewProps {
   children?: any;
   scrollRef?: any;
 }
 
-export default (props: IContainerProps) => {
+export default observer((props: IContainerProps) => {
   const { style, scrollRef } = props;
   const baseStyle: ViewStyle = {
     flexGrow: 1,
@@ -43,4 +44,4 @@ export default (props: IContainerProps) => {
       )}
     </View>
   );
-};
+});

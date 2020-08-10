@@ -41,12 +41,7 @@ export default observer((props: ModalProps) => {
     _.get(props, "screenProps.styles.statusbar"),
   ]);
   return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      {...props}
-      hardwareAccelerated={true}
-    >
+    <Modal animationType="fade" transparent={true} {...props}>
       <Screen
         {...screenProps}
         style={cstyle}

@@ -1,10 +1,10 @@
-import store from "@src/libs/store";
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system";
 import _ from "lodash";
+import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
 import Path from "path";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Image,
   ImageProps as OriginImageProps,
@@ -17,10 +17,10 @@ import Theme from "../../theme";
 import Button from "../Button";
 import Icon from "../Icon";
 import Modal from "../Modal";
+import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
-import libsStorage from "../store";
-import { toJS } from "mobx";
+import { Spinner } from "..";
 
 interface IStyle {
   preview?: ViewStyle;
@@ -57,9 +57,7 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       res = await downloadResumable.resumeAsync();
     }
     let progress = _.get(libsStorage.images[uri], "progress", 0);
-    if (progress < 1) {
-      downloadImage(uri, pathFile, downloadResumable.savable());
-    } else {
+    if (progress == 1 && res.status == 200) {
       let img = toJS(libsStorage.images[uri]);
       img = {
         ...img,
@@ -68,9 +66,17 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
         uri: res.uri,
       };
       libsStorage.images[uri] = img;
+    } else if (progress > 0 && progress < 1) {
+      await downloadImage(uri, pathFile, downloadResumable.savable());
+    } else {
+      let img = toJS(libsStorage.images[uri]);
+      img = {
+        ...img,
+        resumeData: downloadResumable.savable(),
+      };
+      libsStorage.images[uri] = img;
     }
   } catch (error) {
-    console.log(error);
     let img = toJS(libsStorage.images[uri]);
     img = {
       ...img,
@@ -78,67 +84,86 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       loading: false,
     };
     libsStorage.images[uri] = img;
+    console.log(error);
   }
 };
 
 const getImage = async ({ uri, cache }) => {
-  try {
-    if (uri.indexOf("file://") > -1) {
-      libsStorage.images[uri] = {
-        error: false,
-        loading: false,
-        uri,
-      };
-      return;
-    }
-    const fileName = Path.basename(uri);
-    const ext = Path.extname(uri);
-    const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
-    const pathFile = pathDir + fileName;
-    if (!ext) {
-      libsStorage.images[uri] = {
-        error: true,
-        loading: false,
-      };
-      return;
-    }
-    const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
-      console.log(error)
-    );
-    if (!dirs) {
-      await FileSystem.makeDirectoryAsync(pathDir).catch((error) =>
-        console.log(error)
-      );
-    }
-    const { exists }: any = await FileSystem.getInfoAsync(pathFile).catch(
-      (error) => {
-        console.log(error);
-      }
-    );
-    if (!!exists && cache != "reload") {
-      libsStorage.images[uri] = {
-        error: false,
-        loading: false,
-        uri: pathFile,
-      };
-      return;
-    } else {
-      libsStorage.images[uri] = {
-        error: false,
-        loading: true,
-      };
-      await downloadImage(uri, pathFile);
-      return;
-    }
-  } catch (error) {
-    console.log(error);
+  // try {
+  if (uri.indexOf("file://") > -1) {
+    libsStorage.images[uri] = {
+      error: false,
+      loading: false,
+      uri,
+    };
+    return;
+  }
+  const fileName = Path.basename(uri);
+  const ext = Path.extname(uri);
+  const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
+  const pathFile = pathDir + fileName;
+  if (!ext) {
     libsStorage.images[uri] = {
       error: true,
       loading: false,
     };
+    return;
   }
+  const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
+    console.log(error)
+  );
+  if (!dirs && !Array.isArray(dirs)) {
+    await FileSystem.makeDirectoryAsync(pathDir).catch((error) =>
+      console.log(error)
+    );
+  }
+  const { exists }: any = await FileSystem.getInfoAsync(pathFile).catch(
+    (error) => {
+      console.log(error);
+    }
+  );
+  if (!!exists && cache != "reload") {
+    libsStorage.images[uri] = {
+      error: false,
+      loading: false,
+      uri: pathFile,
+    };
+    return;
+  } else {
+    let img = toJS(libsStorage.images[uri]);
+    if (!!img && !!img.error) {
+      if (img.trying == undefined) {
+        img.trying = 0;
+      }
+      img.trying += 1;
+      img.loading = true;
+      libsStorage.images[uri] = img;
+      if (img.progress > 0 && img.progress < 1) {
+        await downloadImage(uri, pathFile, img.resumeData);
+      }
+    } else {
+      libsStorage.images[uri] = {
+        error: false,
+        loading: true,
+        trying: 1,
+      };
+    }
+    await downloadImage(uri, pathFile);
+    return;
+  }
+  // } catch (error) {
+  //   let img = toJS(libsStorage.images[uri]);
+  //   img = {
+  //     ...img,
+  //     error: true,
+  //     loading: false,
+  //   };
+  //   libsStorage.images[uri] = img;
+  //   console.log(error);
+  // }
 };
 
+const a = { i: 0 };
 export interface IImageProps extends OriginImageProps {
   loadingSize?: "small" | "large";
   preview?: boolean;
@@ -148,7 +173,7 @@ export interface IImageProps extends OriginImageProps {
 }
 
 export default observer((props: IImageProps) => {
-  const { source, disableLoading }: any = props;
+  const { source, disableLoading, style }: any = props;
   const meta = useObservable({
     error: false,
     show: false,
@@ -156,35 +181,6 @@ export default observer((props: IImageProps) => {
     imageUri: Theme.UIImageLoading,
   });
 
-  useEffect(() => {
-    if (typeof source === "object") {
-      getImage(source);
-    }
-  }, [source]);
-
-  useEffect(() => {
-    if (!!libsStorage.images[source.uri]) {
-      let { error, loading, uri } = libsStorage.images[source.uri];
-      if (!loading) {
-        meta.error = error;
-        meta.loading = loading;
-        if (!!uri) {
-          meta.imageUri = { uri };
-        }
-        delete libsStorage.images[source.uri];
-      }
-    }
-  }, [libsStorage.images[source.uri]]);
-  return (
-    <>
-      <Thumbnail {...props} meta={meta} />
-      <PreviewImage imgProps={props} meta={meta} />
-    </>
-  );
-});
-
-const Thumbnail = observer((props: any) => {
-  const { source, style, preview, meta }: any = props;
   const baseStyle: ImageStyle = {
     width: 300,
     height: 150,
@@ -208,6 +204,57 @@ const Thumbnail = observer((props: any) => {
     },
   ]);
 
+  useEffect(() => {
+    if (typeof source === "object" && source.uri.indexOf("http")) {
+      getImage(source);
+    } else {
+      meta.loading = false;
+      meta.imageUri = source;
+    }
+  }, [source]);
+
+  useEffect(() => {
+    let img = toJS(libsStorage.images[source.uri]);
+    if (!!img) {
+      let { error, loading, uri, trying } = img;
+      if (!loading && !error) {
+        meta.error = error;
+        meta.loading = loading;
+        if (!!uri) {
+          meta.imageUri = { uri };
+        }
+        delete libsStorage.images[source.uri];
+      } else if (!loading && !!error && trying <= 3) {
+        getImage(source);
+      } else if (!loading && !!error) {
+        meta.error = error;
+        meta.loading = loading;
+        delete libsStorage.images[source.uri];
+      }
+    }
+  }, [libsStorage.images[source.uri]]);
+
+  return (
+    <>
+      <Thumbnail
+        {...props}
+        meta={meta}
+        cstyle={cstyle}
+        loadingStyle={loadingStyle}
+      />
+      <PreviewImage
+        {...props}
+        meta={meta}
+        cstyle={cstyle}
+        loadingStyle={loadingStyle}
+      />
+    </>
+  );
+});
+
+const Thumbnail = observer((props: any) => {
+  const { preview, meta, cstyle, loadingStyle, disableLoading }: any = props;
+
   const btnStyle: ViewStyle = {
     padding: 0,
     margin: 0,
@@ -222,6 +269,10 @@ const Thumbnail = observer((props: any) => {
   const onPress = () => {
     meta.show = true;
   };
+  const resizeMode = !!meta.loading
+    ? "contain"
+    : _.get(props, "resizeMode", "contain");
+  const style = !!meta.loading ? loadingStyle : cstyle;
 
   if (!meta.error) {
     return (
@@ -239,12 +290,37 @@ const Thumbnail = observer((props: any) => {
         <Image
           defaultSource={Theme.UIImageLoading}
           {...props}
-          resizeMode={
-            !!meta.loading ? "contain" : _.get(props, "resizeMode", "contain")
-          }
-          source={typeof source === "object" ? meta.imageUri : source}
-          style={!!meta.loading ? loadingStyle : cstyle}
+          resizeMode={resizeMode}
+          source={meta.imageUri}
+          style={style}
         />
+        {disableLoading != true && !!meta.loading && (
+          <View
+            style={{
+              backgroundColor: "white",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 5,
+              position: "absolute",
+              bottom: 5,
+              right: 5,
+              borderRadius: 4,
+              paddingHorizontal: 8,
+            }}
+          >
+            <Spinner />
+            <Text
+              style={{
+                fontSize: 10,
+                marginLeft: 5,
+                marginTop: 2,
+              }}
+            >
+              Downloading
+            </Text>
+          </View>
+        )}
         {!!props.caption && (
           <Text
             style={{
@@ -284,10 +360,16 @@ const Thumbnail = observer((props: any) => {
 });
 
 const PreviewImage = observer((props: any) => {
-  const { meta, imgProps } = props;
+  const { meta, cstyle, loadingStyle } = props;
   const onRequestClose = () => {
     meta.show = false;
   };
+  // const csource = typeof source === "object" ? meta.imageUri : source;
+  const resizeMode = !!meta.loading
+    ? "contain"
+    : _.get(props, "resizeMode", "contain");
+  const style = !!meta.loading ? loadingStyle : cstyle;
+
   return (
     <Modal visible={meta.show} onRequestClose={onRequestClose}>
       <View
@@ -300,14 +382,11 @@ const PreviewImage = observer((props: any) => {
         }}
       >
         <Image
-          {...imgProps}
-          resizeMode={"contain"}
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
+          {...props}
+          resizeMode={resizeMode}
+          source={meta.imageUri}
+          style={style}
         />
-
         <Button
           shadow
           activeOpacity={0.8}
@@ -337,7 +416,7 @@ const PreviewImage = observer((props: any) => {
             }}
           />
         </Button>
-        {!!imgProps.caption && (
+        {!!props.caption && (
           <Text
             style={{
               position: "absolute",
@@ -351,7 +430,7 @@ const PreviewImage = observer((props: any) => {
               flex: 1,
             }}
           >
-            {imgProps.caption}
+            {props.caption}
           </Text>
         )}
       </View>

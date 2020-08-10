@@ -226,10 +226,9 @@ const CameraPicker = observer((props: any) => {
             onCapture(uri);
           }
           meta.tempValue = uri;
-          !!meta.resnap && (meta.resnap = false);
         },
       };
-      await camera.current.takePictureAsync(param);
+      camera.current.takePictureAsync(param);
     }
   };
   const imagePicker = async () => {
@@ -250,6 +249,9 @@ const CameraPicker = observer((props: any) => {
 
   const onRequestClose = () => {
     meta.isShown = false;
+    if (!!meta.resnap) {
+      meta.resnap = false;
+    }
   };
 
   useEffect(() => {
@@ -563,9 +565,8 @@ const CameraView = observer((props: any) => {
   const ratio = _.get(libsStorage, "camera.ratio", "16:9").split(":"),
     width = dim.width,
     height = dim.width * (ratio[0] / ratio[1]);
-  // height = (dim.width / parseInt(ratio[1])) * parseInt(ratio[0]);
   const source = {
-    uri: meta.tempValue || value,
+    uri: meta.tempValue,
   };
   if (!!source.uri && !meta.resnap)
     return (

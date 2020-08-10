@@ -11,6 +11,7 @@ import {
 import { ScrollView } from "react-native-gesture-handler";
 import Theme from "../../theme";
 import { SafeAreaView } from "react-native";
+import { observer } from "mobx-react-lite";
 
 export interface IViewProps
   extends OriViewProps,
@@ -27,7 +28,7 @@ export interface IViewProps
   children?: any;
 }
 
-export default (props: IViewProps) => {
+export default observer((props: IViewProps) => {
   const { type, shadow, style, childRef } = props;
   const shadowStyle = !!shadow ? Theme.UIShadow : {};
   let cstyle = StyleSheet.flatten([shadowStyle, style]);
@@ -60,4 +61,4 @@ export default (props: IViewProps) => {
     default:
       return <View {...props} style={cstyle} ref={childRef} />;
   }
-};
+});

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import Theme from "../../theme";
 import View from "../View";
+import { observer } from "mobx-react-lite";
 
 interface IStyles {
   statusbar?: ViewStyle;
@@ -21,7 +22,7 @@ export interface IScreenProps extends ViewProps {
   setBarStyle?: StatusBarStyle;
 }
 
-export default (props: IScreenProps) => {
+export default observer((props: IScreenProps) => {
   const { style, setBarStyle, children } = props;
   // const marginTop = Platform.OS === "android" ? -Constants.statusBarHeight : 0;
   let cstyle = StyleSheet.flatten([
@@ -55,4 +56,4 @@ export default (props: IScreenProps) => {
       <View type={"SafeAreaView"} {...props} style={cstyle} />
     </>
   );
-};
+});
