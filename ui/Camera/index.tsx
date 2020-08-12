@@ -11,6 +11,7 @@ import {
   Image as RNImage,
   Platform,
   ViewStyle,
+  StyleSheet,
 } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
@@ -20,6 +21,8 @@ import Modal from "../Modal";
 import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
+import Spinner from "../Spinner";
+import { toJS } from "mobx";
 
 const reSizeImage = (uri) => {
   return new Promise((resolve, reject) => {
@@ -76,7 +79,7 @@ export default observer((props: ICameraProps) => {
   const { style, value, iconProps, editable } = props;
   const meta = useObservable({
     isShown: false,
-    resnap: false,
+    loading: false,
     snap: false,
     tempValue: value,
   });
@@ -127,6 +130,9 @@ export default observer((props: ICameraProps) => {
 
   useEffect(() => {
     requestPermission();
+    if (!value) {
+      meta.snap = true;
+    }
   }, []);
 
   if (
@@ -143,19 +149,21 @@ export default observer((props: ICameraProps) => {
       />
     );
   }
+
   return (
     <>
       <Button
         mode={"clean"}
         style={baseStyle}
         onPress={onPress}
-        disabled={editable === false && !value}
+        disabled={editable === false && !meta.tempValue}
       >
         <Preview
           meta={meta}
           camprops={props}
           height={height}
           iconProps={iconProps}
+          baseStyle={baseStyle}
         />
       </Button>
       <CameraPicker {...props} meta={meta} />
@@ -164,7 +172,7 @@ export default observer((props: ICameraProps) => {
 });
 
 const Preview = observer((props: any) => {
-  const { meta, iconProps, height } = props;
+  const { meta, iconProps, height, baseStyle } = props;
   const source = {
     uri: meta.tempValue,
   };
@@ -173,7 +181,7 @@ const Preview = observer((props: any) => {
     ..._.get(props, "styles.icon", {}),
   };
   const previewStyle = {
-    height: height,
+    height,
     width: "100%",
     flex: 1,
     overflow: "hidden",
@@ -205,9 +213,10 @@ const CameraPicker = observer((props: any) => {
   const camera = useRef(null as any);
   const backgroundColor = new Animated.Value(0);
   const imageSnap = async () => {
-    if (!!value && !meta.resnap) {
-      meta.resnap = true;
+    if (!!value && !meta.snap) {
+      meta.snap = true;
     } else if (!!camera.current) {
+      meta.loading = true;
       Animated.timing(backgroundColor, {
         toValue: 100,
         duration: 1000,
@@ -222,36 +231,41 @@ const CameraPicker = observer((props: any) => {
           if (compress == true) {
             uri = await reSizeImage(res.uri);
           }
+          meta.tempValue = uri;
           if (typeof onCapture == "function") {
             onCapture(uri);
           }
-          meta.tempValue = uri;
         },
       };
-      camera.current.takePictureAsync(param);
+      await camera.current.takePictureAsync(param);
     }
   };
   const imagePicker = async () => {
-    ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      quality: 0.6,
-    }).then((res: any) => {
-      if (res.cancelled === false) {
-        onRequestClose();
-        if (typeof onCapture == "function") {
-          onCapture(res.uri);
+    if (!!value && !meta.snap) {
+      meta.snap = true;
+    } else {
+      meta.snap = false;
+      meta.loading = true;
+      await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        quality: 0.6,
+      }).then((res: any) => {
+        if (res.cancelled === false) {
+          onRequestClose();
+          meta.tempValue = res.uri;
+          if (typeof onCapture == "function") {
+            onCapture(res.uri);
+          }
         }
-        !!meta.resnap && (meta.resnap = false);
-      }
-    });
+      });
+    }
   };
 
   const onRequestClose = () => {
     meta.isShown = false;
-    if (!!meta.resnap) {
-      meta.resnap = false;
-    }
+    meta.snap = false;
+    meta.loading = false;
   };
 
   useEffect(() => {
@@ -269,7 +283,6 @@ const CameraPicker = observer((props: any) => {
     inputRange: [0, 0, 100],
     outputRange: ["rgba(0,0,0,0)", "rgb(255,255,255)", "rgba(0,0,0,0)"],
   });
-
   return (
     <Modal
       visible={meta.isShown}
@@ -402,7 +415,7 @@ const FlashButton = observer(({ cameraTools }: any) => {
 
 const CameraToolsTop = observer((props: any) => {
   const { value, meta, cameraTools } = props;
-  if (!!value && !meta.resnap) return null;
+  if (!!meta.tempValue && !meta.snap && !meta.loading) return null;
 
   return (
     <View
@@ -422,7 +435,7 @@ const CameraToolsTop = observer((props: any) => {
 const PickerButton = observer(({ cameraTools, imagePicker, meta }: any) => {
   let picker = _.get(cameraTools, "picker", true);
   if (!picker) return null;
-  if (!!meta.tempValue && !meta.resnap) return null;
+  if (!!meta.tempValue && !meta.snap && !meta.loading) return null;
 
   return (
     <Button
@@ -441,7 +454,7 @@ const PickerButton = observer(({ cameraTools, imagePicker, meta }: any) => {
 const ReverseButton = observer(({ cameraTools, handleReverse, meta }: any) => {
   let reverse = _.get(cameraTools, "reverse", true);
   if (!reverse) return null;
-  if (!!meta.tempValue && !meta.resnap) return null;
+  if (!!meta.tempValue && !meta.snap && !meta.loading) return null;
 
   return (
     <Button
@@ -531,7 +544,7 @@ const CameraAction = observer((props: any) => {
         position: "absolute",
         margin: 0,
       }}
-      disabled={meta.snap}
+      disabled={meta.loading}
       onPress={imageSnap}
     >
       <View
@@ -546,7 +559,7 @@ const CameraAction = observer((props: any) => {
           justifyContent: "center",
         }}
       >
-        {!!meta.tempValue && !meta.resnap && (
+        {!!meta.tempValue && !meta.snap && (
           <Icon
             source="Ionicons"
             name="ios-refresh"
@@ -560,34 +573,15 @@ const CameraAction = observer((props: any) => {
 });
 
 const CameraView = observer((props: any) => {
-  const { meta, camera, value, bg } = props;
+  const { meta, camera, bg } = props;
   const dim = Dimensions.get("window");
   const ratio = _.get(libsStorage, "camera.ratio", "16:9").split(":"),
     width = dim.width,
     height = dim.width * (ratio[0] / ratio[1]);
+  const preview = !!meta.tempValue && !meta.snap && !meta.loading;
   const source = {
     uri: meta.tempValue,
   };
-  if (!!source.uri && !meta.resnap)
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Image
-          source={source}
-          resizeMode="cover"
-          style={{
-            width,
-            height,
-          }}
-        />
-      </View>
-    );
-
   return (
     <View
       style={{
@@ -596,17 +590,53 @@ const CameraView = observer((props: any) => {
         alignItems: "center",
       }}
     >
-      <Camera
-        {...libsStorage.camera}
-        style={{
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "transparent",
-          width,
-          height,
-        }}
-        ref={camera}
-      ></Camera>
+      {!!meta.loading && (
+        <View
+          style={{
+            backgroundColor: "rgba(255,255,255,0.6)",
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 5,
+            position: "absolute",
+            zIndex: 99,
+            alignSelf: "center",
+            height: "30%",
+            width: "100%",
+          }}
+        >
+          <Spinner color={Theme.UIColors.text} />
+          <Text
+            style={{
+              marginLeft: 10,
+              fontSize: 16,
+            }}
+          >
+            Processing...
+          </Text>
+        </View>
+      )}
+      {!!preview ? (
+        <Image
+          source={source}
+          resizeMode={"cover"}
+          style={{
+            height: "100%",
+          }}
+        />
+      ) : (
+        <Camera
+          {...toJS(libsStorage.camera)}
+          style={{
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "transparent",
+            width,
+            height,
+          }}
+          ref={camera}
+        ></Camera>
+      )}
       <Animated.View
         style={{
           position: "absolute",

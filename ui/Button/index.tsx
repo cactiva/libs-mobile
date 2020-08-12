@@ -72,6 +72,7 @@ export default (props: IButtonProps) => {
     ...style,
     ...(disabled !== true ? {} : disabledStyle),
   };
+
   return (
     <TouchableOpacity activeOpacity={0.6} {...cprops} style={cstyle}>
       {!children && !!label ? (

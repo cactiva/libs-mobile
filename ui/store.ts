@@ -5,6 +5,7 @@ const libsStorage = store("libs", {
   hasImagePickPermission: null,
   camera: {},
   images: {},
+  cacheExist: false,
 });
 
 export default libsStorage;

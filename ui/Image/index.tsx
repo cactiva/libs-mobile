@@ -12,6 +12,8 @@ import {
   StyleSheet,
   TextStyle,
   ViewStyle,
+  AsyncStorage,
+  Dimensions,
 } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
@@ -20,7 +22,7 @@ import Modal from "../Modal";
 import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
-import { Spinner } from "..";
+import Spinner from "../Spinner";
 
 interface IStyle {
   preview?: ViewStyle;
@@ -40,25 +42,37 @@ const callback = (downloadProgress, uri) => {
 };
 
 const downloadImage = async (uri, pathFile, resumeData = null) => {
-  const downloadResumable = FileSystem.createDownloadResumable(
-    uri,
-    pathFile,
-    {},
-    (data) => {
-      callback(data, uri);
-    },
-    resumeData
-  );
-  let res;
+  let downloadResumable;
+  if (!!resumeData) {
+    downloadResumable = new FileSystem.DownloadResumable(
+      uri,
+      pathFile,
+      {},
+      (data) => {
+        // callback(data, uri);
+      },
+      resumeData
+    );
+  } else {
+    downloadResumable = FileSystem.createDownloadResumable(
+      uri,
+      pathFile,
+      {},
+      (data) => {
+        // callback(data, uri);
+      },
+      resumeData
+    );
+  }
   try {
+    let res;
+    let img = toJS(libsStorage.images[uri]);
     if (!resumeData) {
       res = await downloadResumable.downloadAsync();
     } else {
       res = await downloadResumable.resumeAsync();
     }
-    let progress = _.get(libsStorage.images[uri], "progress", 0);
-    if (progress == 1 && res.status == 200) {
-      let img = toJS(libsStorage.images[uri]);
+    if (res.status == 200) {
       img = {
         ...img,
         error: false,
@@ -66,15 +80,13 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
         uri: res.uri,
       };
       libsStorage.images[uri] = img;
-    } else if (progress > 0 && progress < 1) {
-      await downloadImage(uri, pathFile, downloadResumable.savable());
-    } else {
-      let img = toJS(libsStorage.images[uri]);
+    } else if (res.status != 200) {
       img = {
         ...img,
         resumeData: downloadResumable.savable(),
       };
       libsStorage.images[uri] = img;
+      await downloadImage(uri, pathFile, downloadResumable.savable());
     }
   } catch (error) {
     let img = toJS(libsStorage.images[uri]);
@@ -89,78 +101,70 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
 };
 
 const getImage = async ({ uri, cache }) => {
-  // try {
-  if (uri.indexOf("file://") > -1) {
-    libsStorage.images[uri] = {
-      error: false,
-      loading: false,
-      uri,
-    };
-    return;
-  }
-  const fileName = Path.basename(uri);
-  const ext = Path.extname(uri);
-  const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
-  const pathFile = pathDir + fileName;
-  if (!ext) {
-    libsStorage.images[uri] = {
+  try {
+    const fileName = Path.basename(uri);
+    const ext = Path.extname(uri);
+    const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
+    const pathFile = pathDir + fileName;
+    let img = toJS(libsStorage.images[uri]);
+    if (!ext) {
+      libsStorage.images[uri] = {
+        error: true,
+        loading: false,
+      };
+      return;
+    }
+    if (!libsStorage.cacheExist) {
+      const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
+        console.log(error)
+      );
+      if (!dirs && !Array.isArray(dirs)) {
+        await FileSystem.makeDirectoryAsync(pathDir).catch((error) =>
+          console.log(error)
+        );
+      }
+      libsStorage.cacheExist = true;
+    }
+    const { exists }: any = await FileSystem.getInfoAsync(pathFile).catch(
+      (error) => {
+        console.log(error);
+      }
+    );
+    if (!!exists && cache != "reload") {
+      img = {
+        ...img,
+        loading: false,
+        uri: pathFile,
+      };
+      libsStorage.images[uri] = img;
+      return;
+    } else {
+      if (!!img && !!img.error) {
+        if (img.trying == undefined) {
+          img.trying = 0;
+        }
+        img.trying += 1;
+        img.loading = true;
+        libsStorage.images[uri] = img;
+        if (img.progress > 0 && img.progress < 1) {
+          await downloadImage(uri, pathFile, img.resumeData);
+        }
+        return;
+      }
+      libsStorage.images[uri] = img;
+      await downloadImage(uri, pathFile);
+      return;
+    }
+  } catch (error) {
+    let img = toJS(libsStorage.images[uri]);
+    img = {
+      ...img,
       error: true,
       loading: false,
     };
-    return;
+    libsStorage.images[uri] = img;
+    console.log(error);
   }
-  const dirs = await FileSystem.readDirectoryAsync(pathDir).catch((error) =>
-    console.log(error)
-  );
-  if (!dirs && !Array.isArray(dirs)) {
-    await FileSystem.makeDirectoryAsync(pathDir).catch((error) =>
-      console.log(error)
-    );
-  }
-  const { exists }: any = await FileSystem.getInfoAsync(pathFile).catch(
-    (error) => {
-      console.log(error);
-    }
-  );
-  if (!!exists && cache != "reload") {
-    libsStorage.images[uri] = {
-      error: false,
-      loading: false,
-      uri: pathFile,
-    };
-    return;
-  } else {
-    let img = toJS(libsStorage.images[uri]);
-    if (!!img && !!img.error) {
-      if (img.trying == undefined) {
-        img.trying = 0;
-      }
-      img.trying += 1;
-      img.loading = true;
-      libsStorage.images[uri] = img;
-      if (img.progress > 0 && img.progress < 1) {
-        await downloadImage(uri, pathFile, img.resumeData);
-      }
-    } else {
-      libsStorage.images[uri] = {
-        error: false,
-        loading: true,
-        trying: 1,
-      };
-    }
-    await downloadImage(uri, pathFile);
-    return;
-  }
-  // } catch (error) {
-  //   let img = toJS(libsStorage.images[uri]);
-  //   img = {
-  //     ...img,
-  //     error: true,
-  //     loading: false,
-  //   };
-  //   libsStorage.images[uri] = img;
-  //   console.log(error);
-  // }
 };
 
 const a = { i: 0 };
@@ -180,18 +184,19 @@ export default observer((props: IImageProps) => {
     loading: disableLoading === true ? false : true,
     imageUri: Theme.UIImageLoading,
   });
+  const dim = Dimensions.get("window");
 
   const baseStyle: ImageStyle = {
     width: 300,
     height: 150,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
-  let width = 240;
+  let width: any = 240;
   if (!!cstyle.width) {
     if (typeof cstyle.width === "string") {
       let w: string = cstyle.width;
       w = w.replace("%", "");
-      width = parseInt(w) * 0.7;
+      width = String((dim.width / parseInt(w)) * 0.7) + "%";
     } else {
       width = cstyle.width * 0.7;
     }
@@ -199,13 +204,19 @@ export default observer((props: IImageProps) => {
   const loadingStyle: ImageStyle = StyleSheet.flatten([
     cstyle,
     {
-      alignSelf: "center",
       width,
     },
   ]);
 
   useEffect(() => {
-    if (typeof source === "object" && source.uri.indexOf("http")) {
+    let img = toJS(libsStorage.images[source.uri]);
+    if (typeof source === "object" && source.uri.indexOf("http") > -1 && !img) {
+      img = {
+        error: false,
+        loading: true,
+        trying: 1,
+      };
+      libsStorage.images[source.uri] = img;
       getImage(source);
     } else {
       meta.loading = false;
@@ -217,18 +228,20 @@ export default observer((props: IImageProps) => {
     let img = toJS(libsStorage.images[source.uri]);
     if (!!img) {
       let { error, loading, uri, trying } = img;
-      if (!loading && !error) {
-        meta.error = error;
-        meta.loading = loading;
+      if (!loading && !error && !!uri) {
+        meta.error = false;
+        meta.loading = false;
         if (!!uri) {
           meta.imageUri = { uri };
         }
-        delete libsStorage.images[source.uri];
-      } else if (!loading && !!error && trying <= 3) {
+      } else if (!loading && !!error && trying <= 3 && !uri) {
         getImage(source);
+      }
+      if (!loading && !error && !!uri) {
+        delete libsStorage.images[source.uri];
       } else if (!loading && !!error) {
-        meta.error = error;
-        meta.loading = loading;
+        meta.error = true;
+        meta.loading = false;
         delete libsStorage.images[source.uri];
       }
     }
@@ -253,19 +266,19 @@ export default observer((props: IImageProps) => {
 });
 
 const Thumbnail = observer((props: any) => {
-  const { preview, meta, cstyle, loadingStyle, disableLoading }: any = props;
-
+  const { preview, meta, cstyle, loadingStyle }: any = props;
   const btnStyle: ViewStyle = {
     padding: 0,
     margin: 0,
-    paddingLeft: 0,
-    paddingRight: 0,
+    paddingHorizontal: 0,
     backgroundColor: "transparent",
     opacity: !preview ? 1 : undefined,
-    width: _.get(cstyle, "width", undefined),
-    height: _.get(cstyle, "height", undefined),
+    width: _.get(cstyle, "width", "100%"),
+    height: _.get(cstyle, "height", "100%"),
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
   };
-
   const onPress = () => {
     meta.show = true;
   };
@@ -273,89 +286,91 @@ const Thumbnail = observer((props: any) => {
     ? "contain"
     : _.get(props, "resizeMode", "contain");
   const style = !!meta.loading ? loadingStyle : cstyle;
+  const source = !!meta.imageUri ? toJS(meta.imageUri) : Theme.UIImageLoading;
 
-  if (!meta.error) {
-    return (
-      <Button
-        activeOpacity={preview ? 0.7 : 1}
-        style={btnStyle}
-        disabled={!preview}
-        onPress={onPress}
-        styles={{
-          disabled: {
-            opacity: 1,
-          },
-        }}
-      >
-        <Image
-          defaultSource={Theme.UIImageLoading}
-          {...props}
-          resizeMode={resizeMode}
-          source={meta.imageUri}
-          style={style}
-        />
-        {disableLoading != true && !!meta.loading && (
-          <View
-            style={{
-              backgroundColor: "white",
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 5,
-              position: "absolute",
-              bottom: 5,
-              right: 5,
-              borderRadius: 4,
-              paddingHorizontal: 8,
-            }}
-          >
-            <Spinner />
-            <Text
+  return (
+    <>
+      {!meta.error ? (
+        <Button
+          activeOpacity={preview ? 0.7 : 1}
+          style={btnStyle}
+          disabled={!preview}
+          onPress={onPress}
+          styles={{
+            disabled: {
+              opacity: 1,
+            },
+          }}
+        >
+          <Image
+            defaultSource={Theme.UIImageLoading}
+            {...props}
+            resizeMode={resizeMode}
+            source={source}
+            style={style}
+          />
+          {!!meta.loading && (
+            <View
               style={{
-                fontSize: 10,
-                marginLeft: 5,
-                marginTop: 2,
+                backgroundColor: "white",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: 5,
+                position: "absolute",
+                top: 5,
+                right: 5,
+                borderRadius: 4,
+                paddingHorizontal: 8,
               }}
             >
-              Downloading
+              <Spinner />
+              <Text
+                style={{
+                  fontSize: 10,
+                  marginLeft: 5,
+                  marginTop: 2,
+                }}
+              >
+                Downloading
+              </Text>
+            </View>
+          )}
+          {!meta.loading && !!props.caption && (
+            <Text
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: 15,
+                paddingVertical: 10,
+                color: "white",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                textAlign: "center",
+                flex: 1,
+                flexWrap: "wrap",
+                overflow: "hidden",
+              }}
+              ellipsizeMode={"tail"}
+              numberOfLines={2}
+            >
+              {props.caption}
             </Text>
-          </View>
-        )}
-        {!!props.caption && (
-          <Text
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: 15,
-              paddingVertical: 10,
-              color: "white",
-              backgroundColor: "rgba(0,0,0,0.5)",
-              textAlign: "center",
-              flex: 1,
-              flexWrap: "wrap",
-              overflow: "hidden",
-            }}
-            ellipsizeMode={"tail"}
-            numberOfLines={2}
-          >
-            {props.caption}
-          </Text>
-        )}
-      </Button>
-    );
-  }
-  return (
-    <View style={btnStyle}>
-      <Image
-        defaultSource={Theme.UIImageLoading}
-        {...props}
-        resizeMode={"contain"}
-        source={Theme.UIImageError}
-        style={loadingStyle}
-      />
-    </View>
+          )}
+        </Button>
+      ) : (
+        <View style={btnStyle}>
+          <Image
+            defaultSource={Theme.UIImageLoading}
+            {...props}
+            resizeMode={"contain"}
+            source={Theme.UIImageError}
+            style={loadingStyle}
+          />
+        </View>
+      )}
+    </>
   );
 });
 
