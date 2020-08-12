@@ -21,11 +21,10 @@ export default (props: IFlatListProps) => {
   ]);
   return (
     <FlatList
-      windowSize={21}
+      windowSize={8}
       removeClippedSubviews={true}
-      initialNumToRender={30}
-      maxToRenderPerBatch={40}
-      updateCellsBatchingPeriod={80}
+      initialNumToRender={12}
+      maxToRenderPerBatch={16}
       {...props}
       style={cstyle}
       contentContainerStyle={ccontentContainerStyle}
