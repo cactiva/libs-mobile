@@ -4,7 +4,7 @@ const libsStorage = store("libs", {
   hasCameraPermission: null,
   hasImagePickPermission: null,
   camera: {},
-  cacheImages: [],
+  cacheImages: {},
   cacheExist: false,
 });
 

@@ -4,16 +4,15 @@ import _ from "lodash";
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
 import Path from "path";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
+  Dimensions,
   Image,
   ImageProps as OriginImageProps,
   ImageStyle,
   StyleSheet,
   TextStyle,
   ViewStyle,
-  AsyncStorage,
-  Dimensions,
 } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
@@ -22,30 +21,69 @@ import Modal from "../Modal";
 import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
+import bytes from "@src/libs/utils/bytes";
+import Loading from "@src/pages/Loading";
 import Spinner from "../Spinner";
 
 interface IStyle {
   preview?: ViewStyle;
   caption?: TextStyle;
 }
+let downloadResumable;
+
+const setCached = (uri: string, data: object) => {
+  const fileName = Path.basename(uri);
+  libsStorage.cacheImages[fileName] = data;
+};
+
+const getCached = (uri: string) => {
+  const fileName = Path.basename(uri);
+  return !!libsStorage.cacheImages[fileName]
+    ? toJS(libsStorage.cacheImages[fileName])
+    : {};
+};
+
+const clearIncompleteImage = async (uri) => {
+  // let { error, loading, path, resumeData } = getCached(uri);
+  // const fileName = Path.basename(uri);
+  // if (!error && !!loading && !path && !resumeData) {
+  //   console.log("delete ===> ", toJS(libsStorage.cacheImages[fileName]));
+  //   delete libsStorage.cacheImages[fileName];
+  // }
+  let cacheImage = getCached(uri);
+  // if (!!downloadResumable) {
+  //   downloadResumable.pauseAsync();
+  //   cacheImage = {
+  //     ...cacheImage,
+  //     resumeData: downloadResumable.savable(),
+  //   };
+  // }
+  cacheImage = {
+    ...cacheImage,
+    pause: true,
+  };
+  setCached(uri, cacheImage);
+};
 
 const callback = (downloadProgress, uri) => {
-  let cacheImages = toJS(libsStorage.cacheImages);
-  let cacheIdx = cacheImages.findIndex((x) => x.uri === uri);
-  const progress =
+  let cacheImage = getCached(uri);
+  let progress =
     downloadProgress.totalBytesWritten /
     downloadProgress.totalBytesExpectedToWrite;
-  cacheImages[cacheIdx] = {
-    ...cacheImages[cacheIdx],
+  let resumeData = null;
+  if (!!downloadResumable) {
+    resumeData = downloadResumable.savable();
+  }
+  cacheImage = {
+    ...cacheImage,
     progress,
+    resumeData,
+    totalBytesWritten: downloadProgress.totalBytesWritten,
   };
-  libsStorage.cacheImages = cacheImages;
+  setCached(uri, cacheImage);
 };
 
 const downloadImage = async (uri, pathFile, resumeData = null) => {
-  let cacheImages = toJS(libsStorage.cacheImages);
-  let cacheIdx = cacheImages.findIndex((x) => x.uri === uri);
-  let downloadResumable;
   if (!!resumeData) {
     downloadResumable = new FileSystem.DownloadResumable(
       uri,
@@ -74,37 +112,37 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
     } else {
       res = await downloadResumable.resumeAsync();
     }
+    let cacheImage = getCached(uri);
     if (res.status == 200) {
-      cacheImages[cacheIdx] = {
-        ...cacheImages[cacheIdx],
+      cacheImage = {
+        ...cacheImage,
         error: false,
         loading: false,
         path: res.uri,
+        resumeData: null,
       };
-      libsStorage.cacheImages = cacheImages;
+      setCached(uri, cacheImage);
     } else if (res.status != 200) {
-      cacheImages[cacheIdx] = {
-        ...cacheImages[cacheIdx],
+      cacheImage = {
+        ...cacheImage,
         error: true,
         resumeData: downloadResumable.savable(),
       };
-      libsStorage.cacheImages = cacheImages;
+      setCached(uri, cacheImage);
     }
   } catch (error) {
-    let img = toJS(libsStorage.images[uri]);
-    img = {
-      ...img,
+    let cacheImage = getCached(uri);
+    cacheImage = {
+      ...cacheImage,
       error: true,
       loading: false,
     };
-    libsStorage.images[uri] = img;
+    setCached(uri, cacheImage);
     console.log(error);
   }
 };
 
 const getImage = async ({ uri, cache }) => {
-  let cacheImages = toJS(libsStorage.cacheImages);
-  let cacheIdx = cacheImages.findIndex((x) => x.uri === uri);
   try {
     const fileName = Path.basename(uri);
     const ext = Path.extname(uri);
@@ -112,12 +150,13 @@ const getImage = async ({ uri, cache }) => {
     const pathFile = pathDir + fileName;
 
     if (!ext) {
-      cacheImages[cacheIdx] = {
-        ...cacheImages[cacheIdx],
+      let cacheImage = getCached(uri);
+      cacheImage = {
+        ...cacheImage,
         error: true,
         loading: false,
       };
-      libsStorage.cacheImages = cacheImages;
+      setCached(uri, cacheImage);
       return;
     }
     if (!libsStorage.cacheExist) {
@@ -136,54 +175,64 @@ const getImage = async ({ uri, cache }) => {
         console.log(error);
       }
     );
-    if (!!exists && cache != "reload") {
-      cacheImages[cacheIdx] = {
-        ...cacheImages[cacheIdx],
+    let cacheImage = getCached(uri);
+    if (
+      !!exists &&
+      cacheImage.totalBytesWritten > 0 &&
+      !cacheImage.resumeData &&
+      cache != "reload"
+    ) {
+      let cacheImage = getCached(uri);
+      cacheImage = {
+        ...cacheImage,
         loading: false,
         path: pathFile,
       };
-      libsStorage.cacheImages = cacheImages;
+      setCached(uri, cacheImage);
       return;
     } else {
-      if (!!cacheImages[cacheIdx].error) {
-        cacheImages[cacheIdx].trying += 1;
-        libsStorage.cacheImages = cacheImages;
-        if (cacheImages[cacheIdx].trying > 3) {
-          cacheImages[cacheIdx] = {
-            ...cacheImages[cacheIdx],
+      let cacheImage = getCached(uri);
+      if (!!cacheImage) {
+        if (!!cacheImage.error && cacheImage.trying >= 3) {
+          cacheImage.trying += 1;
+          cacheImage = {
+            ...cacheImage,
             error: true,
             loading: false,
           };
-          libsStorage.cacheImages = cacheImages;
+          setCached(uri, cacheImage);
           return;
         } else if (
-          cacheImages[cacheIdx].progress > 0 &&
-          cacheImages[cacheIdx].progress < 1
+          cacheImage.progress > 0 &&
+          cacheImage.progress < 1 &&
+          !!cacheImage.resumeData
         ) {
-          await downloadImage(uri, pathFile, cacheImages[cacheIdx].resumeData);
+          await downloadImage(uri, pathFile, cacheImage.resumeData);
           return;
         }
       }
-      libsStorage.cacheImages = cacheImages;
+      setCached(uri, cacheImage);
       await downloadImage(uri, pathFile);
       return;
     }
   } catch (error) {
-    cacheImages[cacheIdx] = {
-      ...cacheImages[cacheIdx],
+    let cacheImage = getCached(uri);
+    cacheImage = {
+      ...cacheImage,
       error: true,
+      loading: false,
     };
-    libsStorage.cacheImages = cacheImages;
+    setCached(uri, cacheImage);
     console.log(error);
   }
 };
 
 export interface IImageProps extends OriginImageProps {
-  loadingSize?: "small" | "large";
   preview?: boolean;
   styles?: IStyle;
   disableLoading?: boolean;
   caption?: string;
+  enableProgress?: boolean;
 }
 
 export default observer((props: IImageProps) => {
@@ -218,19 +267,25 @@ export default observer((props: IImageProps) => {
   ]);
 
   useEffect(() => {
-    // libsStorage.cacheImages = [];
-    // console.log(toJS(libsStorage.cacheImages));
     if (typeof source === "object" && source.uri.indexOf("http") > -1) {
-      let cacheImages = toJS(libsStorage.cacheImages);
-      let cacheIdx = cacheImages.findIndex((x) => x.uri === source.uri);
-      if (cacheIdx < 0 || (cacheIdx > -1 && cacheImages[cacheIdx].trying > 3)) {
-        cacheImages.push({
+      let cacheImage = getCached(source.uri);
+      if (
+        !!cacheImage.uri &&
+        cacheImage.trying < 3 &&
+        cacheImage.process < 1 &&
+        (!!cacheImage.pause || !!cacheImage.resumeData)
+      ) {
+        cacheImage.pause = false;
+        setCached(source.uri, cacheImage);
+        getImage(source);
+      } else if (!cacheImage.uri || cacheImage.trying > 3) {
+        cacheImage = {
           uri: source.uri,
           error: false,
           loading: true,
           trying: 1,
-        });
-        libsStorage.cacheImages = cacheImages;
+        };
+        setCached(source.uri, cacheImage);
         getImage(source);
       }
     } else if (
@@ -240,13 +295,16 @@ export default observer((props: IImageProps) => {
       meta.loading = false;
       meta.imageUri = source;
     }
+
+    return () => {
+      clearIncompleteImage(source.uri);
+    };
   }, [source]);
 
   useEffect(() => {
-    let cacheImages = toJS(libsStorage.cacheImages);
-    let cacheIdx = cacheImages.findIndex((x) => x.uri === source.uri);
-    if (cacheIdx > -1) {
-      let { error, loading, path, trying } = cacheImages[cacheIdx];
+    let cacheImage = getCached(source.uri);
+    if (!!cacheImage.uri) {
+      let { error, loading, path, trying } = cacheImage;
       if (!loading && !error && !!path) {
         meta.error = false;
         meta.loading = false;
@@ -260,7 +318,7 @@ export default observer((props: IImageProps) => {
         meta.loading = false;
       }
     }
-  }, [libsStorage.cacheImages]);
+  }, [getCached(source.uri)]);
 
   return (
     <>
@@ -324,33 +382,7 @@ const Thumbnail = observer((props: any) => {
             source={source}
             style={style}
           />
-          {meta.loading && (
-            <View
-              style={{
-                backgroundColor: "white",
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                padding: 5,
-                position: "absolute",
-                top: 5,
-                right: 5,
-                borderRadius: 4,
-                paddingHorizontal: 8,
-              }}
-            >
-              <Spinner />
-              <Text
-                style={{
-                  fontSize: 10,
-                  marginLeft: 5,
-                  marginTop: 2,
-                }}
-              >
-                Downloading
-              </Text>
-            </View>
-          )}
+          <LoadingProgress {...props} mode={"thumbnail"} />
           {!meta.loading && !!props.caption && (
             <Text
               style={{
@@ -389,16 +421,87 @@ const Thumbnail = observer((props: any) => {
   );
 });
 
+const LoadingProgress = observer((props: any) => {
+  const { meta, source, mode, enableProgress } = props;
+  let cacheImage = getCached(source.uri);
+  let progress =
+    cacheImage.progress > 0
+      ? cacheImage.progress * 100
+      : bytes(cacheImage.totalBytesWritten || 0, 1);
+  if (!!enableProgress && !!meta.loading && mode === "thumbnail") {
+    return (
+      <View
+        style={{
+          backgroundColor: "white",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 5,
+          position: "absolute",
+          top: 5,
+          right: 5,
+          borderRadius: 4,
+          paddingHorizontal: 8,
+        }}
+      >
+        {/* <Spinner /> */}
+        <Text
+          style={{
+            fontSize: 10,
+            marginLeft: 5,
+            marginTop: 2,
+          }}
+        >
+          {progress}
+        </Text>
+      </View>
+    );
+  }
+  if (!!enableProgress && !!meta.loading && mode === "preview") {
+    return (
+      <View
+        style={{
+          backgroundColor: "white",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 5,
+          position: "absolute",
+          borderRadius: 4,
+          paddingHorizontal: 8,
+        }}
+      >
+        <Spinner />
+        <Text
+          style={{
+            fontSize: 10,
+            marginLeft: 5,
+            marginTop: 2,
+          }}
+        >
+          Downloading... {progress}
+        </Text>
+      </View>
+    );
+  }
+  return null;
+});
+
 const PreviewImage = observer((props: any) => {
   const { meta, cstyle, loadingStyle } = props;
+  const dim = Dimensions.get("window");
   const onRequestClose = () => {
     meta.show = false;
   };
-  // const csource = typeof source === "object" ? meta.imageUri : source;
-  const resizeMode = !!meta.loading
-    ? "contain"
-    : _.get(props, "resizeMode", "contain");
-  const style = !!meta.loading ? loadingStyle : cstyle;
+  const resizeMode = "contain";
+  const previewStyle = StyleSheet.flatten([
+    cstyle,
+    {
+      width: dim.width,
+      height: dim.height,
+    },
+  ]);
+  const style = !!meta.loading ? loadingStyle : previewStyle;
 
   return (
     <Modal visible={meta.show} onRequestClose={onRequestClose}>
@@ -411,6 +514,7 @@ const PreviewImage = observer((props: any) => {
           alignItems: "center",
         }}
       >
+        <LoadingProgress {...props} mode={"preview"} />
         <Image
           {...props}
           resizeMode={resizeMode}
