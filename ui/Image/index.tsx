@@ -262,8 +262,6 @@ export default observer((props: IImageProps) => {
     }
   }, [libsStorage.cacheImages]);
 
-  console.log("images", meta.loading);
-
   return (
     <>
       <Thumbnail
