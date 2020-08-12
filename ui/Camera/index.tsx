@@ -621,7 +621,8 @@ const CameraView = observer((props: any) => {
           source={source}
           resizeMode={"cover"}
           style={{
-            height: "100%",
+            height,
+            width,
           }}
         />
       ) : (

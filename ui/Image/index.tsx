@@ -4,7 +4,7 @@ import _ from "lodash";
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
 import Path from "path";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ImageProps as OriginImageProps,
@@ -30,18 +30,21 @@ interface IStyle {
 }
 
 const callback = (downloadProgress, uri) => {
+  let cacheImages = toJS(libsStorage.cacheImages);
+  let cacheIdx = cacheImages.findIndex((x) => x.uri === uri);
   const progress =
     downloadProgress.totalBytesWritten /
     downloadProgress.totalBytesExpectedToWrite;
-  let img = toJS(libsStorage.images[uri]);
-  img = {
-    ...img,
+  cacheImages[cacheIdx] = {
+    ...cacheImages[cacheIdx],
     progress,
   };
-  libsStorage.images[uri] = img;
+  libsStorage.cacheImages = cacheImages;
 };
 
 const downloadImage = async (uri, pathFile, resumeData = null) => {
+  let cacheImages = toJS(libsStorage.cacheImages);
+  let cacheIdx = cacheImages.findIndex((x) => x.uri === uri);
   let downloadResumable;
   if (!!resumeData) {
     downloadResumable = new FileSystem.DownloadResumable(
@@ -49,7 +52,7 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       pathFile,
       {},
       (data) => {
-        // callback(data, uri);
+        callback(data, uri);
       },
       resumeData
     );
@@ -59,34 +62,33 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       pathFile,
       {},
       (data) => {
-        // callback(data, uri);
+        callback(data, uri);
       },
       resumeData
     );
   }
   try {
     let res;
-    let img = toJS(libsStorage.images[uri]);
     if (!resumeData) {
       res = await downloadResumable.downloadAsync();
     } else {
       res = await downloadResumable.resumeAsync();
     }
     if (res.status == 200) {
-      img = {
-        ...img,
+      cacheImages[cacheIdx] = {
+        ...cacheImages[cacheIdx],
         error: false,
         loading: false,
-        uri: res.uri,
+        path: res.uri,
       };
-      libsStorage.images[uri] = img;
+      libsStorage.cacheImages = cacheImages;
     } else if (res.status != 200) {
-      img = {
-        ...img,
+      cacheImages[cacheIdx] = {
+        ...cacheImages[cacheIdx],
+        error: true,
         resumeData: downloadResumable.savable(),
       };
-      libsStorage.images[uri] = img;
-      await downloadImage(uri, pathFile, downloadResumable.savable());
+      libsStorage.cacheImages = cacheImages;
     }
   } catch (error) {
     let img = toJS(libsStorage.images[uri]);
@@ -101,17 +103,21 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
 };
 
 const getImage = async ({ uri, cache }) => {
+  let cacheImages = toJS(libsStorage.cacheImages);
+  let cacheIdx = cacheImages.findIndex((x) => x.uri === uri);
   try {
     const fileName = Path.basename(uri);
     const ext = Path.extname(uri);
     const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
     const pathFile = pathDir + fileName;
-    let img = toJS(libsStorage.images[uri]);
+
     if (!ext) {
-      libsStorage.images[uri] = {
+      cacheImages[cacheIdx] = {
+        ...cacheImages[cacheIdx],
         error: true,
         loading: false,
       };
+      libsStorage.cacheImages = cacheImages;
       return;
     }
     if (!libsStorage.cacheExist) {
@@ -131,43 +137,47 @@ const getImage = async ({ uri, cache }) => {
       }
     );
     if (!!exists && cache != "reload") {
-      img = {
-        ...img,
+      cacheImages[cacheIdx] = {
+        ...cacheImages[cacheIdx],
         loading: false,
-        uri: pathFile,
+        path: pathFile,
       };
-      libsStorage.images[uri] = img;
+      libsStorage.cacheImages = cacheImages;
       return;
     } else {
-      if (!!img && !!img.error) {
-        if (img.trying == undefined) {
-          img.trying = 0;
+      if (!!cacheImages[cacheIdx].error) {
+        cacheImages[cacheIdx].trying += 1;
+        libsStorage.cacheImages = cacheImages;
+        if (cacheImages[cacheIdx].trying > 3) {
+          cacheImages[cacheIdx] = {
+            ...cacheImages[cacheIdx],
+            error: true,
+            loading: false,
+          };
+          libsStorage.cacheImages = cacheImages;
+          return;
+        } else if (
+          cacheImages[cacheIdx].progress > 0 &&
+          cacheImages[cacheIdx].progress < 1
+        ) {
+          await downloadImage(uri, pathFile, cacheImages[cacheIdx].resumeData);
+          return;
         }
-        img.trying += 1;
-        img.loading = true;
-        libsStorage.images[uri] = img;
-        if (img.progress > 0 && img.progress < 1) {
-          await downloadImage(uri, pathFile, img.resumeData);
-        }
-        return;
       }
-      libsStorage.images[uri] = img;
+      libsStorage.cacheImages = cacheImages;
       await downloadImage(uri, pathFile);
       return;
     }
   } catch (error) {
-    let img = toJS(libsStorage.images[uri]);
-    img = {
-      ...img,
+    cacheImages[cacheIdx] = {
+      ...cacheImages[cacheIdx],
       error: true,
-      loading: false,
     };
-    libsStorage.images[uri] = img;
+    libsStorage.cacheImages = cacheImages;
     console.log(error);
   }
 };
 
-const a = { i: 0 };
 export interface IImageProps extends OriginImageProps {
   loadingSize?: "small" | "large";
   preview?: boolean;
@@ -182,10 +192,9 @@ export default observer((props: IImageProps) => {
     error: false,
     show: false,
     loading: disableLoading === true ? false : true,
-    imageUri: Theme.UIImageLoading,
+    imageUri: null,
   });
   const dim = Dimensions.get("window");
-
   const baseStyle: ImageStyle = {
     width: 300,
     height: 150,
@@ -209,43 +218,51 @@ export default observer((props: IImageProps) => {
   ]);
 
   useEffect(() => {
-    let img = toJS(libsStorage.images[source.uri]);
-    if (typeof source === "object" && source.uri.indexOf("http") > -1 && !img) {
-      img = {
-        error: false,
-        loading: true,
-        trying: 1,
-      };
-      libsStorage.images[source.uri] = img;
-      getImage(source);
-    } else {
+    // libsStorage.cacheImages = [];
+    // console.log(toJS(libsStorage.cacheImages));
+    if (typeof source === "object" && source.uri.indexOf("http") > -1) {
+      let cacheImages = toJS(libsStorage.cacheImages);
+      let cacheIdx = cacheImages.findIndex((x) => x.uri === source.uri);
+      if (cacheIdx < 0 || (cacheIdx > -1 && cacheImages[cacheIdx].trying > 3)) {
+        cacheImages.push({
+          uri: source.uri,
+          error: false,
+          loading: true,
+          trying: 1,
+        });
+        libsStorage.cacheImages = cacheImages;
+        getImage(source);
+      }
+    } else if (
+      typeof source === "number" ||
+      source.uri.indexOf("file://") > -1
+    ) {
       meta.loading = false;
       meta.imageUri = source;
     }
   }, [source]);
 
   useEffect(() => {
-    let img = toJS(libsStorage.images[source.uri]);
-    if (!!img) {
-      let { error, loading, uri, trying } = img;
-      if (!loading && !error && !!uri) {
+    let cacheImages = toJS(libsStorage.cacheImages);
+    let cacheIdx = cacheImages.findIndex((x) => x.uri === source.uri);
+    if (cacheIdx > -1) {
+      let { error, loading, path, trying } = cacheImages[cacheIdx];
+      if (!loading && !error && !!path) {
         meta.error = false;
         meta.loading = false;
-        if (!!uri) {
-          meta.imageUri = { uri };
+        if (!!path) {
+          meta.imageUri = { uri: path };
         }
-      } else if (!loading && !!error && trying <= 3 && !uri) {
+      } else if (!!loading && !!error && trying <= 3 && !path) {
         getImage(source);
-      }
-      if (!loading && !error && !!uri) {
-        delete libsStorage.images[source.uri];
-      } else if (!loading && !!error) {
+      } else if (!loading && !!error && trying > 3) {
         meta.error = true;
         meta.loading = false;
-        delete libsStorage.images[source.uri];
       }
     }
-  }, [libsStorage.images[source.uri]]);
+  }, [libsStorage.cacheImages]);
+
+  console.log("images", meta.loading);
 
   return (
     <>
@@ -282,11 +299,11 @@ const Thumbnail = observer((props: any) => {
   const onPress = () => {
     meta.show = true;
   };
-  const resizeMode = !!meta.loading
+  const resizeMode = meta.loading
     ? "contain"
     : _.get(props, "resizeMode", "contain");
-  const style = !!meta.loading ? loadingStyle : cstyle;
-  const source = !!meta.imageUri ? toJS(meta.imageUri) : Theme.UIImageLoading;
+  const style = meta.loading ? loadingStyle : cstyle;
+  const source = !!meta.imageUri ? meta.imageUri : Theme.UIImageLoading;
 
   return (
     <>
@@ -309,7 +326,7 @@ const Thumbnail = observer((props: any) => {
             source={source}
             style={style}
           />
-          {!!meta.loading && (
+          {meta.loading && (
             <View
               style={{
                 backgroundColor: "white",
