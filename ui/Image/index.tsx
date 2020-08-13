@@ -22,7 +22,6 @@ import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
 import bytes from "@src/libs/utils/bytes";
-import Loading from "@src/pages/Loading";
 import Spinner from "../Spinner";
 
 interface IStyle {
@@ -44,23 +43,14 @@ const getCached = (uri: string) => {
 };
 
 const clearIncompleteImage = async (uri) => {
-  // let { error, loading, path, resumeData } = getCached(uri);
-  // const fileName = Path.basename(uri);
-  // if (!error && !!loading && !path && !resumeData) {
-  //   console.log("delete ===> ", toJS(libsStorage.cacheImages[fileName]));
-  //   delete libsStorage.cacheImages[fileName];
-  // }
   let cacheImage = getCached(uri);
   // if (!!downloadResumable) {
   //   downloadResumable.pauseAsync();
-  //   cacheImage = {
-  //     ...cacheImage,
-  //     resumeData: downloadResumable.savable(),
-  //   };
+  //   cacheImage.resumeData = downloadResumable.savable();
   // }
   cacheImage = {
     ...cacheImage,
-    pause: true,
+    loading: false,
   };
   setCached(uri, cacheImage);
 };
@@ -101,8 +91,7 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       {},
       (data) => {
         callback(data, uri);
-      },
-      resumeData
+      }
     );
   }
   try {
@@ -179,7 +168,8 @@ const getImage = async ({ uri, cache }) => {
     if (
       !!exists &&
       cacheImage.totalBytesWritten > 0 &&
-      !cacheImage.resumeData &&
+      !cacheImage.error &&
+      (!cacheImage.resumeData || cacheImage.progress == 1) &&
       cache != "reload"
     ) {
       let cacheImage = getCached(uri);
@@ -192,9 +182,9 @@ const getImage = async ({ uri, cache }) => {
       return;
     } else {
       let cacheImage = getCached(uri);
-      if (!!cacheImage) {
-        if (!!cacheImage.error && cacheImage.trying >= 3) {
-          cacheImage.trying += 1;
+      if (!!cacheImage && !!cacheImage.error) {
+        cacheImage.trying += 1;
+        if (cacheImage.trying >= 3) {
           cacheImage = {
             ...cacheImage,
             error: true,
@@ -207,11 +197,11 @@ const getImage = async ({ uri, cache }) => {
           cacheImage.progress < 1 &&
           !!cacheImage.resumeData
         ) {
+          setCached(uri, cacheImage);
           await downloadImage(uri, pathFile, cacheImage.resumeData);
           return;
         }
       }
-      setCached(uri, cacheImage);
       await downloadImage(uri, pathFile);
       return;
     }
@@ -241,7 +231,7 @@ export default observer((props: IImageProps) => {
     error: false,
     show: false,
     loading: disableLoading === true ? false : true,
-    imageUri: null,
+    imageUri: Theme.UIImageLoading,
   });
   const dim = Dimensions.get("window");
   const baseStyle: ImageStyle = {
@@ -269,14 +259,7 @@ export default observer((props: IImageProps) => {
   useEffect(() => {
     if (typeof source === "object" && source.uri.indexOf("http") > -1) {
       let cacheImage = getCached(source.uri);
-      if (
-        !!cacheImage.uri &&
-        cacheImage.trying < 3 &&
-        cacheImage.process < 1 &&
-        (!!cacheImage.pause || !!cacheImage.resumeData)
-      ) {
-        cacheImage.pause = false;
-        setCached(source.uri, cacheImage);
+      if (!!cacheImage.uri && cacheImage.trying < 3 && !!cacheImage.loading) {
         getImage(source);
       } else if (!cacheImage.uri || cacheImage.trying > 3) {
         cacheImage = {
@@ -296,9 +279,9 @@ export default observer((props: IImageProps) => {
       meta.imageUri = source;
     }
 
-    return () => {
-      clearIncompleteImage(source.uri);
-    };
+    // return () => {
+    //   clearIncompleteImage(source.uri);
+    // };
   }, [source]);
 
   useEffect(() => {
@@ -346,8 +329,8 @@ const Thumbnail = observer((props: any) => {
     paddingHorizontal: 0,
     backgroundColor: "transparent",
     opacity: !preview ? 1 : undefined,
-    width: _.get(cstyle, "width", "100%"),
-    height: _.get(cstyle, "height", "100%"),
+    width: _.get(cstyle, "width", undefined),
+    height: _.get(cstyle, "height", undefined),
     justifyContent: "center",
     alignItems: "center",
     flex: 1,
@@ -359,7 +342,6 @@ const Thumbnail = observer((props: any) => {
     ? "contain"
     : _.get(props, "resizeMode", "contain");
   const style = meta.loading ? loadingStyle : cstyle;
-  const source = !!meta.imageUri ? meta.imageUri : Theme.UIImageLoading;
 
   return (
     <>
@@ -379,7 +361,7 @@ const Thumbnail = observer((props: any) => {
             defaultSource={Theme.UIImageLoading}
             {...props}
             resizeMode={resizeMode}
-            source={source}
+            source={meta.imageUri}
             style={style}
           />
           <LoadingProgress {...props} mode={"thumbnail"} />

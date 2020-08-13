@@ -1,7 +1,7 @@
 import { shadeColor } from "@src/libs/utils/color";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { StyleSheet, TextStyle, ViewProps, ViewStyle } from "react-native";
 import Theme from "../../theme";
 import { fuzzyMatch, uuid } from "../../utils";
@@ -15,6 +15,7 @@ import { IScreenProps } from "../Screen";
 import Text, { ITextProps } from "../Text";
 import TopBar, { ITopBarProps } from "../TopBar";
 import View from "../View";
+import { toJS } from "mobx";
 
 interface IItemProps {
   label: any;
@@ -58,7 +59,8 @@ export interface IProps {
 }
 
 export interface ISelectProps {
-  items: (IItemProps | String | any)[];
+  items: IItemProps[] | String[] | any;
+  itemsPath?: string;
   value?: any;
   onSelect?: (item) => void;
   onChange?: (value) => void;
@@ -78,8 +80,15 @@ export const formatedItems = (props: ISelectProps | any) => {
   const labelPath = _.get(props, "labelPath", "label");
   const valuePath = _.get(props, "valuePath", "value");
   let items = [];
-  if (Array.isArray(props.items)) {
+  if (!!props.itemsPath) {
+    items = _.get(props.items, props.itemsPath, []);
+  } else {
     items = _.get(props, "items", []);
+  }
+  if (Array.isArray(items)) {
+    items = toJS(items);
+  } else {
+    items = [];
   }
   return items.map((item) => {
     if (typeof item === "string") {
@@ -234,6 +243,27 @@ const SelectComponent = observer((props: any) => {
     },
     _.get(selectProps, "styles.modal.container", {}),
   ]);
+  const refList = useRef(null);
+  const data = () => {
+    return items.filter((item) => {
+      if (!!meta.search)
+        return fuzzyMatch(meta.search.toLowerCase(), item.label.toLowerCase());
+      return true;
+    });
+  };
+  const findIndex = () => {
+    return data().findIndex((x) => x.value === selectProps.value);
+  };
+  const getItemLayout = (x, index) => {
+    let st = _.get(selectProps, "styles.item.button", {});
+    let height = !!st.height ? st.height : 44;
+    let offset = height * index;
+    return {
+      length: height,
+      offset: offset,
+      index: index,
+    };
+  };
   return (
     <Modal
       visible={meta.openSelect}
@@ -272,19 +302,18 @@ const SelectComponent = observer((props: any) => {
       >
         <FlatList
           {..._.get(selectProps, "customProps.modal.list", {})}
-          data={items.filter((item) => {
-            if (!!meta.search)
-              return fuzzyMatch(
-                meta.search.toLowerCase(),
-                item.label.toLowerCase()
-              );
-            return true;
-          })}
+          flatListRef={refList}
+          data={data()}
           renderItem={renderItem}
           keyExtractor={(_: any, index: number) => String(index)}
           ItemSeparatorComponent={itemSperator}
           keyboardShouldPersistTaps={"handled"}
           style={cstyle}
+          windowSize={12}
+          initialNumToRender={20}
+          maxToRenderPerBatch={24}
+          initialScrollIndex={findIndex()}
+          getItemLayout={getItemLayout}
         />
       </Container>
     </Modal>
@@ -305,6 +334,8 @@ const RenderItem = (props: any) => {
     borderRadius: 0,
     margin: 0,
     paddingHorizontal: 10,
+    height: 44,
+    ..._.get(selectProps, "styles.item.button", {}),
   };
   const selectedStyle =
     item.value === selectProps.value

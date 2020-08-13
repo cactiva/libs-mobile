@@ -22,7 +22,6 @@ export default (props: IFlatListProps) => {
   return (
     <FlatList
       windowSize={8}
-      removeClippedSubviews={true}
       initialNumToRender={12}
       maxToRenderPerBatch={16}
       {...props}

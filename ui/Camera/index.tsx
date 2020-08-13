@@ -41,7 +41,7 @@ const reSizeImage = (uri) => {
         const resizedPhoto = await ImageManipulator.manipulateAsync(
           uri,
           [{ resize: { width, height } }],
-          { compress: 0.6, format: ImageManipulator.SaveFormat.PNG }
+          { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
         );
         resolve(resizedPhoto.uri);
       },

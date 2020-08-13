@@ -35,6 +35,7 @@ interface IFieldProps {
     input?: TextStyle;
   };
   initialize?: IInitializeForm;
+  hiddenField?: boolean;
 }
 
 export default observer((props: IFieldProps) => {
@@ -49,6 +50,7 @@ export default observer((props: IFieldProps) => {
     isRequired,
     hiddenLabel,
     initialize,
+    hiddenField,
   } = props;
   const childprops = _.clone(_.get(props, "children.props", {}));
   const [password, setPassword] = useState(true);
@@ -137,6 +139,10 @@ export default observer((props: IFieldProps) => {
 
   switch (Component) {
     case Select:
+      childprops.customProps = {
+        label,
+        ...childprops.customProps,
+      };
       childprops.searchProps = {
         placeholder: "Search " + props.label,
       };
@@ -193,6 +199,10 @@ export default observer((props: IFieldProps) => {
     };
   }, []);
 
+  if (hiddenField === true) {
+    initialize.remove(path);
+    return null;
+  }
   return (
     <View style={fieldStyle}>
       {!!label && hiddenLabel != true && (
