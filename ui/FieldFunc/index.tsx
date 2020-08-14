@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { observer } from "mobx-react-lite";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ComponentElement, Component } from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
 import Camera from "../Camera";
@@ -36,6 +36,7 @@ interface IFieldProps {
   };
   initialize?: IInitializeForm;
   hiddenField?: boolean;
+  helpText?: any[];
 }
 
 export default observer((props: IFieldProps) => {
@@ -51,6 +52,7 @@ export default observer((props: IFieldProps) => {
     hiddenLabel,
     initialize,
     hiddenField,
+    helpText,
   } = props;
   const childprops = _.clone(_.get(props, "children.props", {}));
   const [password, setPassword] = useState(true);
@@ -76,6 +78,12 @@ export default observer((props: IFieldProps) => {
     defErrorLabelStyle,
     Theme.UILabel,
   ]);
+  const helpTextStyle = {
+    fontSize: 12,
+    lineHeight: 14,
+    color: "#333",
+    paddingVertical: 5,
+  };
   const boxStyle =
     Component === Camera ||
     Component === RadioGroup ||
@@ -193,9 +201,13 @@ export default observer((props: IFieldProps) => {
   }
 
   useEffect(() => {
-    initialize.field(path, label, isRequired);
+    if (!!initialize.field) {
+      initialize.field(path, label, isRequired);
+    }
     return () => {
-      initialize.remove(path);
+      if (!!initialize.remove) {
+        initialize.remove(path);
+      }
     };
   }, []);
 
@@ -215,6 +227,16 @@ export default observer((props: IFieldProps) => {
         <Component {...childprops} style={inputStyle} />
         {!!suffix && typeof suffix === "function" ? suffix() : suffix}
       </View>
+      {Array.isArray(helpText) &&
+        helpText.map((text, idx) => {
+          if (typeof text === "string")
+            return (
+              <Text key={idx} style={helpTextStyle}>
+                {text}
+              </Text>
+            );
+          else return text;
+        })}
       {Array.isArray(errorMsg) &&
         errorMsg.map((message, idx) => (
           <Text key={idx} style={errorLabelStyle}>

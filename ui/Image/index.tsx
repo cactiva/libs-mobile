@@ -333,7 +333,7 @@ const Thumbnail = observer((props: any) => {
     height: _.get(cstyle, "height", undefined),
     justifyContent: "center",
     alignItems: "center",
-    flex: 1,
+    // flex: 1,
   };
   const onPress = () => {
     meta.show = true;
