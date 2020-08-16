@@ -17,13 +17,18 @@ interface IField {
   messages: string[];
 }
 
+interface IError {
+  path: string;
+  message: string;
+}
+
 export interface IInitializeForm {
   field?: (path: string, label: string, isRequired: boolean) => void;
   getValue?: (path: string) => string | number | undefined | null;
   setValue?: (path: string, value: any) => void;
   validate?: (path: string) => string[];
   remove?: (path: string) => void;
-  submit?: () => void;
+  submit?: (params?: any) => void;
 }
 
 export interface IFromProps extends IViewProps {
@@ -39,12 +44,13 @@ export interface IFromProps extends IViewProps {
     submit,
   }: IInitializeForm) => void;
   setValue?: (path: string, value: any) => void;
-  onSubmit?: (data?: any) => void;
+  onSubmit?: (data?: any, params?: any) => void;
   onError?: (fields?: any) => void;
-  validate?: (data) => string[];
+  validate?: (data) => IError[];
   requiredMessage?: string;
   renderSubmitComponent?: (submit: () => void) => void;
   submitProps?: IButtonProps;
+  disableSubmitComponent?: boolean;
 }
 
 export default observer((props: IFromProps) => {
@@ -56,6 +62,7 @@ export default observer((props: IFromProps) => {
     onError,
     renderSubmitComponent,
     submitProps,
+    disableSubmitComponent,
   } = props;
   const requiredMessage = props.requiredMessage || "Field is required.";
   const meta = useObservable({
@@ -85,7 +92,13 @@ export default observer((props: IFromProps) => {
         meta.field[fieldIndex].messages = [];
       }
       if (typeof props.validate == "function") {
-        let err = props.validate(data);
+        let err = props
+          .validate(data)
+          .filter((x) => (typeof x === "object" ? x.path === path : true))
+          .map((x) => {
+            if (typeof x == "object") return x.message;
+            else return x;
+          });
         meta.field[fieldIndex].messages = meta.field[
           fieldIndex
         ].messages.concat(err);
@@ -98,12 +111,12 @@ export default observer((props: IFromProps) => {
     }
   };
   const setValue = (path, value) => {
-    checkValid(path, value);
     if (typeof props.setValue == "function") {
       props.setValue(path, value);
     } else {
       _.set(data, path, value);
     }
+    checkValid(path, value);
   };
   const validate = (path) => {
     let field = meta.field.find((x) => x.path === path);
@@ -112,7 +125,7 @@ export default observer((props: IFromProps) => {
     }
     return [];
   };
-  const submit = () => {
+  const submit = (params?: any) => {
     let field = meta.field;
     field.map((x) => {
       let path = x.path,
@@ -123,7 +136,7 @@ export default observer((props: IFromProps) => {
     if (error.length > 0) {
       onError(error);
     } else {
-      onSubmit(data);
+      onSubmit(data, params);
     }
   };
   const remove = (path) => {
@@ -139,28 +152,28 @@ export default observer((props: IFromProps) => {
   return (
     <View style={style}>
       {children({ field, getValue, setValue, validate, remove, submit })}
-      {typeof renderSubmitComponent === "function" ? (
-        renderSubmitComponent(submit)
-      ) : (
-        <Button
-          style={{
-            marginTop: 15,
-          }}
-          onPress={submit}
-          disabled={canSubmit()}
-          {...submitProps}
-        >
-          <Text
-            style={{
-              color: "#fff",
-              fontSize: 15,
-              fontWeight: "500",
-            }}
-          >
-            Save
-          </Text>
-        </Button>
-      )}
+      {typeof renderSubmitComponent === "function"
+        ? renderSubmitComponent(submit)
+        : !disableSubmitComponent && (
+            <Button
+              style={{
+                marginTop: 15,
+              }}
+              onPress={submit}
+              disabled={canSubmit()}
+              {...submitProps}
+            >
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 15,
+                  fontWeight: "500",
+                }}
+              >
+                Save
+              </Text>
+            </Button>
+          )}
     </View>
   );
 });

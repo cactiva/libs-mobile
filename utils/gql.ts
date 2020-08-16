@@ -64,13 +64,13 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
       return res.data;
     } else {
       if (options && options.onError) {
-        options.onError(res);
+        return options.onError(res);
       }
       return [];
     }
   } catch (e) {
     if (options && options.onError) {
-      options.onError(e);
+      return options.onError(e);
     }
     return [];
   }
@@ -78,7 +78,7 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
 
 export const querySingle = async (q: string, options: QueryOptions = {}) => {
   const res = await queryAll(q, options);
-  if (res) {
+  if (!!res) {
     if (Array.isArray(res)) {
       return res[0];
     }
