@@ -132,14 +132,12 @@ export default observer((props: IFieldProps) => {
   };
 
   let value;
-  if (!!props.value) {
+  if (props.value != undefined && props.value != null) {
     value = props.value;
   } else if (!!initialize && typeof initialize.getValue == "function") {
     value = initialize.getValue(path);
   }
-  if (!value) {
-    value = "";
-  }
+
   childprops.editable = !readonly;
   childprops.value = value;
   childprops.onChange = handleOnChange;

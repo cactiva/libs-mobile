@@ -78,7 +78,10 @@ export default observer((props: IFromProps) => {
     });
   };
   const getValue = (path) => {
-    return _.get(data, path, undefined);
+    if (path === "amount_discount") {
+      console.log(_.get(data, path));
+    }
+    return _.get(data, path);
   };
   const checkValid = (path, value) => {
     let fieldIndex = meta.field.findIndex((x) => x.path === path);

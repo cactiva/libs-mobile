@@ -257,6 +257,9 @@ export default observer((props: IImageProps) => {
   ]);
 
   useEffect(() => {
+    if (typeof libsStorage.cacheImages !== "object") {
+      libsStorage.cacheImages = {};
+    }
     if (typeof source === "object" && source.uri.indexOf("http") > -1) {
       let cacheImage = getCached(source.uri);
       if (!!cacheImage.uri && cacheImage.trying < 3 && !!cacheImage.loading) {

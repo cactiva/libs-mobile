@@ -23,9 +23,6 @@ export default (props: IInputProps) => {
   const onChange = (e: any) => {
     let v;
     switch (originalType.current) {
-      default:
-        v = e;
-        break;
       case "number":
         v = parseInt(e || "0");
         break;
@@ -39,6 +36,9 @@ export default (props: IInputProps) => {
         break;
       case "email":
         v = String(e).toLocaleLowerCase().replace(/\s/g, "");
+        break;
+      default:
+        v = e;
         break;
     }
 
