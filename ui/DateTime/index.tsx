@@ -57,9 +57,8 @@ export default (props: IDateTimeProps) => {
   };
 
   const dateString = (val) => {
-    let value = !!val ? val : new Date();
-    if (!!value) {
-      let date = new Date(value);
+    if (!!val) {
+      let date = new Date(val);
       if (mode === "date") {
         return dateFormat(date, "d MMMM yyyy");
       } else if (mode === "time") {
@@ -68,6 +67,7 @@ export default (props: IDateTimeProps) => {
         return dateFormat(date, "d MMMM yyyy - HH:mm");
       }
     }
+    return "";
   };
 
   const baseStyle: any = {
