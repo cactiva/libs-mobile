@@ -84,7 +84,10 @@ export default observer((props: IFromProps) => {
     let fieldIndex = meta.field.findIndex((x) => x.path === path);
     if (fieldIndex > -1) {
       let required = meta.field[fieldIndex].required;
-      if (!!required && (value == null || value == undefined || value == "")) {
+      if (
+        !!required &&
+        (value === null || value === undefined || value === "")
+      ) {
         meta.field[fieldIndex].messages = [requiredMessage];
         meta.field[fieldIndex].status = false;
       } else {
@@ -129,7 +132,7 @@ export default observer((props: IFromProps) => {
     let field = meta.field;
     field.map((x) => {
       let path = x.path,
-        value = _.get(data, path, undefined);
+        value = _.get(data, path);
       checkValid(path, value);
     });
     const error = meta.field.filter((x) => x.status == false);

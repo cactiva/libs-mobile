@@ -30,9 +30,8 @@ export default (props: IInputProps) => {
         v = parseFloat(e);
         break;
       case "currency":
-        v = parseInt(e.replace(/[^0-9]/g, "") || "0");
-        // .toString()
-        // .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        let a = e.replace(/[^0-9]/g, "");
+        v = parseInt(a || "0");
         break;
       case "email":
         v = String(e).toLocaleLowerCase().replace(/\s/g, "");
