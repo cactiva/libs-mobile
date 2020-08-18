@@ -4,7 +4,7 @@ import _ from "lodash";
 
 const config = require("../../../settings.json");
 interface QueryOptions {
-  onError?: (e?: any) => void;
+  onError?: (e?: any) => any;
   variables?: any;
   operationName?: any;
   headers?: any;
@@ -64,13 +64,15 @@ export const queryAll = async (q: string, options?: QueryOptions) => {
       return res.data;
     } else {
       if (options && options.onError) {
-        return options.onError(res);
+        let r = options.onError(res);
+        return r || [];
       }
       return [];
     }
   } catch (e) {
     if (options && options.onError) {
-      return options.onError(e);
+      let r = options.onError(e);
+      return r || [];
     }
     return [];
   }
