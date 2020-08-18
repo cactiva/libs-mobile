@@ -7,13 +7,15 @@ import { observer } from "mobx-react-lite";
 export interface IContainerProps extends IViewProps {
   children?: any;
   scrollRef?: any;
+  alert?: () => any;
 }
 
 export default observer((props: IContainerProps) => {
-  const { style, scrollRef } = props;
+  const { style, scrollRef, alert } = props;
   const baseStyle: ViewStyle = {
     flexGrow: 1,
   };
+
   const cstyle = StyleSheet.flatten([
     baseStyle,
     style,
@@ -28,6 +30,15 @@ export default observer((props: IContainerProps) => {
         flexShrink: 1,
       }}
     >
+      <View
+        style={{
+          backgroundColor: "transparent",
+          position: "absolute",
+          zIndex: 99,
+        }}
+      >
+        {!!alert && alert()}
+      </View>
       {_.get(props, "scrollEnabled", true) === false ? (
         <View {...props} style={cstyle} childRef={scrollRef} />
       ) : (

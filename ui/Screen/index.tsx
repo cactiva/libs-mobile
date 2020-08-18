@@ -11,6 +11,7 @@ import {
 import Theme from "../../theme";
 import View from "../View";
 import { observer } from "mobx-react-lite";
+import libsStorage from "../store";
 
 interface IStyles {
   statusbar?: ViewStyle;
@@ -53,7 +54,28 @@ export default observer((props: IScreenProps) => {
   return (
     <>
       <View style={cstatusbarStyle} />
-      <View type={"SafeAreaView"} {...props} style={cstyle} />
+      <View type={"SafeAreaView"} {...props} style={cstyle}>
+        {props.children}
+        {!!libsStorage.toast && libsStorage.toast()}
+      </View>
     </>
   );
 });
+
+const show = (component: () => any, duration: number = 0) => {
+  libsStorage.toast = component;
+  if (duration > 0) {
+    setTimeout(() => {
+      libsStorage.toast = null;
+    }, duration);
+  }
+};
+
+const dismiss = () => {
+  libsStorage.toast = null;
+};
+
+export const Toast = {
+  show,
+  dismiss,
+};

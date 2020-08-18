@@ -6,6 +6,7 @@ const libsStorage = store("libs", {
   camera: {},
   cacheImages: {},
   cacheExist: false,
+  toast: null,
 });
 
 export default libsStorage;

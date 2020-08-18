@@ -108,39 +108,41 @@ export default (props: ITopBarProps) => {
   }, []);
 
   return (
-    <View {...props} style={cstyle}>
-      {leftAction}
-      {backButton && (
-        <Button
-          {..._.get(customProps, "backButton", {})}
-          style={backButtonStyle}
-          onPress={onPressBack}
-        >
-          <Icon
-            name={`${Platform.OS === "ios" ? "ios" : "md"}-arrow-back`}
-            size={24}
-            style={{
-              margin: 0,
-              ..._.get(styles, "iconBackButton", {}),
-            }}
-            color={"white"}
-            {..._.get(customProps, "iconBackButton", {})}
-          />
-        </Button>
-      )}
-      {typeof children === "string" ? (
-        <Text
-          ellipsizeMode={"tail"}
-          numberOfLines={1}
-          {..._.get(customProps, "title", {})}
-          style={titleStyle}
-        >
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
-      {rightAction}
-    </View>
+    <>
+      <View {...props} style={cstyle}>
+        {leftAction}
+        {backButton && (
+          <Button
+            {..._.get(customProps, "backButton", {})}
+            style={backButtonStyle}
+            onPress={onPressBack}
+          >
+            <Icon
+              name={`${Platform.OS === "ios" ? "ios" : "md"}-arrow-back`}
+              size={24}
+              style={{
+                margin: 0,
+                ..._.get(styles, "iconBackButton", {}),
+              }}
+              color={"white"}
+              {..._.get(customProps, "iconBackButton", {})}
+            />
+          </Button>
+        )}
+        {typeof children === "string" ? (
+          <Text
+            ellipsizeMode={"tail"}
+            numberOfLines={1}
+            {..._.get(customProps, "title", {})}
+            style={titleStyle}
+          >
+            {children}
+          </Text>
+        ) : (
+          children
+        )}
+        {rightAction}
+      </View>
+    </>
   );
 };
