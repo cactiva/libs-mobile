@@ -25,10 +25,9 @@ import Spinner from "../Spinner";
 import { toJS } from "mobx";
 
 const reSizeImage = (uri) => {
-  return new Promise((resolve, reject) => {
-    RNImage.getSize(
-      uri,
-      async (w, h) => {
+  return new Promise(async (resolve) => {
+    try {
+      const success = async (w, h) => {
         let width = w;
         let height = h;
         if (w > h && w > 1080) {
@@ -38,18 +37,24 @@ const reSizeImage = (uri) => {
           height = 1080;
           width = height * (w / h);
         }
-        const resizedPhoto = await ImageManipulator.manipulateAsync(
+        await ImageManipulator.manipulateAsync(
           uri,
           [{ resize: { width, height } }],
           { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
-        );
-        resolve(resizedPhoto.uri);
-      },
-      (e) => {
-        console.log(e);
-        reject();
-      }
-    );
+        )
+          .then((resizedPhoto) => {
+            resolve(resizedPhoto.uri);
+          })
+          .catch((e) => {
+            resolve(uri);
+          });
+      };
+      RNImage.getSize(uri, success, (e) => {
+        resolve(uri);
+      });
+    } catch (error) {
+      resolve(uri);
+    }
   });
 };
 
@@ -212,53 +217,91 @@ const CameraPicker = observer((props: any) => {
   const { value, onCapture, compress, meta } = props;
   const camera = useRef(null as any);
   const backgroundColor = new Animated.Value(0);
-  const imageSnap = async () => {
-    if (!!value && !meta.snap) {
-      meta.snap = true;
-    } else if (!!camera.current) {
-      meta.loading = true;
-      Animated.timing(backgroundColor, {
-        toValue: 100,
-        duration: 1000,
-        useNativeDriver: false,
-      }).start();
-      let param: any = {
-        quality: 0.8,
-        base64: false,
-        onPictureSaved: async (res) => {
-          onRequestClose();
-          let uri = res.uri;
-          if (compress == true) {
-            uri = await reSizeImage(res.uri);
-          }
-          meta.tempValue = uri;
-          if (typeof onCapture == "function") {
-            onCapture(uri);
-          }
-        },
-      };
-      await camera.current.takePictureAsync(param);
+  const imageSnap = () => {
+    try {
+      if (!!value && !meta.snap) {
+        meta.snap = true;
+      } else if (!!camera.current) {
+        meta.loading = true;
+        Animated.timing(backgroundColor, {
+          toValue: 100,
+          duration: 1000,
+          useNativeDriver: false,
+        }).start();
+        camera.current
+          .takePictureAsync({
+            quality: 0.8,
+            base64: false,
+          })
+          .then(async (res) => {
+            onRequestClose();
+            let uri = res.uri;
+            if (compress == true) {
+              await reSizeImage(res.uri)
+                .then((res) => {
+                  uri = res;
+                })
+                .catch((e) => console.log(e));
+            }
+            meta.tempValue = uri;
+            if (typeof onCapture == "function") {
+              onCapture(uri);
+            }
+          })
+          .catch((e) => {
+            let msg = e.message;
+            if (!msg) {
+              msg = "Failed to take a picture. Please try again.";
+            }
+            alert(msg);
+            onRequestClose();
+          });
+      }
+    } catch (error) {
+      let msg = error.message;
+      if (!msg) {
+        msg = "Failed to take a picture. Please try again.";
+      }
+      alert(msg);
+      onRequestClose();
     }
   };
   const imagePicker = async () => {
-    if (!!value && !meta.snap) {
-      meta.snap = true;
-    } else {
-      meta.snap = false;
-      meta.loading = true;
-      await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        quality: 0.6,
-      }).then((res: any) => {
-        if (res.cancelled === false) {
-          onRequestClose();
-          meta.tempValue = res.uri;
-          if (typeof onCapture == "function") {
-            onCapture(res.uri);
-          }
-        }
-      });
+    try {
+      if (!!value && !meta.snap) {
+        meta.snap = true;
+      } else {
+        meta.loading = true;
+        ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: true,
+          quality: 0.6,
+        })
+          .then((res) => {
+            if (res.cancelled === false) {
+              onRequestClose();
+              meta.tempValue = res.uri;
+              if (typeof onCapture == "function") {
+                onCapture(res.uri);
+              }
+            }
+          })
+          .catch((error) => {
+            let msg = error.message;
+            if (!msg) {
+              msg = "Failed to take a picture. Please try again.";
+            }
+            alert(msg);
+            onRequestClose();
+          });
+      }
+    } catch (error) {
+      let msg = error.message;
+      if (!msg) {
+        msg = "Failed to take a picture. Please try again.";
+      }
+      alert(msg);
+      onRequestClose();
     }
   };
 
@@ -266,6 +309,17 @@ const CameraPicker = observer((props: any) => {
     meta.isShown = false;
     meta.snap = false;
     meta.loading = false;
+  };
+
+  const cameraProps = {
+    onMountError: (e) => {
+      let msg = e.nativeEvent.message;
+      if (!msg) {
+        msg = "Camera preview cannot been started.";
+      }
+      alert(msg);
+      onRequestClose();
+    },
   };
 
   useEffect(() => {
@@ -301,13 +355,14 @@ const CameraPicker = observer((props: any) => {
       <View
         style={{
           flexDirection: "row",
-          flexGrow: 1,
           paddingHorizontal: 15,
           maxHeight: 44,
           zIndex: 9,
           position: "absolute",
           top: 0,
-          backgroundColor: "rgba(0,0,0,0.2)",
+          left: 0,
+          right: 0,
+          backgroundColor: "rgba(0,0,0,1)",
         }}
       >
         <Button
@@ -329,7 +384,12 @@ const CameraPicker = observer((props: any) => {
         imagePicker={imagePicker}
         {...props}
       />
-      <CameraView camera={camera} {...props} bg={bg} />
+      <CameraView
+        camera={camera}
+        cameraProps={cameraProps}
+        {...props}
+        bg={bg}
+      />
     </Modal>
   );
 });
@@ -495,7 +555,7 @@ const CameraToolsBottom = observer((props: any) => {
         right: 0,
         height: 70,
         paddingHorizontal: 15,
-        backgroundColor: "rgba(0,0,0,0.4)",
+        backgroundColor: "rgba(0,0,0,1)",
         zIndex: 9,
       }}
     >
@@ -573,7 +633,7 @@ const CameraAction = observer((props: any) => {
 });
 
 const CameraView = observer((props: any) => {
-  const { meta, camera, bg } = props;
+  const { meta, camera, bg, cameraProps } = props;
   const dim = Dimensions.get("window");
   const ratio = _.get(libsStorage, "camera.ratio", "16:9").split(":"),
     width = dim.width,
@@ -627,6 +687,7 @@ const CameraView = observer((props: any) => {
         />
       ) : (
         <Camera
+          {...cameraProps}
           {...toJS(libsStorage.camera)}
           style={{
             alignItems: "center",
