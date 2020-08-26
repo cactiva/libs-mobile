@@ -1,6 +1,7 @@
-import store from "../store";
+import { observable } from "mobx";
+import Storage from "../Storage";
 
-const libsStorage = store("libs", {
+const libsStorage = Storage("libsStorage", {
   hasCameraPermission: null,
   hasImagePickPermission: null,
   camera: {},

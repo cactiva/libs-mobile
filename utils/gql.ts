@@ -2,7 +2,7 @@ import api from "./api";
 import session from "@src/stores/session";
 import _ from "lodash";
 
-const config = require("../../../settings.json");
+const config = require("../../../setting.json");
 interface QueryOptions {
   onError?: (e?: any) => any;
   variables?: any;

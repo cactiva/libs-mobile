@@ -1,6 +1,7 @@
 import { shadeColor } from "@src/libs/utils/color";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
+import { observable } from "mobx";
 import React, { useRef, useEffect } from "react";
 import { StyleSheet, TextStyle, ViewProps, ViewStyle } from "react-native";
 import Theme from "../../theme";

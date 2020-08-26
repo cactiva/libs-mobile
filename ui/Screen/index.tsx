@@ -41,7 +41,7 @@ export default observer((props: IScreenProps) => {
     backgroundColor: _.get(
       props,
       "style.backgroundColor",
-      Theme.UIColors.primary
+      Theme.StatusBarColor || Theme.UIColors.primary
     ),
     height: Constants.statusBarHeight,
     zIndex: 999,

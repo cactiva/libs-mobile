@@ -1,4 +1,4 @@
-import { default as overideTheme } from "../theme";
+import { default as overideTheme } from "@src/config/theme";
 import Fonts from "./fonts";
 
 const Theme = {
@@ -44,6 +44,7 @@ const Theme = {
   UILabel: {},
   UIButton: {},
   LocalLang: "enUS",
+  StatusBarColor: "white",
   ...(overideTheme || {}),
 };
 

@@ -1,4 +1,5 @@
 import { observer, useObservable } from "mobx-react-lite";
+import { observable } from "mobx";
 import React, { useEffect, useRef, useState } from "react";
 import MapViewNative, {
   MapViewProps as MapViewPropsOrigin,

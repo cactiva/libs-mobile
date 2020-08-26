@@ -4,6 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
+import { observable } from "mobx";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,

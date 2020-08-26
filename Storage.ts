@@ -1,13 +1,11 @@
-import { observable, observe, toJS } from "mobx";
+import { observable, observe } from "mobx";
 import { AsyncStorage } from "react-native";
 
-const storage = AsyncStorage;
-const store = (name: string, data: any) => {
+const Storage = (name: string, data: any) => {
   const initData = data;
   const obs = observable(initData);
   const vname = `store.${name}`;
-  storage
-    .getItem(vname)
+  AsyncStorage.getItem(vname)
     .then((res) => {
       if (res) {
         let newData = JSON.parse(res);
@@ -15,12 +13,12 @@ const store = (name: string, data: any) => {
           obs[i] = newData[i];
         }
       } else {
-        storage.setItem(vname, JSON.stringify(obs));
+        AsyncStorage.setItem(vname, JSON.stringify(obs));
       }
     })
     .finally(() => {
       observe(obs, () => {
-        storage.setItem(vname, JSON.stringify(obs));
+        AsyncStorage.setItem(vname, JSON.stringify(obs));
       });
     });
 
@@ -39,4 +37,4 @@ export const resetStore = (store: Object, initData: Object) => {
   });
 };
 
-export default store;
+export default Storage;
