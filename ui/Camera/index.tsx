@@ -12,6 +12,7 @@ import {
   Platform,
   ViewStyle,
   Animated,
+  Image as RNImage,
 } from "react-native";
 import Theme from "../../theme";
 import Button from "../Button";
@@ -21,6 +22,8 @@ import Modal from "../Modal";
 import Spinner from "../Spinner";
 import Text from "../Text";
 import View from "../View";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system";
 
 const storage = AsyncStorage;
 
@@ -44,6 +47,7 @@ export interface ICameraProps {
     reverse?: boolean;
   };
   editable?: boolean;
+  compress?: boolean;
 }
 
 export default observer((props: ICameraProps) => {
@@ -86,17 +90,6 @@ export default observer((props: ICameraProps) => {
     paddingHorizontal: 0,
     ...style,
   };
-  const iconStyle = {
-    ...Theme.UIShadow,
-    ..._.get(props, "styles.icon", {}),
-  };
-  const previewStyle = {
-    height: height,
-    width: "100%",
-    flex: 1,
-    overflow: "hidden",
-    ..._.get(props, "styles.preview", {}),
-  };
 
   useEffect(() => {
     requestPermission();
@@ -113,11 +106,6 @@ export default observer((props: ICameraProps) => {
       />
     );
   }
-  const source = {
-    cache: "reload",
-    ...(_.get(previewProps, "source", {}) as any),
-    uri: value,
-  };
 
   return (
     <>
@@ -127,32 +115,69 @@ export default observer((props: ICameraProps) => {
         onPress={() => (meta.isShown = true)}
         disabled={editable === false && !value}
       >
-        {!!value ? (
-          <Image
-            resizeMode="cover"
-            style={previewStyle}
-            {...previewProps}
-            source={source}
-            disableLoading
-          />
-        ) : (
-          <Icon
-            source="Entypo"
-            name="camera"
-            size={45}
-            color="white"
-            style={iconStyle}
-            {...iconProps}
-          />
-        )}
+        <Preview
+          meta={meta}
+          value={value}
+          previewProps={previewProps}
+          height={height}
+          iconProps={iconProps}
+        />
       </Button>
       <CameraPicker {...props} state={meta} camera={camera} />
     </>
   );
 });
 
+const Preview = observer((props: any) => {
+  const { meta, value, previewProps, iconProps, height } = props;
+  const source = {
+    cache: "reload",
+    ...(_.get(previewProps, "source", {}) as any),
+    uri: value,
+  };
+  const iconStyle = {
+    ...Theme.UIShadow,
+    ..._.get(props, "styles.icon", {}),
+  };
+  const previewStyle = {
+    height: height,
+    width: "100%",
+    flex: 1,
+    overflow: "hidden",
+    ..._.get(props, "styles.preview", {}),
+  };
+  if (!!source.uri)
+    return (
+      <Image
+        resizeMode="cover"
+        style={previewStyle}
+        {...previewProps}
+        source={source}
+        disableLoading
+      />
+    );
+  return (
+    <Icon
+      source="Entypo"
+      name="camera"
+      size={45}
+      color="white"
+      style={iconStyle}
+      {...iconProps}
+    />
+  );
+});
+
 const CameraPicker = observer((props: any) => {
-  const { state, cameraProps, value, editable, camera, onCapture } = props;
+  const {
+    state,
+    cameraProps,
+    value,
+    editable,
+    camera,
+    onCapture,
+    compress,
+  } = props;
   const meta = useObservable({
     cameraProps: {
       type: Camera.Constants.Type.back,
@@ -183,8 +208,32 @@ const CameraPicker = observer((props: any) => {
       let param: any = {
         quality: 0.8,
         base64: false,
-        onPictureSaved: (res) => {
-          onCapture && onCapture(res.uri);
+        onPictureSaved: async (res) => {
+          if (compress == true) {
+            await RNImage.getSize(
+              res.uri,
+              async (w, h) => {
+                let width = 0;
+                let height = 0;
+                if (w > h) {
+                  width = 1080;
+                  height = width / (w / h);
+                } else if (h > w) {
+                  height = 1080;
+                  width = height * (w / h);
+                }
+                const resizedPhoto = await ImageManipulator.manipulateAsync(
+                  res.uri,
+                  [{ resize: { width, height } }],
+                  { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+                );
+                onCapture && onCapture(resizedPhoto.uri);
+              },
+              (e) => console.log(e)
+            );
+          } else {
+            onCapture && onCapture(res.uri);
+          }
           !!state.resnap && (state.resnap = false);
           state.isShown = false;
         },
@@ -235,6 +284,7 @@ const CameraPicker = observer((props: any) => {
           flexGrow: 1,
           paddingHorizontal: 15,
           maxHeight: 44,
+          zIndex: 9,
         }}
       >
         <Button
