@@ -1,6 +1,6 @@
 import axios from "axios";
 import _ from "lodash";
-const config = require("../../../settings.json");
+const config = require("../../../setting.json");
 
 export default (e: any) => {
   let url = e.url;

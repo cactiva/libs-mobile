@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
+import { observable } from "mobx";
 import React, { useEffect, useState, Component } from "react";
 import { uuid } from "../../utils";
 import Button, { IButtonProps } from "../Button";

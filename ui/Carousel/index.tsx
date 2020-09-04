@@ -1,5 +1,6 @@
 import Theme from "../../theme";
 import { observer, useObservable } from "mobx-react-lite";
+import { observable } from "mobx";
 import React, { useEffect, useRef } from "react";
 import { Dimensions, ViewStyle, StyleSheet } from "react-native";
 import Carousel, {
@@ -13,6 +14,7 @@ import _ from "lodash";
 export interface ICarouselProps extends OriginCarouselProps<any> {
   children?: any;
   style?: ViewStyle;
+  data?: any[];
 }
 
 export default observer((props: ICarouselProps) => {

@@ -2,6 +2,7 @@ import bytes from "@src/libs/utils/bytes";
 import _ from "lodash";
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
+import { observable } from "mobx";
 import Path from "path";
 import React, { useEffect } from "react";
 import {
@@ -231,7 +232,7 @@ export default observer((props: IImageProps) => {
     error: false,
     show: false,
     loading: disableLoading === true ? false : true,
-    imageUri: Theme.UIImageLoading,
+    imageUri: source || Theme.UIImageLoading,
   });
   const dim = Dimensions.get("window");
   const baseStyle: ImageStyle = {
@@ -280,13 +281,12 @@ export default observer((props: IImageProps) => {
         getImage(source);
       }
     } else if (
-      typeof source === "number" ||
-      source.uri.indexOf("file://") > -1
+      (typeof source === "object" && source.uri.indexOf("file://") > -1) ||
+      typeof source === "number"
     ) {
       meta.loading = false;
       meta.imageUri = source;
     }
-
     // return () => {
     //   clearIncompleteImage(source.uri);
     // };
