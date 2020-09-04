@@ -2,6 +2,8 @@ import { default as overideTheme } from "../theme";
 import Fonts from "./fonts";
 
 const Theme = {
+  StatusBarStyle: "dark-content",
+  StatusBarBackgroundColor: "#ffffff",
   UIShadow: {
     shadowColor: "#000",
     shadowOffset: {

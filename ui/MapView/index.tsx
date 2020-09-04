@@ -45,8 +45,10 @@ export default observer((props: MapViewProps) => {
     onMapViewReady,
   } = props;
   const mapProps = { ...props };
+  const children = mapProps.children;
   delete mapProps.markers;
   delete mapProps.location;
+  delete mapProps.children;
   const defaultDelta = {
     latitudeDelta: 0.02,
     longitudeDelta: 0.02,
@@ -111,6 +113,7 @@ export default observer((props: MapViewProps) => {
         region={region}
         {...mapProps}
       ></MapViewNative>
+      {children}
     </View>
   );
 });

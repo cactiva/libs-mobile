@@ -1,5 +1,4 @@
-import Constants from "expo-constants";
-import * as FileSystem from "expo-file-system";
+import bytes from "@src/libs/utils/bytes";
 import _ from "lodash";
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
@@ -14,15 +13,15 @@ import {
   TextStyle,
   ViewStyle,
 } from "react-native";
+import { Constants, FileSystem } from "react-native-unimodules";
 import Theme from "../../theme";
 import Button from "../Button";
 import Icon from "../Icon";
 import Modal from "../Modal";
+import Spinner from "../Spinner";
 import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
-import bytes from "@src/libs/utils/bytes";
-import Spinner from "../Spinner";
 
 interface IStyle {
   preview?: ViewStyle;
@@ -102,6 +101,7 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       res = await downloadResumable.resumeAsync();
     }
     let cacheImage = getCached(uri);
+    console.log(res);
     if (res.status == 200) {
       cacheImage = {
         ...cacheImage,
@@ -135,7 +135,7 @@ const getImage = async ({ uri, cache }) => {
   try {
     const fileName = Path.basename(uri);
     const ext = Path.extname(uri);
-    const pathDir = FileSystem.cacheDirectory + Constants.manifest.slug + "/";
+    const pathDir = FileSystem.cacheDirectory + "/images/";
     const pathFile = pathDir + fileName;
 
     if (!ext) {
@@ -262,9 +262,14 @@ export default observer((props: IImageProps) => {
     }
     if (typeof source === "object" && source.uri.indexOf("http") > -1) {
       let cacheImage = getCached(source.uri);
+      console.log(cacheImage);
       if (!!cacheImage.uri && cacheImage.trying < 3 && !!cacheImage.loading) {
         getImage(source);
-      } else if (!cacheImage.uri || cacheImage.trying > 3) {
+      } else if (
+        !cacheImage.uri ||
+        cacheImage.trying > 3 ||
+        (!cacheImage.loading && !!cacheImage.error)
+      ) {
         cacheImage = {
           uri: source.uri,
           error: false,

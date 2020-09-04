@@ -1,7 +1,6 @@
-import Constants from "expo-constants";
 import * as Location from "expo-location";
-import * as Permissions from "expo-permissions";
 import { Platform } from "react-native";
+import { Constants, Permissions } from "react-native-unimodules";
 
 export const getLocation = () => {
   if (Platform.OS === "android" && !Constants.isDevice) {

@@ -1,8 +1,8 @@
 import { Camera, CameraProps } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import * as Permissions from "expo-permissions";
 import _ from "lodash";
+import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import {
@@ -11,18 +11,17 @@ import {
   Image as RNImage,
   Platform,
   ViewStyle,
-  StyleSheet,
 } from "react-native";
+import { Permissions } from "react-native-unimodules";
 import Theme from "../../theme";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Image from "../Image";
 import Modal from "../Modal";
+import Spinner from "../Spinner";
 import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
-import Spinner from "../Spinner";
-import { toJS } from "mobx";
 
 const reSizeImage = (uri) => {
   return new Promise(async (resolve) => {
@@ -243,10 +242,10 @@ const CameraPicker = observer((props: any) => {
                 })
                 .catch((e) => console.log(e));
             }
-            meta.tempValue = uri;
             if (typeof onCapture == "function") {
               onCapture(uri);
             }
+            meta.tempValue = uri;
           })
           .catch((e) => {
             let msg = e.message;

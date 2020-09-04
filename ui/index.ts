@@ -28,3 +28,4 @@ export { default as Container } from "./Container";
 export { default as ProgressBar } from "./ProgressBar";
 export { default as SectionList } from "./SectionList";
 export { default as BarCodeScanner } from "./BarCodeScanner";
+export { default as FastImage } from "./FastImage";
