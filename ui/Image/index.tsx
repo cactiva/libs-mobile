@@ -174,12 +174,13 @@ export default observer((props: IImageProps) => {
   const btnStyle: ViewStyle = {
     padding: 0,
     margin: 0,
-    paddingLeft: 0,
-    paddingRight: 0,
+    paddingHorizontal: 0,
     backgroundColor: "transparent",
     opacity: !preview ? 1 : undefined,
     width: _.get(cstyle, "width", undefined),
     height: _.get(cstyle, "height", undefined),
+    minWidth: _.get(cstyle, "width", undefined),
+    minHeight: _.get(cstyle, "height", undefined),
   };
 
   const onPress = () => {
@@ -202,6 +203,9 @@ export default observer((props: IImageProps) => {
       setTimeout(() => {
         delete storage[uri];
       }, 5000);
+    } else {
+      setError(false);
+      setLoading(false);
     }
   }, [storage[source.uri]]);
 

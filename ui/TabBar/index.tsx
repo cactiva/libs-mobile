@@ -1,6 +1,6 @@
 import Theme from "../../theme";
 import React from "react";
-import { StyleSheet, ViewStyle } from "react-native";
+import { StyleSheet, ViewStyle, Animated, StyleProp } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
@@ -20,7 +20,7 @@ export interface ITabBarProps {
   menu: IMenuProps[];
   template?: (props: IMenuProps) => JSX.Element;
   shadow?: boolean;
-  style?: ViewStyle;
+  style?: Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
 }
 
 export default (props: ITabBarProps) => {
@@ -33,12 +33,15 @@ export default (props: ITabBarProps) => {
   };
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   return (
-    <View type={"SafeAreaView"} {...props} style={cstyle}>
-      {menu.map((item) => {
-        const Template = template;
-        if (Template) return <Template key={item.path} {...item} />;
-        return <DefaultTemplate key={item.path} {...item} />;
-      })}
+    <View type={"SafeAreaView"}>
+      <Animated.View {...props} style={cstyle}>
+        {menu.map((item, index) => {
+          const Template = template;
+          if (Template)
+            return <Template key={item.path} index={index} {...item} />;
+          return <DefaultTemplate key={item.path} index={index} {...item} />;
+        })}
+      </Animated.View>
     </View>
   );
 };

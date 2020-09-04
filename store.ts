@@ -1,5 +1,5 @@
-import { observable, observe, toJS } from "mobx";
 import { AsyncStorage } from "react-native";
+import { observable, observe } from "mobx";
 
 const storage = AsyncStorage;
 const store = (name: string, data: any) => {
