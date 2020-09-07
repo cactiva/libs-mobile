@@ -23,6 +23,7 @@ import Spinner from "../Spinner";
 import libsStorage from "../store";
 import Text from "../Text";
 import View from "../View";
+import Path from "path";
 
 const reSizeImage = (uri) => {
   return new Promise(async (resolve) => {
@@ -86,7 +87,7 @@ export default observer((props: ICameraProps) => {
     isShown: false,
     loading: false,
     snap: false,
-    tempValue: value,
+    tempValue: undefined,
   });
   const requestPermission = () => {
     let permissionsRequest = [Permissions.CAMERA] as any;
@@ -133,12 +134,24 @@ export default observer((props: ICameraProps) => {
     }
   };
 
+  const checkValue = () => {
+    const fileNameTemp = Path.basename(meta.tempValue);
+    const fileNameOri = Path.basename(value);
+    if (fileNameTemp != fileNameOri) {
+      meta.tempValue = value;
+    }
+  };
+
   useEffect(() => {
     requestPermission();
     if (!value) {
       meta.snap = true;
     }
   }, []);
+
+  useEffect(() => {
+    checkValue();
+  }, [value]);
 
   if (
     (Platform.OS == "android" && libsStorage.hasCameraPermission == false) ||
