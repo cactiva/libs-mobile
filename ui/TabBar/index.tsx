@@ -33,12 +33,14 @@ export default (props: ITabBarProps) => {
   };
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   return (
-    <View type={"SafeAreaView"} {...props} style={cstyle}>
-      {menu.map((item) => {
-        const Template = template;
-        if (Template) return <Template key={item.path} {...item} />;
-        return <DefaultTemplate key={item.path} {...item} />;
-      })}
+    <View type={"SafeAreaView"}>
+      <View type={"AnimatedView"} {...props} style={cstyle}>
+        {menu.map((item) => {
+          const Template = template;
+          if (Template) return <Template key={item.path} {...item} />;
+          return <DefaultTemplate key={item.path} {...item} />;
+        })}
+      </View>
     </View>
   );
 };
