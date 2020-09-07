@@ -1,14 +1,10 @@
 import _ from "lodash";
-import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
-import { observable } from "mobx";
-import React, { useEffect, useState, Component } from "react";
-import { uuid } from "../../utils";
-import Button, { IButtonProps } from "../Button";
-import Field from "../Field";
-import View, { IViewProps } from "../View";
+import React from "react";
 import { ViewStyle } from "react-native";
+import Button, { IButtonProps } from "../Button";
 import Text from "../Text";
+import View, { IViewProps } from "../View";
 
 interface IField {
   path: string;
