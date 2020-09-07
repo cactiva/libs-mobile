@@ -1,179 +1,160 @@
 import _ from "lodash";
+import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
-import React from "react";
-import { ViewStyle } from "react-native";
-import Button, { IButtonProps } from "../Button";
-import Text from "../Text";
+import React, { useEffect } from "react";
+import { uuid } from "../../utils";
+import Button from "../Button";
+import Field from "../Field";
 import View, { IViewProps } from "../View";
-
-interface IField {
-  path: string;
-  label: string;
-  required: boolean;
-  status: boolean;
-  messages: string[];
-}
-
-interface IError {
-  path: string;
-  message: string;
-}
-
-export interface IInitializeForm {
-  field?: (path: string, label: string, isRequired: boolean) => void;
-  getValue?: (path: string) => string | number | undefined | null;
-  setValue?: (path: string, value: any) => void;
-  validate?: (path: string) => string[];
-  remove?: (path: string) => void;
-  submit?: (params?: any) => void;
-}
+import { ViewStyle } from "react-native";
 
 export interface IFromProps extends IViewProps {
   data?: any;
   style?: ViewStyle;
-  // children?: ({ getValue, setValue, validate, submit, isRequired }) => void;
-  children?: ({
-    field,
-    getValue,
-    setValue,
-    validate,
-    remove,
-    submit,
-  }: IInitializeForm) => void;
-  setValue?: (path: string, value: any) => void;
-  onSubmit?: (data?: any, params?: any) => void;
+  children?: any;
+  setValue?: (value, path) => void;
+  onSubmit?: (data) => void;
   onError?: (fields?: any) => void;
-  validate?: (data) => IError[];
-  requiredMessage?: string;
-  renderSubmitComponent?: (submit: () => void) => void;
-  submitProps?: IButtonProps;
-  disableSubmitComponent?: boolean;
+  reinitValidate?: () => boolean;
 }
 
 export default observer((props: IFromProps) => {
-  const {
-    children,
-    style,
-    data,
-    onSubmit,
-    onError,
-    renderSubmitComponent,
-    submitProps,
-    disableSubmitComponent,
-  } = props;
-  const requiredMessage = props.requiredMessage || "Field is required.";
+  const { children, style } = props;
   const meta = useObservable({
-    field: [] as IField[],
+    fields: [],
+    submit: false,
   });
-  const field = (path, label, required) => {
-    meta.field.push({
-      path,
-      label,
-      required,
-      status: true,
-      messages: [],
-    });
-  };
-  const getValue = (path) => {
-    return _.get(data, path);
-  };
-  const checkValid = (path, value) => {
-    let fieldIndex = meta.field.findIndex((x) => x.path === path);
-    if (fieldIndex > -1) {
-      let required = meta.field[fieldIndex].required;
-      if (
-        !!required &&
-        (value === null || value === undefined || value === "")
-      ) {
-        meta.field[fieldIndex].messages = [requiredMessage];
-        meta.field[fieldIndex].status = false;
-      } else {
-        meta.field[fieldIndex].status = true;
-        meta.field[fieldIndex].messages = [];
-      }
-      if (typeof props.validate == "function") {
-        let err = props
-          .validate(data)
-          .filter((x) => (typeof x === "object" ? x.path === path : true))
-          .map((x) => {
-            if (typeof x == "object") return x.message;
-            else return x;
-          });
-        meta.field[fieldIndex].messages = meta.field[
-          fieldIndex
-        ].messages.concat(err);
-        if (meta.field[fieldIndex].messages.length > 0) {
-          meta.field[fieldIndex].status = false;
-        } else {
-          meta.field[fieldIndex].status = true;
-        }
-      }
-    }
-  };
-  const setValue = (path, value) => {
-    if (typeof props.setValue == "function") {
-      props.setValue(path, value);
-    } else {
-      _.set(data, path, value);
-    }
-    checkValid(path, value);
-  };
-  const validate = (path) => {
-    let field = meta.field.find((x) => x.path === path);
-    if (!!field) {
-      return field.messages;
-    }
-    return [];
-  };
-  const submit = (params?: any) => {
-    let field = meta.field;
-    field.map((x) => {
-      let path = x.path,
-        value = _.get(data, path);
-      checkValid(path, value);
-    });
-    const error = meta.field.filter((x) => x.status == false);
-    if (error.length > 0) {
-      onError(error);
-    } else {
-      onSubmit(data, params);
-    }
-  };
-  const remove = (path) => {
-    let fieldIndex = meta.field.findIndex((x) => x.path === path);
-    if (fieldIndex > -1) {
-      meta.field.splice(fieldIndex, 1);
-    }
-  };
-  const canSubmit = () => {
-    const error = meta.field.filter((x) => x.status == false);
-    return error.length === 0;
-  };
+  meta.fields = [];
+
   return (
     <View style={style}>
-      {children({ field, getValue, setValue, validate, remove, submit })}
-      {typeof renderSubmitComponent === "function"
-        ? renderSubmitComponent(submit)
-        : !disableSubmitComponent && (
-            <Button
-              style={{
-                marginTop: 15,
-              }}
-              onPress={submit}
-              disabled={canSubmit()}
-              {...submitProps}
-            >
-              <Text
-                style={{
-                  color: "#fff",
-                  fontSize: 15,
-                  fontWeight: "500",
-                }}
-              >
-                Save
-              </Text>
-            </Button>
-          )}
+      {Array.isArray(children) ? (
+        children.map((el) => (
+          <RenderChild key={uuid()} child={el} meta={meta} formProps={props} />
+        ))
+      ) : (
+        <RenderChild
+          key={uuid()}
+          child={children}
+          meta={meta}
+          formProps={props}
+        />
+      )}
     </View>
   );
+});
+
+const RenderChild = observer((props: any) => {
+  const { child, meta, formProps } = props;
+  const { data, setValue, onSubmit, onError } = formProps;
+  let custProps: any = child.props;
+  const updateFields = (path, status, label) => {
+    let field = meta.fields.find((x) => x.path === path);
+    if (!!field) {
+      field.status = status;
+    } else {
+      meta.fields.push({
+        path,
+        label,
+        status,
+      });
+    }
+  };
+  const defaultSetValue = (value: any, path: any) => {
+    if (!!setValue) setValue(value, path);
+    else {
+      if (!!data && !!path) {
+        _.set(data, path, value);
+      } else if (!data) {
+        alert(`Failed to set value to ${path}: Form data props is undefined`);
+      }
+    }
+    updateFields(
+      path,
+      !(value === undefined || value === null || value === ""),
+      custProps.label
+    );
+  };
+  const onPress = () => {
+    meta.submit = true;
+    let err = meta.fields.filter((e) => !e.status);
+    if (err.length === 0) {
+      onSubmit && onSubmit(data);
+    } else {
+      onError && onError(toJS(err));
+    }
+  };
+
+  if (child.type === Field) {
+    let cstmValidate = custProps.validate;
+
+    const validate = () => {
+      let msgs: string[] = [];
+      let field = meta.fields.find((x) => x.path === custProps.path);
+      if (!!field && !field.status) msgs.push("Field is required.");
+      else msgs = [];
+      if (!!cstmValidate) {
+        let customMsgs: string[] = cstmValidate();
+        msgs = [...msgs, ...customMsgs];
+        if (msgs.length > 0 && !!field) field.status = false;
+      }
+
+      return !!meta.submit ? msgs : [];
+    };
+
+    custProps = {
+      ...custProps,
+      validate,
+      value: _.get(custProps, "value", "") || _.get(data, custProps.path, ""),
+      setValue: (value: any) => defaultSetValue(value, custProps.path),
+    };
+
+    useEffect(() => {
+      let val = true;
+      if (custProps.isRequired) {
+        let v = _.get(data, custProps.path, undefined);
+        val = !(v === undefined || v === null || v === "");
+      }
+      updateFields(custProps.path, val, custProps.label);
+    }, [_.get(data, custProps.path)]);
+    const Component = child.type;
+    return <Component {...custProps} />;
+  } else if (
+    child.type === Button &&
+    !!custProps.type &&
+    custProps.type.toLowerCase() == "submit"
+  ) {
+    custProps = {
+      ...custProps,
+      onPress: onPress,
+    };
+    const Component = child.type;
+    return <Component {...custProps} />;
+  } else if (Array.isArray(child)) {
+    return child.map((el) => (
+      <RenderChild key={uuid()} child={el} meta={meta} formProps={formProps} />
+    ));
+  } else if (!child || !child.type || !child.props || !child.props.children) {
+    return child;
+  } else {
+    const custProps = child.props;
+    const Component = child.type;
+    const children = child.props.children;
+    return (
+      <Component {...custProps}>
+        {Array.isArray(children) ? (
+          children.map((el) => (
+            <RenderChild
+              key={uuid()}
+              child={el}
+              meta={meta}
+              formProps={formProps}
+            />
+          ))
+        ) : (
+          <RenderChild child={children} meta={meta} formProps={formProps} />
+        )}
+      </Component>
+    );
+  }
 });

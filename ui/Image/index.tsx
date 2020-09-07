@@ -102,7 +102,6 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       res = await downloadResumable.resumeAsync();
     }
     let cacheImage = getCached(uri);
-    console.log(res);
     if (res.status == 200) {
       cacheImage = {
         ...cacheImage,
@@ -263,7 +262,6 @@ export default observer((props: IImageProps) => {
     }
     if (typeof source === "object" && source.uri.indexOf("http") > -1) {
       let cacheImage = getCached(source.uri);
-      console.log(cacheImage);
       if (!!cacheImage.uri && cacheImage.trying < 3 && !!cacheImage.loading) {
         getImage(source);
       } else if (

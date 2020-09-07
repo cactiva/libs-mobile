@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { observer } from "mobx-react-lite";
-import React, { useState, useEffect, ComponentElement, Component } from "react";
+import React, { useState } from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
 import Theme from "../../theme";
 import Camera from "../Camera";
@@ -12,18 +12,17 @@ import Text from "../Text";
 import View from "../View";
 import Button from "../Button";
 import Icon from "../Icon";
-import { IInitializeForm } from "../Form";
 
 interface IFieldProps {
   label?: string;
   hiddenLabel?: boolean;
-  path: string;
-  value?: string | number | null | undefined;
-  onChange?: (path: string, value: any) => void;
+  path?: string;
+  setValue?: (value) => void;
+  value?: any;
   children?: any;
   isRequired?: boolean;
   readonly?: boolean;
-  validate?: string[];
+  onChange?: (value) => void;
   onBlur?: () => void;
   style?: ViewStyle;
   prefix?: any;
@@ -34,27 +33,21 @@ interface IFieldProps {
     wrapper?: ViewStyle;
     input?: TextStyle;
   };
-  initialize?: IInitializeForm;
-  hiddenField?: boolean;
-  helpText?: any[];
+  validate?: () => string[];
 }
 
 export default observer((props: IFieldProps) => {
   let {
-    path,
     label,
     readonly,
     style,
     prefix,
     suffix,
     disableBoxStyle,
+    validate,
     isRequired,
     hiddenLabel,
-    initialize,
-    hiddenField,
-    helpText,
   } = props;
-  const childprops = _.clone(_.get(props, "children.props", {}));
   const [password, setPassword] = useState(true);
   const Component = props.children.type;
   const fieldStyle = StyleSheet.flatten([Theme.UIField, style]);
@@ -78,12 +71,7 @@ export default observer((props: IFieldProps) => {
     defErrorLabelStyle,
     Theme.UILabel,
   ]);
-  const helpTextStyle = {
-    fontSize: 12,
-    lineHeight: 14,
-    color: "#333",
-    paddingVertical: 5,
-  };
+
   const boxStyle =
     Component === Camera ||
     Component === RadioGroup ||
@@ -105,6 +93,17 @@ export default observer((props: IFieldProps) => {
     boxStyle,
     _.get(props, "styles.wrapper"),
   ]);
+
+  const handleOnChange = (value) => {
+    props.setValue && props.setValue(value);
+    props.onChange && props.onChange(value);
+  };
+  const childprops = _.clone(_.get(props, "children.props", {}));
+  childprops.editable = !readonly;
+  childprops.value = _.get(props, "value", "");
+  childprops.onChange = handleOnChange;
+  childprops.onBlur = _.get(props, "onBlur", undefined);
+
   const baseInpStyle = {
     flexGrow: 1,
     height: 44,
@@ -116,39 +115,15 @@ export default observer((props: IFieldProps) => {
   ) {
     delete baseInpStyle.height;
   }
+
   const inputStyle = StyleSheet.flatten([
     baseInpStyle,
     childprops.style,
     _.get(props, "styles.input"),
   ]);
 
-  const handleOnChange = (value) => {
-    if (!!initialize && typeof initialize.setValue == "function") {
-      initialize.setValue(path, value);
-    }
-    if (typeof props.onChange == "function") {
-      props.onChange(path, value);
-    }
-  };
-
-  let value;
-  if (props.value != undefined && props.value != null) {
-    value = props.value;
-  } else if (!!initialize && typeof initialize.getValue == "function") {
-    value = initialize.getValue(path);
-  }
-
-  childprops.editable = !readonly;
-  childprops.value = value;
-  childprops.onChange = handleOnChange;
-  childprops.onBlur = props.onBlur;
-
   switch (Component) {
     case Select:
-      childprops.customProps = {
-        label,
-        ...childprops.customProps,
-      };
       childprops.searchProps = {
         placeholder: "Search " + props.label,
       };
@@ -162,6 +137,8 @@ export default observer((props: IFieldProps) => {
       childprops.onChangeText = handleOnChange;
       break;
   }
+  let errorMsg: string[] = [];
+  if (!!validate) errorMsg = validate();
 
   if (childprops.type === "password") {
     let exist = suffix;
@@ -190,29 +167,6 @@ export default observer((props: IFieldProps) => {
     childprops.type = !!password ? "password" : "text";
   }
 
-  let errorMsg: string[] = [];
-  if (Array.isArray(props.validate)) {
-    errorMsg = props.validate;
-  }
-  if (!!initialize && typeof initialize.validate == "function") {
-    errorMsg = initialize.validate(path);
-  }
-
-  useEffect(() => {
-    if (!!initialize.field) {
-      initialize.field(path, label, isRequired);
-    }
-    return () => {
-      if (!!initialize.remove) {
-        initialize.remove(path);
-      }
-    };
-  }, []);
-
-  if (hiddenField === true) {
-    initialize.remove(path);
-    return null;
-  }
   return (
     <View style={fieldStyle}>
       {!!label && hiddenLabel != true && (
@@ -225,16 +179,6 @@ export default observer((props: IFieldProps) => {
         <Component {...childprops} style={inputStyle} />
         {!!suffix && typeof suffix === "function" ? suffix() : suffix}
       </View>
-      {Array.isArray(helpText) &&
-        helpText.map((text, idx) => {
-          if (typeof text === "string")
-            return (
-              <Text key={idx} style={helpTextStyle}>
-                {text}
-              </Text>
-            );
-          else return text;
-        })}
       {Array.isArray(errorMsg) &&
         errorMsg.map((message, idx) => (
           <Text key={idx} style={errorLabelStyle}>
