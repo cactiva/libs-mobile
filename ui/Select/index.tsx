@@ -1,11 +1,11 @@
 import { shadeColor } from "@src/libs/utils/color";
 import _ from "lodash";
+import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
-import { observable } from "mobx";
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { StyleSheet, TextStyle, ViewProps, ViewStyle } from "react-native";
 import Theme from "../../theme";
-import { fuzzyMatch, uuid } from "../../utils";
+import { fuzzyMatch } from "../../utils";
 import Button, { IButtonProps } from "../Button";
 import Container, { IContainerProps } from "../Container";
 import FlatList, { IFlatListProps } from "../FlatList";
@@ -16,7 +16,6 @@ import { IScreenProps } from "../Screen";
 import Text, { ITextProps } from "../Text";
 import TopBar, { ITopBarProps } from "../TopBar";
 import View from "../View";
-import { toJS } from "mobx";
 
 interface IItemProps {
   label: any;

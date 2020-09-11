@@ -1,24 +1,13 @@
 import _ from "lodash";
 import { observer } from "mobx-react-lite";
 import React from "react";
-import {
-  StatusBar,
-  StatusBarProps,
-  StyleSheet,
-  ViewProps,
-  ViewStyle,
-} from "react-native";
+import { StatusBar, StatusBarProps, StyleSheet, ViewProps } from "react-native";
 import Theme from "../../theme";
 import libsStorage from "../store";
 import View from "../View";
 
-interface IStyles {
-  statusbar?: ViewStyle;
-}
-
 export interface IScreenProps extends ViewProps {
   children?: any;
-  styles?: IStyles;
   statusBar?: StatusBarProps;
 }
 

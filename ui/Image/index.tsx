@@ -1,4 +1,4 @@
-import bytes from "@src/libs/utils/bytes";
+import bytes from "../../utils/bytes";
 import _ from "lodash";
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
@@ -102,7 +102,6 @@ const downloadImage = async (uri, pathFile, resumeData = null) => {
       res = await downloadResumable.resumeAsync();
     }
     let cacheImage = getCached(uri);
-    console.log(res);
     if (res.status == 200) {
       cacheImage = {
         ...cacheImage,
@@ -145,6 +144,7 @@ const getImage = async ({ uri, cache }) => {
         ...cacheImage,
         error: true,
         loading: false,
+        trying: 4,
       };
       setCached(uri, cacheImage);
       return;
@@ -185,7 +185,7 @@ const getImage = async ({ uri, cache }) => {
       let cacheImage = getCached(uri);
       if (!!cacheImage && !!cacheImage.error) {
         cacheImage.trying += 1;
-        if (cacheImage.trying >= 3) {
+        if (cacheImage.trying > 3) {
           cacheImage = {
             ...cacheImage,
             error: true,
@@ -232,7 +232,7 @@ export default observer((props: IImageProps) => {
     error: false,
     show: false,
     loading: disableLoading === true ? false : true,
-    imageUri: source || Theme.UIImageLoading,
+    imageUri: Theme.UIImageLoading,
   });
   const dim = Dimensions.get("window");
   const baseStyle: ImageStyle = {
@@ -261,16 +261,16 @@ export default observer((props: IImageProps) => {
     if (typeof libsStorage.cacheImages !== "object") {
       libsStorage.cacheImages = {};
     }
-    if (typeof source === "object" && source.uri.indexOf("http") > -1) {
+    if (
+      (typeof source === "object" && source.uri.indexOf("file://") > -1) ||
+      typeof source === "number"
+    ) {
+      meta.loading = false;
+      meta.imageUri = source;
+    } else if (typeof source === "object" && source.uri.indexOf("http") > -1) {
       let cacheImage = getCached(source.uri);
-      console.log(cacheImage);
-      if (!!cacheImage.uri && cacheImage.trying < 3 && !!cacheImage.loading) {
-        getImage(source);
-      } else if (
-        !cacheImage.uri ||
-        cacheImage.trying > 3 ||
-        (!cacheImage.loading && !!cacheImage.error)
-      ) {
+      let newSource = !cacheImage.uri;
+      if (newSource) {
         cacheImage = {
           uri: source.uri,
           error: false,
@@ -279,13 +279,32 @@ export default observer((props: IImageProps) => {
         };
         setCached(source.uri, cacheImage);
         getImage(source);
+      } else {
+        getImage(source);
       }
-    } else if (
-      (typeof source === "object" && source.uri.indexOf("file://") > -1) ||
-      typeof source === "number"
-    ) {
-      meta.loading = false;
-      meta.imageUri = source;
+      // let cached =
+      //   !!cacheImage &&
+      //   !!cacheImage.uri &&
+      //   cacheImage.trying < 3 &&
+      //   !!cacheImage.loading;
+      // if (!!cacheImage.uri && cacheImage.trying < 3 && !!cacheImage.loading) {
+      //   getImage(source);
+      // } else if (
+      //   !cacheImage.uri ||
+      //   !cacheImage.path ||
+      //   cacheImage.trying > 3 ||
+      //   (!cacheImage.loading && !!cacheImage.error)
+      // ) {
+      //   console.log("masuk");
+      //   cacheImage = {
+      //     uri: source.uri,
+      //     error: false,
+      //     loading: true,
+      //     trying: 1,
+      //   };
+      //   setCached(source.uri, cacheImage);
+      //   getImage(source);
+      // }
     }
     // return () => {
     //   clearIncompleteImage(source.uri);
@@ -346,10 +365,17 @@ const Thumbnail = observer((props: any) => {
   const onPress = () => {
     meta.show = true;
   };
-  const resizeMode = meta.loading
+  const resizeMode = !!meta.loading
     ? "contain"
     : _.get(props, "resizeMode", "contain");
-  const style = meta.loading ? loadingStyle : cstyle;
+  const style = !!meta.loading ? loadingStyle : cstyle;
+  let source = meta.imageUri;
+  if (typeof source == "object") {
+    source = {
+      ...source,
+      cache: "reload",
+    };
+  }
 
   return (
     <>
@@ -369,7 +395,7 @@ const Thumbnail = observer((props: any) => {
             defaultSource={Theme.UIImageLoading}
             {...props}
             resizeMode={resizeMode}
-            source={meta.imageUri}
+            source={source}
             style={style}
           />
           <LoadingProgress {...props} mode={"thumbnail"} />
@@ -492,7 +518,13 @@ const PreviewImage = observer((props: any) => {
     },
   ]);
   const style = !!meta.loading ? loadingStyle : previewStyle;
-
+  let source = meta.imageUri;
+  if (typeof source == "object") {
+    source = {
+      ...source,
+      cache: "reload",
+    };
+  }
   return (
     <Modal visible={meta.show} onRequestClose={onRequestClose}>
       <View
@@ -508,7 +540,7 @@ const PreviewImage = observer((props: any) => {
         <Image
           {...props}
           resizeMode={resizeMode}
-          source={meta.imageUri}
+          source={source}
           style={style}
         />
         <Button
