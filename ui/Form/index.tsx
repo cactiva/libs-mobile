@@ -61,11 +61,6 @@ const RenderChild = observer((props: any) => {
     }
   };
   const defaultSetValue = (value: any, path: any) => {
-    updateFields(
-      path,
-      !(value === undefined || value === null || value === ""),
-      custProps.label
-    );
     if (!!setValue) setValue(value, path);
     else {
       if (!!data && !!path) {
@@ -74,6 +69,11 @@ const RenderChild = observer((props: any) => {
         alert(`Failed to set value to ${path}: Form data props is undefined`);
       }
     }
+    updateFields(
+      path,
+      !(value === undefined || value === null || value === ""),
+      custProps.label
+    );
   };
   const onPress = () => {
     meta.submit = true;

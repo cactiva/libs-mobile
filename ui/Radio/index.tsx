@@ -64,6 +64,7 @@ export default (props: IRadioProps) => {
       ? {
           ...Theme.UIInput,
           backgroundColor: "white",
+          opacity: 1,
         }
       : {};
   const btnActiveStyle =
@@ -80,6 +81,7 @@ export default (props: IRadioProps) => {
     btnActiveStyle,
     !!checked && _.get(props, "styles.selected.button", {}),
   ]);
+
   return (
     <Button
       mode={"clean"}
@@ -89,6 +91,11 @@ export default (props: IRadioProps) => {
       }}
       style={style}
       disabled={editable === false}
+      styles={{
+        disabled: {
+          opacity: editable === false ? 0.7 : undefined,
+        },
+      }}
     >
       {mode === "default" || !mode || typeof iconProps === "object" ? (
         <Icon

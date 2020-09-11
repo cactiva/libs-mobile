@@ -79,9 +79,9 @@ const RenderChild = (props: any) => {
   const { onChange, value } = radioGroupProps;
   const editable =
     radioGroupProps.editable === false
-      ? radioGroupProps.editable
+      ? false
       : props.editable === false
-      ? props.editable
+      ? false
       : true;
   if (child.type === Radio) {
     const handleChange = () => {
