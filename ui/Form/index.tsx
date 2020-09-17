@@ -60,6 +60,7 @@ export default observer((props: IFromProps) => {
     renderSubmitComponent,
     submitProps,
     disableSubmitComponent,
+    data
   } = props;
   const requiredMessage = props.requiredMessage || "Field is required.";
   const meta = useObservable({
@@ -75,7 +76,7 @@ export default observer((props: IFromProps) => {
     });
   };
   const getValue = (path) => {
-    return _.get(props.data, path);
+    return _.get(data, path);
   };
   const checkValid = (path, value) => {
     let fieldIndex = meta.field.findIndex((x) => x.path === path);
@@ -93,7 +94,7 @@ export default observer((props: IFromProps) => {
       }
       if (typeof props.validate == "function") {
         let err = props
-          .validate(props.data)
+          .validate(data)
           .filter((x) => (typeof x === "object" ? x.path === path : true))
           .map((x) => {
             if (typeof x == "object") return x.message;
@@ -114,9 +115,7 @@ export default observer((props: IFromProps) => {
     if (typeof props.setValue == "function") {
       props.setValue(path, value);
     } else {
-      let d = toJS(props.data);
-      _.set(d, path, value);
-      props.data = d;
+      _.set(data, path, value);
     }
     checkValid(path, value);
   };
@@ -131,14 +130,14 @@ export default observer((props: IFromProps) => {
     let field = meta.field;
     field.map((x) => {
       let path = x.path,
-        value = _.get(props.data, path);
+        value = _.get(data, path);
       checkValid(path, value);
     });
     const error = meta.field.filter((x) => x.status == false);
     if (error.length > 0) {
       onError(error);
     } else {
-      onSubmit(toJS(props.data), params);
+      onSubmit(toJS(data), params);
     }
   };
   const remove = (path) => {
