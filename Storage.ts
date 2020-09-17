@@ -1,4 +1,4 @@
-import { observable, observe } from "mobx";
+import { observable, observe, toJS } from "mobx";
 import { AsyncStorage } from "react-native";
 
 const Storage = (name: string, data: any) => {
@@ -17,8 +17,9 @@ const Storage = (name: string, data: any) => {
       }
     })
     .finally(() => {
-      observe(obs, () => {
-        AsyncStorage.setItem(vname, JSON.stringify(obs));
+      observe(obs, (e) => {
+        let newObjc = toJS(obs);
+        AsyncStorage.setItem(vname, JSON.stringify(newObjc));
       });
     });
 
