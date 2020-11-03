@@ -3,26 +3,22 @@ import {
   Animated,
   KeyboardAvoidingView,
   KeyboardAvoidingViewProps,
+  ScrollView,
   ScrollViewProps,
   StyleSheet,
   View,
   ViewProps as OriViewProps,
+  ViewProps,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
-import Theme from "../../theme";
 import { SafeAreaView } from "react-native";
 import { observer } from "mobx-react-lite";
+import Theme from "../../config/theme";
 
 export interface IViewProps
   extends OriViewProps,
     ScrollViewProps,
     KeyboardAvoidingViewProps {
-  type?:
-    | "View"
-    | "SafeAreaView"
-    | "AnimatedView"
-    | "ScrollView"
-    | "KeyboardAvoidingView";
+  type?: "View" | "SafeAreaView" | "ScrollView" | "KeyboardAvoidingView";
   shadow?: boolean;
   childRef?: any;
   children?: any;
@@ -34,8 +30,6 @@ export default observer((props: IViewProps) => {
   let cstyle = StyleSheet.flatten([shadowStyle, style]);
 
   switch (type) {
-    case "AnimatedView":
-      return <Animated.View {...props} style={cstyle} />;
     case "ScrollView":
       return (
         <ScrollView

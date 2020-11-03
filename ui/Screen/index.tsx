@@ -1,29 +1,24 @@
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import { observer } from "mobx-react-lite";
 import React from "react";
-import {
-  StatusBar,
-  StatusBarProps,
-  StyleSheet,
-  ViewProps,
-  ViewStyle,
-} from "react-native";
-import Theme from "../../theme";
-import libsStorage from "../store";
-import View from "../View";
+import { Platform, StatusBar, StatusBarProps, StyleSheet } from "react-native";
+import Theme from "../../config/theme";
+import View, { IViewProps } from "../View";
 
-interface IStyles {
-  statusbar?: ViewStyle;
-}
-
-export interface IScreenProps extends ViewProps {
+export interface IScreenProps extends IViewProps {
   children?: any;
-  styles?: IStyles;
+  scrollRef?: any;
   statusBar?: StatusBarProps;
 }
 
+export const statusBarHeight: number =
+  Platform.OS === "android" && !!StatusBar.currentHeight
+    ? StatusBar.currentHeight
+    : 0;
+
 export default observer((props: IScreenProps) => {
-  const { style, statusBar } = props;
+  const { style, statusBar, scrollRef } = props;
   let cstyle = StyleSheet.flatten([
     {
       flexGrow: 1,
@@ -35,38 +30,26 @@ export default observer((props: IScreenProps) => {
     style,
   ]);
   return (
-    <>
-      <StatusBar
-        backgroundColor={_.get(
-          statusBar,
-          "backgroundColor",
-          Theme.StatusBarBackgroundColor
-        )}
-        barStyle={_.get(statusBar, "barStyle", Theme.StatusBarStyle as any)}
-        animated={true}
-      />
-      <View type={"SafeAreaView"} {...props} style={cstyle}>
-        {props.children}
-        {!!libsStorage.toast && libsStorage.toast()}
+    <View type={"SafeAreaView"} {...props} style={cstyle}>
+      <View
+        style={{
+          height: statusBarHeight,
+          position: "absolute",
+          top: 0,
+        }}
+      >
+        <StatusBar
+          backgroundColor={get(
+            statusBar,
+            "backgroundColor",
+            Theme.StatusBarBackgroundColor
+          )}
+          barStyle={get(statusBar, "barStyle", Theme.StatusBarStyle as any)}
+          animated={true}
+          translucent={true}
+        />
       </View>
-    </>
+      {props.children}
+    </View>
   );
 });
-
-const show = (component: () => any, duration: number = 0) => {
-  libsStorage.toast = component;
-  if (duration > 0) {
-    setTimeout(() => {
-      libsStorage.toast = null;
-    }, duration);
-  }
-};
-
-const dismiss = () => {
-  libsStorage.toast = null;
-};
-
-export const Toast = {
-  show,
-  dismiss,
-};

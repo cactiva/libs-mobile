@@ -1,8 +1,9 @@
+import Theme from "../../config/theme";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import React, { useEffect, useState } from "react";
 import { Platform, TextStyle, ViewStyle } from "react-native";
-import Theme from "../../theme";
 import { dateFormat } from "../../utils/date";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
@@ -56,7 +57,7 @@ export default (props: IDateTimeProps) => {
     }
   };
 
-  const dateString = (val) => {
+  const dateString = (val: any) => {
     if (!!val) {
       let date = new Date(val);
       if (mode === "date") {
@@ -83,10 +84,10 @@ export default (props: IDateTimeProps) => {
     fontSize: Theme.UIFontSize,
     flexGrow: 1,
     flexShrink: 1,
-    ..._.get(props, "styles.label"),
+    ...get(props, "styles.label"),
   };
 
-  const iconStyle = { margin: 0, ..._.get(props, "styles.icon") };
+  const iconStyle = { margin: 0, ...get(props, "styles.icon") };
 
   useEffect(() => {
     if (!!showPicker) setVisible(showPicker);
@@ -147,11 +148,11 @@ const DatePickerModal = (props: any) => {
     setVisible(false);
     onBlur && onBlur();
   };
-  const onChange = (date) => {
+  const onChange = (date: any) => {
     setVisible(false);
     onChangePicker(date);
   };
-  const setValue = (ev, date) => {
+  const setValue = (ev: any, date: any) => {
     if (Platform.OS === "android") {
       if (ev.type === "dismissed") {
         dismiss();
@@ -205,11 +206,6 @@ const DatePickerModal = (props: any) => {
           style: {
             backgroundColor: "rgba(0,0,0,0.3)",
             flexGrow: 1,
-          },
-          styles: {
-            statusbar: {
-              backgroundColor: "rgba(0,0,0,0.3)",
-            },
           },
         }}
       >

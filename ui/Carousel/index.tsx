@@ -1,20 +1,18 @@
-import Theme from "../../theme";
-import { observer, useObservable } from "mobx-react-lite";
-import { observable } from "mobx";
-import React, { useEffect, useRef } from "react";
-import { Dimensions, ViewStyle, StyleSheet } from "react-native";
+import Theme from "@libs/config/theme";
+import _ from "lodash";
+import { observer, useLocalObservable } from "mobx-react-lite";
+import React, { useRef } from "react";
+import { Dimensions, StyleSheet, ViewStyle } from "react-native";
 import Carousel, {
   CarouselProps as OriginCarouselProps,
   Pagination as PaginationOrigin,
   PaginationProps as PaginationPropsOrigin,
 } from "react-native-snap-carousel";
-import { uuid } from "../../utils";
-import _ from "lodash";
 
 export interface ICarouselProps extends OriginCarouselProps<any> {
   children?: any;
   style?: ViewStyle;
-  data?: any[];
+  data: any[];
 }
 
 export default observer((props: ICarouselProps) => {
@@ -22,11 +20,10 @@ export default observer((props: ICarouselProps) => {
   const carouselProps: any = { ...props };
   const ref = useRef(null);
   const dim = Dimensions.get("window");
-  const meta = useObservable({
+  const meta = useLocalObservable(() => ({
     activeSlide: 0,
-    // dataLength: ,
-  });
-  const onSnapItem = (index) => {
+  }));
+  const onSnapItem = (index: number) => {
     meta.activeSlide = index;
     carouselProps.onSnapToItem && carouselProps.onSnapToItem(index);
   };
@@ -50,8 +47,8 @@ export default observer((props: ICarouselProps) => {
       />
       {!!children &&
         (Array.isArray(children) ? (
-          children.map((child) => {
-            return <RenderChild key={uuid()} child={child} meta={meta} />;
+          children.map((child, key) => {
+            return <RenderChild key={String(key)} child={child} meta={meta} />;
           })
         ) : (
           <RenderChild child={children} meta={meta} length={data.length} />
@@ -107,8 +104,10 @@ const RenderChild = observer(({ child, meta, length }: any) => {
       <Component {...child.props}>
         {!!children &&
           (Array.isArray(children) ? (
-            children.map((child) => {
-              return <RenderChild key={uuid()} child={child} meta={meta} />;
+            children.map((child, key) => {
+              return (
+                <RenderChild key={String(key)} child={child} meta={meta} />
+              );
             })
           ) : (
             <RenderChild child={children} meta={meta} />

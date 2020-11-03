@@ -1,4 +1,4 @@
-import Theme from "../../theme";
+import Theme from "../../config/theme";
 import React from "react";
 import { ActivityIndicator, ActivityIndicatorProps } from "react-native";
 

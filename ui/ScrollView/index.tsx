@@ -1,4 +1,5 @@
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import React from "react";
 import { Platform, StyleSheet, ViewStyle } from "react-native";
 import View, { IViewProps } from "../View";
@@ -19,7 +20,7 @@ export default observer((props: IContainerProps) => {
   const cstyle = StyleSheet.flatten([
     baseStyle,
     style,
-    _.get(props, "contentContainerStyle", {}),
+    get(props, "contentContainerStyle", {}),
   ]);
 
   return (
@@ -39,7 +40,7 @@ export default observer((props: IContainerProps) => {
       >
         {!!alert && alert()}
       </View>
-      {_.get(props, "scrollEnabled", true) === false ? (
+      {get(props, "scrollEnabled", true) === false ? (
         <View {...props} style={cstyle} childRef={scrollRef} />
       ) : (
         <View

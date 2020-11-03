@@ -1,33 +1,34 @@
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import { observer } from "mobx-react-lite";
-import React, { useState, useEffect, ComponentElement, Component } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
-import Theme from "../../theme";
+import Theme from "../../config/theme";
+import Button from "../Button";
 import Camera from "../Camera";
 import CheckboxGroup from "../CheckboxGroup";
+import { IInitializeForm } from "../Form";
+import Icon from "../Icon";
 import Input from "../Input";
 import RadioGroup from "../RadioGroup";
 import Select from "../Select";
 import Text from "../Text";
 import View from "../View";
-import Button from "../Button";
-import Icon from "../Icon";
-import { IInitializeForm } from "../Form";
 
 interface IFieldProps {
-  label?: string;
-  hiddenLabel?: boolean;
   path: string;
+  label: string;
+  hiddenLabel?: boolean;
   value?: string | number | null | undefined;
   onChange?: (path: string, value: any) => void;
-  children?: any;
+  children: any;
   isRequired?: boolean;
   readonly?: boolean;
   validate?: string[];
   onBlur?: () => void;
   style?: ViewStyle;
-  prefix?: any;
-  suffix?: any;
+  prefix?: ReactNode;
+  suffix?: ReactNode;
   disableBoxStyle?: Boolean;
   styles?: {
     label?: TextStyle;
@@ -48,13 +49,13 @@ export default observer((props: IFieldProps) => {
     prefix,
     suffix,
     disableBoxStyle,
-    isRequired,
+    isRequired = false,
     hiddenLabel,
     initialize,
     hiddenField,
     helpText,
   } = props;
-  const childprops = _.clone(_.get(props, "children.props", {}));
+  const childprops = { ...get(props, "children.props", {}) };
   const [password, setPassword] = useState(true);
   const Component = props.children.type;
   const fieldStyle = StyleSheet.flatten([Theme.UIField, style]);
@@ -66,7 +67,7 @@ export default observer((props: IFieldProps) => {
   const labelStyle = StyleSheet.flatten([
     defLabelStyle,
     Theme.UILabel,
-    _.get(props, "styles.label"),
+    get(props, "styles.label"),
   ]);
   const defErrorLabelStyle: TextStyle = {
     fontSize: 12,
@@ -103,9 +104,9 @@ export default observer((props: IFieldProps) => {
     },
     Theme.UIInput,
     boxStyle,
-    _.get(props, "styles.wrapper"),
+    get(props, "styles.wrapper"),
   ]);
-  const baseInpStyle = {
+  const baseInpStyle: any = {
     flexGrow: 1,
     height: 44,
   };
@@ -119,10 +120,10 @@ export default observer((props: IFieldProps) => {
   const inputStyle = StyleSheet.flatten([
     baseInpStyle,
     childprops.style,
-    _.get(props, "styles.input"),
+    get(props, "styles.input"),
   ]);
 
-  const handleOnChange = (value) => {
+  const handleOnChange = (value: any) => {
     if (!!initialize && typeof initialize.setValue == "function") {
       initialize.setValue(path, value);
     }
@@ -199,17 +200,17 @@ export default observer((props: IFieldProps) => {
   }
 
   useEffect(() => {
-    if (!!initialize.field) {
+    if (!!initialize && !!initialize.field) {
       initialize.field(path, label, isRequired);
     }
     return () => {
-      if (!!initialize.remove) {
+      if (!!initialize && !!initialize.remove) {
         initialize.remove(path);
       }
     };
   }, []);
 
-  if (hiddenField === true) {
+  if (!!initialize && initialize.remove && hiddenField === true) {
     initialize.remove(path);
     return null;
   }

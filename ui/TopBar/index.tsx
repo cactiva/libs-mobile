@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import React, { useEffect } from "react";
 import {
   Platform,
@@ -9,9 +10,10 @@ import {
   ViewStyle,
   BackHandler,
 } from "react-native";
-import Theme from "../../theme";
+import Theme from "../../config/theme";
 import Button, { IButtonProps } from "../Button";
 import Icon, { IIconProps } from "../Icon";
+import { statusBarHeight } from "../Screen";
 import Text, { ITextProps } from "../Text";
 import View from "../View";
 
@@ -51,16 +53,17 @@ export default (props: ITopBarProps) => {
   const { goBack, canGoBack } = useNavigation();
   const shadowStyle = enableShadow !== false ? Theme.UIShadow : {};
   const baseStyle: ViewStyle = {
+    paddingTop: statusBarHeight,
     flexDirection: "row",
     alignItems: "center",
-    height: 56,
-    minHeight: 56,
+    minHeight: 56 + statusBarHeight,
     backgroundColor: Theme.UIColors.primary,
     zIndex: 9,
     margin: 0,
     padding: 8,
     flexShrink: 1,
   };
+  console.log(baseStyle);
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   const backButtonStyle: ViewStyle = {
     minHeight: 30,
@@ -72,8 +75,8 @@ export default (props: ITopBarProps) => {
     paddingLeft: 4,
     paddingRight: 4,
     marginRight: 12,
-    ..._.get(customProps, "backButton.style", {}),
-    ..._.get(styles, "backButton", {}),
+    ...get(customProps, "backButton.style", {}),
+    ...get(styles, "backButton", {}),
   };
   const titleStyle: TextStyle = {
     lineHeight: 30,
@@ -82,8 +85,8 @@ export default (props: ITopBarProps) => {
     overflow: "hidden",
     flexGrow: 1,
     paddingHorizontal: 10,
-    ..._.get(customProps, "title.style", {}),
-    ..._.get(styles, "title", {}),
+    ...get(customProps, "title.style", {}),
+    ...get(styles, "title", {}),
   };
   const onPressBack = !!actionBackButton
     ? actionBackButton
@@ -113,7 +116,7 @@ export default (props: ITopBarProps) => {
         {leftAction}
         {backButton && (
           <Button
-            {..._.get(customProps, "backButton", {})}
+            {...get(customProps, "backButton", {})}
             style={backButtonStyle}
             onPress={onPressBack}
           >
@@ -122,10 +125,10 @@ export default (props: ITopBarProps) => {
               size={24}
               style={{
                 margin: 0,
-                ..._.get(styles, "iconBackButton", {}),
+                ...get(styles, "iconBackButton", {}),
               }}
               color={"white"}
-              {..._.get(customProps, "iconBackButton", {})}
+              {...get(customProps, "iconBackButton", {})}
             />
           </Button>
         )}
@@ -133,7 +136,7 @@ export default (props: ITopBarProps) => {
           <Text
             ellipsizeMode={"tail"}
             numberOfLines={1}
-            {..._.get(customProps, "title", {})}
+            {...get(customProps, "title", {})}
             style={titleStyle}
           >
             {children}

@@ -1,10 +1,10 @@
 import { Camera, CameraProps } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import _ from "lodash";
-import { toJS } from "mobx";
-import { observer, useObservable } from "mobx-react-lite";
-import { observable } from "mobx";
+import set from "lodash.set";
+import get from "lodash.get";
+import { action, toJS } from "mobx";
+import { observer, useLocalObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
@@ -14,20 +14,20 @@ import {
   ViewStyle,
 } from "react-native";
 import { Permissions } from "react-native-unimodules";
-import Theme from "../../theme";
+import Theme from "../../config/theme";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Image from "../Image";
 import Modal from "../Modal";
 import Spinner from "../Spinner";
-import libsStorage from "../store";
+import libsStorage from "../libsStorage";
 import Text from "../Text";
 import View from "../View";
 
-const reSizeImage = (uri) => {
+const reSizeImage = (uri: string) => {
   return new Promise(async (resolve) => {
     try {
-      const success = async (w, h) => {
+      const success = async (w: number, h: number) => {
         let width = w;
         let height = h;
         if (w > h && w > 1080) {
@@ -42,10 +42,10 @@ const reSizeImage = (uri) => {
           [{ resize: { width, height } }],
           { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
         )
-          .then((resizedPhoto) => {
+          .then((resizedPhoto: any) => {
             resolve(resizedPhoto.uri);
           })
-          .catch((e) => {
+          .catch((e: any) => {
             resolve(uri);
           });
       };
@@ -82,12 +82,12 @@ export interface ICameraProps {
 
 export default observer((props: ICameraProps) => {
   const { style, value, iconProps, editable } = props;
-  const meta = useObservable({
+  const meta = useLocalObservable(() => ({
     isShown: false,
     loading: false,
     snap: false,
     tempValue: value,
-  });
+  }));
   const requestPermission = () => {
     let permissionsRequest = [Permissions.CAMERA] as any;
     if (Platform.OS === "ios") {
@@ -120,7 +120,7 @@ export default observer((props: ICameraProps) => {
     ...style,
   };
 
-  const onPress = () => {
+  const onPress = action(() => {
     if (
       (Platform.OS == "android" && !!libsStorage.hasCameraPermission) ||
       (Platform.OS == "ios" &&
@@ -131,12 +131,12 @@ export default observer((props: ICameraProps) => {
     } else {
       requestPermission();
     }
-  };
+  });
 
   useEffect(() => {
     requestPermission();
     if (!value) {
-      meta.snap = true;
+      action(() => (meta.snap = true));
     }
   }, []);
 
@@ -183,14 +183,14 @@ const Preview = observer((props: any) => {
   };
   const iconStyle = {
     ...Theme.UIShadow,
-    ..._.get(props, "styles.icon", {}),
+    ...get(props, "styles.icon", {}),
   };
   const previewStyle = {
     height,
     width: "100%",
     flex: 1,
     overflow: "hidden",
-    ..._.get(props, "styles.preview", {}),
+    ...get(props, "styles.preview", {}),
   };
   if (!!source.uri)
     return (
@@ -217,7 +217,7 @@ const CameraPicker = observer((props: any) => {
   const { value, onCapture, compress, meta } = props;
   const camera = useRef(null as any);
   const backgroundColor = new Animated.Value(0);
-  const imageSnap = () => {
+  const imageSnap = action(() => {
     try {
       if (!!value && !meta.snap) {
         meta.snap = true;
@@ -233,7 +233,7 @@ const CameraPicker = observer((props: any) => {
             quality: 0.8,
             base64: false,
           })
-          .then(async (res) => {
+          .then(async (res: any) => {
             onRequestClose();
             let uri = res.uri;
             if (compress == true) {
@@ -248,7 +248,7 @@ const CameraPicker = observer((props: any) => {
             }
             meta.tempValue = uri;
           })
-          .catch((e) => {
+          .catch((e: any) => {
             let msg = e.message;
             if (!msg) {
               msg = "Failed to take a picture. Please try again.";
@@ -265,8 +265,8 @@ const CameraPicker = observer((props: any) => {
       alert(msg);
       onRequestClose();
     }
-  };
-  const imagePicker = async () => {
+  });
+  const imagePicker = action(async () => {
     try {
       if (!!value && !meta.snap) {
         meta.snap = true;
@@ -303,16 +303,16 @@ const CameraPicker = observer((props: any) => {
       alert(msg);
       onRequestClose();
     }
-  };
+  });
 
-  const onRequestClose = () => {
+  const onRequestClose = action(() => {
     meta.isShown = false;
     meta.snap = false;
     meta.loading = false;
-  };
+  });
 
   const cameraProps = {
-    onMountError: (e) => {
+    onMountError: (e: any) => {
       let msg = e.nativeEvent.message;
       if (!msg) {
         msg = "Camera preview cannot been started.";
@@ -327,8 +327,8 @@ const CameraPicker = observer((props: any) => {
       type: Camera.Constants.Type.back,
       ratio: "16:9",
       flashMode: "auto",
-      ..._.get(props, "cameraProps", {}),
-      ..._.get(libsStorage, "camera", {}),
+      ...get(props, "cameraProps", {}),
+      ...get(libsStorage, "camera", {}),
     };
     libsStorage.camera = camProps;
   }, []);
@@ -344,11 +344,6 @@ const CameraPicker = observer((props: any) => {
       screenProps={{
         style: {
           backgroundColor: "black",
-        },
-        styles: {
-          statusbar: {
-            backgroundColor: "black",
-          },
         },
       }}
     >
@@ -395,8 +390,8 @@ const CameraPicker = observer((props: any) => {
 });
 
 const RatioButton = observer(({ cameraTools }: any) => {
-  let ratio = _.get(cameraTools, "ratio", true);
-  const handleRatio = () => {
+  let ratio = get(cameraTools, "ratio", true);
+  const handleRatio = action(() => {
     if (libsStorage.camera.ratio === "1:1") {
       libsStorage.camera.ratio = "4:3";
     } else if (libsStorage.camera.ratio === "4:3") {
@@ -404,7 +399,7 @@ const RatioButton = observer(({ cameraTools }: any) => {
     } else {
       libsStorage.camera.ratio = "1:1";
     }
-  };
+  });
   if (!ratio) return null;
   return (
     <Button
@@ -430,8 +425,8 @@ const RatioButton = observer(({ cameraTools }: any) => {
 });
 
 const FlashButton = observer(({ cameraTools }: any) => {
-  let flash = _.get(cameraTools, "flash", true);
-  const handleFlash = () => {
+  let flash = get(cameraTools, "flash", true);
+  const handleFlash = action(() => {
     if (libsStorage.camera.flashMode === "auto") {
       libsStorage.camera.flashMode = "on";
     } else if (libsStorage.camera.flashMode === "on") {
@@ -439,7 +434,7 @@ const FlashButton = observer(({ cameraTools }: any) => {
     } else {
       libsStorage.camera.flashMode = "auto";
     }
-  };
+  });
   if (!flash) return null;
   return (
     <Button
@@ -493,7 +488,7 @@ const CameraToolsTop = observer((props: any) => {
 });
 
 const PickerButton = observer(({ cameraTools, imagePicker, meta }: any) => {
-  let picker = _.get(cameraTools, "picker", true);
+  let picker = get(cameraTools, "picker", true);
   if (!picker) return null;
   if (!!meta.tempValue && !meta.snap && !meta.loading) return null;
 
@@ -512,7 +507,7 @@ const PickerButton = observer(({ cameraTools, imagePicker, meta }: any) => {
 });
 
 const ReverseButton = observer(({ cameraTools, handleReverse, meta }: any) => {
-  let reverse = _.get(cameraTools, "reverse", true);
+  let reverse = get(cameraTools, "reverse", true);
   if (!reverse) return null;
   if (!!meta.tempValue && !meta.snap && !meta.loading) return null;
 
@@ -635,7 +630,7 @@ const CameraAction = observer((props: any) => {
 const CameraView = observer((props: any) => {
   const { meta, camera, bg, cameraProps } = props;
   const dim = Dimensions.get("window");
-  const ratio = _.get(libsStorage, "camera.ratio", "16:9").split(":"),
+  const ratio = get(libsStorage, "camera.ratio", "16:9").split(":"),
     width = dim.width,
     height = dim.width * (ratio[0] / ratio[1]);
   const preview = !!meta.tempValue && !meta.snap && !meta.loading;

@@ -8,6 +8,7 @@ export interface IIconProps {
     | "Entypo"
     | "EvilIcons"
     | "Feather"
+    | "Fontisto"
     | "FontAwesome"
     | "FontAwesome5"
     | "Foundation"

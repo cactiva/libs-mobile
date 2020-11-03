@@ -64,7 +64,8 @@ const ModalScanner = observer((props: any) => {
   const { isShow, setisShow, barCodeProps } = props;
 
   const dim = Dimensions.get("window");
-  const onBarCodeScanned = (props) => {
+  const onBarCodeScanned = (props: any) => {
+    if (!isShow) return;
     if (!!barCodeProps.onBarCodeScanned) barCodeProps.onBarCodeScanned(props);
     else console.log(props);
     setisShow(false);
@@ -113,7 +114,7 @@ const ModalScanner = observer((props: any) => {
       <BarCodeScanner
         type={_.get(barCodeProps, "type", "back")}
         barCodeTypes={_.get(barCodeProps, "barCodeTypes", undefined)}
-        onBarCodeScanned={!!isShow ? onBarCodeScanned : undefined}
+        onBarCodeScanned={onBarCodeScanned}
         style={{
           width: dim.width,
           height: dim.height,

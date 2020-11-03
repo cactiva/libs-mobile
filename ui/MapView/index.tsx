@@ -1,5 +1,4 @@
-import { observer, useObservable } from "mobx-react-lite";
-import { observable } from "mobx";
+import { observer } from "mobx-react-lite";
 import React, { useEffect, useRef, useState } from "react";
 import MapViewNative, {
   MapViewProps as MapViewPropsOrigin,
@@ -55,7 +54,7 @@ export default observer((props: MapViewProps) => {
     longitudeDelta: 0.02,
   };
   const [mapReady, setMapReady] = useState(false);
-  const mapRef = useRef(null);
+  const mapRef: any = useRef(null);
 
   let region = {
     latitude: -0.7056041715972583,
@@ -80,20 +79,21 @@ export default observer((props: MapViewProps) => {
   }
 
   useEffect(() => {
-    if (
-      fitToSuppliedMarkers !== false &&
-      mapRef.current !== null &&
-      !!mapReady &&
-      Array.isArray(markerIds) &&
-      markerIds.length > 0
-    ) {
-      setTimeout(() => {
+    setTimeout(() => {
+      if (
+        fitToSuppliedMarkers !== false &&
+        !!mapRef &&
+        !!mapRef.current &&
+        !!mapReady &&
+        Array.isArray(markerIds) &&
+        markerIds.length > 0
+      ) {
         mapRef.current.fitToSuppliedMarkers(
           markerIds,
           fitToSuppliedMarkersOption
         );
-      }, 0);
-    }
+      }
+    }, 0);
     onMapViewReady && onMapViewReady(mapReady);
   }, [mapReady, markerIds]);
 
@@ -123,7 +123,7 @@ export const Marker = (props: MarkerProps) => {
   return <MarkerOrigin {...props} />;
 };
 
-export function getRegionForCoordinate(point) {
+export function getRegionForCoordinate(point: any) {
   // points should be an array of { latitude: X, longitude: Y }
   let minX, maxX, minY, maxY;
 

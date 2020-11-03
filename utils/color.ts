@@ -1,4 +1,4 @@
-export const shadeColor = (color, amt: number) => {
+export const shadeColor = (color: string, amt: number) => {
   var usePound = false;
 
   if (color[0] == "#") {

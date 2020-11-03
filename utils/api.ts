@@ -1,23 +1,18 @@
-import axios from "axios";
-import _ from "lodash";
-const config = require("../../../setting.json");
+import axios, { AxiosRequestConfig } from "axios";
+import set from "lodash.set";
+import get from "lodash.get";
 
-export default (e: any) => {
+export interface IAPI extends AxiosRequestConfig {
+  onError?: (res: any) => void;
+}
+
+export default (e: IAPI) => {
   let url = e.url;
   const headers = {
     "content-type": "application/json",
-    ..._.get(e, "headers", {}),
+    ...get(e, "headers", {}),
   };
-  if (e.url.indexOf("http") !== 0) {
-    if (!!config.backend) {
-      url = `${config.backend.protocol}://${config.backend.host}:${config.backend.port}${e.url}`;
-    }
-
-    if (!!config.mode && config.mode === "dev" && !!config["backend-dev"]) {
-      url = `${config["backend-dev"].protocol}://${config["backend-dev"].host}:${config["backend-dev"].port}${e.url}`;
-    }
-  }
-  let onError;
+  let onError: any;
   if (e.onError) {
     onError = e.onError;
   }
@@ -26,7 +21,7 @@ export default (e: any) => {
     try {
       const res = await axios({ ...e, url, headers });
       if (res.status >= 200 && res.status < 300) {
-        if (res.data) resolve(res.data);
+        if (!!res.data) resolve(res.data);
         else resolve(res);
       } else {
         if (res.data) onError(res.data);

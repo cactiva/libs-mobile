@@ -1,4 +1,5 @@
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import React from "react";
 import {
   TextStyle,
@@ -6,7 +7,7 @@ import {
   TouchableOpacityProps,
   ViewStyle,
 } from "react-native";
-import Theme from "../../theme";
+import Theme from "../../config/theme";
 import Text from "../Text";
 
 interface IStyles {
@@ -33,11 +34,11 @@ export default (props: IButtonProps) => {
     children,
     label,
   } = props;
-  const cprops = _.clone(props);
+  const cprops = { ...props };
   delete cprops.styles;
   const disabledStyle = {
     opacity: 0.5,
-    ..._.get(props, "styles.disabled", {}),
+    ...get(props, "styles.disabled", {}),
   };
   const shadowStyle = !!shadow ? Theme.UIShadow : {};
   const containedStyle: ViewStyle = {
@@ -76,7 +77,7 @@ export default (props: IButtonProps) => {
   return (
     <TouchableOpacity activeOpacity={0.6} {...cprops} style={cstyle}>
       {!children && !!label ? (
-        <Text style={_.get(props, "styles.label", {})}>{label}</Text>
+        <Text style={get(props, "styles.label", {})}>{label}</Text>
       ) : (
         children
       )}

@@ -1,16 +1,14 @@
-import _ from "lodash";
-import { toJS } from "mobx";
-import { observer, useObservable } from "mobx-react-lite";
-import { observable } from "mobx";
-import React, { useEffect, useState, Component } from "react";
-import { uuid } from "../../utils";
-import Button, { IButtonProps } from "../Button";
-import Field from "../Field";
-import View, { IViewProps } from "../View";
+import set from "lodash.set";
+import get from "lodash.get";
+import { action } from "mobx";
+import { observer, useLocalObservable } from "mobx-react-lite";
+import React from "react";
 import { ViewStyle } from "react-native";
+import Button, { IButtonProps } from "../Button";
 import Text from "../Text";
+import View, { IViewProps } from "../View";
 
-interface IField {
+export interface IField {
   path: string;
   label: string;
   required: boolean;
@@ -18,14 +16,14 @@ interface IField {
   messages: string[];
 }
 
-interface IError {
+export interface IError {
   path: string;
   message: string;
 }
 
 export interface IInitializeForm {
   field?: (path: string, label: string, isRequired: boolean) => void;
-  getValue?: (path: string) => string | number | undefined | null;
+  getValue?: ((path: string) => string) | number | undefined | null;
   setValue?: (path: string, value: any) => void;
   validate?: (path: string) => string[];
   remove?: (path: string) => void;
@@ -35,8 +33,7 @@ export interface IInitializeForm {
 export interface IFromProps extends IViewProps {
   data?: any;
   style?: ViewStyle;
-  // children?: ({ getValue, setValue, validate, submit, isRequired }) => void;
-  children?: ({
+  children: ({
     field,
     getValue,
     setValue,
@@ -45,9 +42,9 @@ export interface IFromProps extends IViewProps {
     submit,
   }: IInitializeForm) => void;
   setValue?: (path: string, value: any) => void;
-  onSubmit?: (data?: any, params?: any) => void;
-  onError?: (fields?: any) => void;
-  validate?: (data) => IError[];
+  onSubmit?: (data: any, params?: any) => void;
+  onError?: (fields: IField[]) => void;
+  validate?: (data: any) => IError[];
   requiredMessage?: string;
   renderSubmitComponent?: (submit: () => void) => void;
   submitProps?: IButtonProps;
@@ -66,10 +63,10 @@ export default observer((props: IFromProps) => {
     disableSubmitComponent,
   } = props;
   const requiredMessage = props.requiredMessage || "Field is required.";
-  const meta = useObservable({
+  const meta = useLocalObservable(() => ({
     field: [] as IField[],
-  });
-  const field = (path, label, required) => {
+  }));
+  const field = action((path: string, label: string, required: boolean) => {
     meta.field.push({
       path,
       label,
@@ -77,11 +74,11 @@ export default observer((props: IFromProps) => {
       status: true,
       messages: [],
     });
+  });
+  const getValue = (path: string) => {
+    return get(data, path);
   };
-  const getValue = (path) => {
-    return _.get(data, path);
-  };
-  const checkValid = (path, value) => {
+  const checkValid = action((path: string, value: any) => {
     let fieldIndex = meta.field.findIndex((x) => x.path === path);
     if (fieldIndex > -1) {
       let required = meta.field[fieldIndex].required;
@@ -113,42 +110,42 @@ export default observer((props: IFromProps) => {
         }
       }
     }
-  };
-  const setValue = (path, value) => {
+  });
+  const setValue = action((path: string, value: any) => {
     if (typeof props.setValue == "function") {
       props.setValue(path, value);
     } else {
-      _.set(data, path, value);
+      set(data, path, value);
     }
     checkValid(path, value);
-  };
-  const validate = (path) => {
+  });
+  const validate = action((path: string) => {
     let field = meta.field.find((x) => x.path === path);
     if (!!field) {
       return field.messages;
     }
     return [];
-  };
-  const submit = (params?: any) => {
+  });
+  const submit = action(() => {
     let field = meta.field;
     field.map((x) => {
       let path = x.path,
-        value = _.get(data, path);
+        value = get(data, path);
       checkValid(path, value);
     });
-    const error = meta.field.filter((x) => x.status == false);
-    if (error.length > 0) {
+    const error: any = meta.field.filter((x) => x.status == false);
+    if (error.length > 0 && !!onError) {
       onError(error);
-    } else {
-      onSubmit(data, params);
+    } else if (!!onSubmit) {
+      onSubmit(data);
     }
-  };
-  const remove = (path) => {
+  });
+  const remove = action((path: string) => {
     let fieldIndex = meta.field.findIndex((x) => x.path === path);
     if (fieldIndex > -1) {
       meta.field.splice(fieldIndex, 1);
     }
-  };
+  });
   const canSubmit = () => {
     const error = meta.field.filter((x) => x.status == false);
     return error.length === 0;

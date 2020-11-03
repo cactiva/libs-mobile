@@ -1,13 +1,11 @@
 import React from "react";
 import {
-  TextProps as OriginTextProps,
-  Text,
   StyleSheet,
+  Text,
+  TextProps as OriginTextProps,
   TextStyle,
 } from "react-native";
-import _ from "lodash";
-import Theme from "../../theme";
-import Fonts from "../../assets/fonts";
+import Theme from "../../config/theme";
 
 export interface ITextProps extends OriginTextProps {
   children: any;

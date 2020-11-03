@@ -1,8 +1,8 @@
 import React from "react";
 import { ViewStyle, StyleSheet } from "react-native";
-import { uuid } from "../../utils";
 import View from "../View";
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import Text from "../Text";
 import Checkbox, { ICheckboxProps, CheckboxType } from "../Checkbox";
 import { formatedItems } from "../Select";
@@ -50,13 +50,13 @@ export default (props: ICheckboxGroupProps) => {
   return (
     <View style={baseStyle}>
       {Array.isArray(customChildren) ? (
-        customChildren.map((el: any) => {
+        customChildren.map((el: any, key: number) => {
           return (
             <RenderChild
               checkboxGroupProps={props}
               mode={mode}
               child={el}
-              key={uuid()}
+              key={String(key)}
             />
           );
         })
@@ -72,7 +72,7 @@ const RenderChild = (props: any) => {
   const { editable, onChange, value } = checkboxGroupProps;
   if (child.type === Checkbox) {
     let checked = false;
-    let selected;
+    let selected: any;
     if (Array.isArray(value)) {
       selected = value.findIndex((x) => {
         if (child.props.value == x || child.props.label == x) {
@@ -109,12 +109,12 @@ const RenderChild = (props: any) => {
     return (
       <Component {...child.props}>
         {Array.isArray(children) ? (
-          children.map((el) => (
+          children.map((el: any, key: number) => (
             <RenderChild
               radioGroupProps={checkboxGroupProps}
               mode={mode}
               child={el}
-              key={uuid()}
+              key={String(key)}
             />
           ))
         ) : (
@@ -122,7 +122,6 @@ const RenderChild = (props: any) => {
             radioGroupProps={checkboxGroupProps}
             mode={mode}
             child={children}
-            key={uuid()}
           />
         )}
       </Component>

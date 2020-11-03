@@ -1,11 +1,12 @@
 import React from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
-import Theme from "../../theme";
+import Theme from "../../config/theme";
 import Button from "../Button";
 import Icon from "../Icon";
 import Text, { ITextProps } from "../Text";
 import View from "../View";
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 
 export type CheckboxType = "default" | "button";
 
@@ -33,8 +34,8 @@ export default (props: ICheckboxProps) => {
   };
   const labelStyle = StyleSheet.flatten([
     baseLabelStyle,
-    _.get(props, "labelProps.style", {}),
-    _.get(props, "styles.label", {}),
+    get(props, "labelProps.style", {}),
+    get(props, "styles.label", {}),
   ]);
   const baseStyle = {
     margin: 0,

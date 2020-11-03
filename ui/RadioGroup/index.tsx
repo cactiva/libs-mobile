@@ -1,9 +1,9 @@
 import React from "react";
 import { ViewStyle, StyleSheet, TextStyle } from "react-native";
-import { uuid } from "../../utils";
 import Radio, { RadioModeType, IRadioProps } from "../Radio";
 import View from "../View";
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import Text from "../Text";
 import { formatedItems } from "../Select";
 
@@ -57,13 +57,13 @@ export default (props: IRadioGroupProps) => {
   return (
     <View style={baseStyle}>
       {Array.isArray(customChildren) ? (
-        customChildren.map((el: any) => {
+        customChildren.map((el: any, key: number) => {
           return (
             <RenderChild
               radioGroupProps={props}
               mode={mode}
               child={el}
-              key={uuid()}
+              key={String(key)}
             />
           );
         })
@@ -94,7 +94,7 @@ const RenderChild = (props: any) => {
     return (
       <Radio
         {...child.props}
-        styles={_.get(radioGroupProps, "styles", {})}
+        styles={get(radioGroupProps, "styles", {})}
         checked={checked}
         mode={mode}
         onPress={handleChange}
@@ -109,12 +109,12 @@ const RenderChild = (props: any) => {
     return (
       <Component {...child.props}>
         {Array.isArray(children) ? (
-          children.map((el) => (
+          children.map((el: any, key: number) => (
             <RenderChild
               radioGroupProps={radioGroupProps}
               mode={mode}
               child={el}
-              key={uuid()}
+              key={String(key)}
             />
           ))
         ) : (
@@ -122,7 +122,6 @@ const RenderChild = (props: any) => {
             radioGroupProps={radioGroupProps}
             mode={mode}
             child={children}
-            key={uuid()}
           />
         )}
       </Component>

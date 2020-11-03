@@ -1,7 +1,8 @@
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import React, { useRef } from "react";
 import { StyleSheet, TextInput, TextInputProps, TextStyle } from "react-native";
-import Theme from "../../theme";
+import Theme from "../../config/theme";
 import Text from "../Text";
 
 export type IInputType =
@@ -87,7 +88,7 @@ export default (props: IInputProps) => {
     ...cprops,
     style: cstyle,
     value: !!value ? value : "",
-    placeholder: _.get(cprops, "placeholder", ""),
+    placeholder: get(cprops, "placeholder", ""),
   };
 
   let Component = TextInput;

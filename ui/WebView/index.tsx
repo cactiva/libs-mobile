@@ -2,10 +2,11 @@ import React from "react";
 import { WebView, WebViewProps } from "react-native-webview";
 import View from "../View";
 import Image, { IImageProps } from "../Image";
-import Theme from "../../theme";
 import Spinner from "../Spinner";
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import { Dimensions } from "react-native";
+import Theme from "@libs/config/theme";
 
 export interface IWebViewProps extends WebViewProps {
   loadingImage?: IImageProps;
@@ -47,7 +48,7 @@ const LoadingScreen = (props: any) => {
       }}
     >
       <Image
-        source={_.get(props, "webViewProps.loadingImage", Theme.UIImageLoading)}
+        source={get(props, "webViewProps.loadingImage", Theme.UIImageLoading)}
         style={{
           width: dim.width,
           height: dim.width / 2,

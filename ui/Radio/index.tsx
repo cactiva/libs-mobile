@@ -1,7 +1,8 @@
-import _ from "lodash";
+import set from "lodash.set";
+import get from "lodash.get";
 import React, { FunctionComponent } from "react";
 import { StyleSheet, TextStyle, ViewStyle } from "react-native";
-import Theme from "../../theme";
+import Theme from "../../config/theme";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Text, { ITextProps } from "../Text";
@@ -44,10 +45,10 @@ export default (props: IRadioProps) => {
       : {};
   const labelStyle = StyleSheet.flatten([
     baseLabelStyle,
-    _.get(props, "labelProps.style", {}),
-    _.get(props, "styles.label", {}),
+    get(props, "labelProps.style", {}),
+    get(props, "styles.label", {}),
     labelActiveStyle,
-    !!checked && _.get(props, "styles.selected.label", {}),
+    !!checked && get(props, "styles.selected.label", {}),
   ]);
   const baseStyle = {
     margin: 0,
@@ -76,9 +77,9 @@ export default (props: IRadioProps) => {
   const style: any = StyleSheet.flatten([
     baseStyle,
     btnStyle,
-    _.get(props, "style", {}),
+    get(props, "style", {}),
     btnActiveStyle,
-    !!checked && _.get(props, "styles.selected.button", {}),
+    !!checked && get(props, "styles.selected.button", {}),
   ]);
   return (
     <Button
