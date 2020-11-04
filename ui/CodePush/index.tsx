@@ -6,6 +6,7 @@ import Loading from "./Loading";
 
 interface ICodePush extends ViewProps {
   children: ReactNode;
+  mode?: string;
 }
 
 const Main = (props: ICodePush) => {
@@ -56,7 +57,11 @@ const Main = (props: ICodePush) => {
   };
 
   useEffect(() => {
-    init();
+    if (props.mode === "production") {
+      init();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   if (!!loading) {
