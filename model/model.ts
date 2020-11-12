@@ -1,3 +1,4 @@
+import debounce from "lodash.debounce";
 import {
   action,
   computed,
@@ -10,8 +11,6 @@ import {
 } from "mobx";
 import { AsyncStorage } from "react-native";
 import { HasManyClass, HasManyOptions } from "./hasmany";
-import { applicationId } from "expo-application";
-import debounce from "lodash.debounce";
 
 export interface Type<T> extends Function {
   new (...args: any[]): T;
@@ -23,13 +22,18 @@ export interface ModelOptions {
   storageName?: string;
 }
 
-export interface IQueryOption {}
-
-export type IQuery = (IQueryOption | string | string[] | IQuery)[];
+export interface IQuery<T> {
+  take?: number;
+  skip?: number;
+}
 
 export abstract class Model<M extends Model = any> {
   public _parent?: M;
   private _opt: ModelOptions = {};
+  // private static _primaryKey = "id";
+  // private static _tableName = "";
+  // private static _modelName = "";
+  private _init: boolean = false;
 
   constructor(options?: ModelOptions) {}
 
@@ -97,6 +101,7 @@ export abstract class Model<M extends Model = any> {
   }
 
   private _initMobx(self: any) {
+    if (self._init) return;
     const obj = {} as any;
 
     const props: string[] = [];
@@ -126,6 +131,7 @@ export abstract class Model<M extends Model = any> {
           props.push(i);
         }
       }
+      self._init = true;
     }
 
     const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(self));
@@ -204,28 +210,32 @@ export abstract class Model<M extends Model = any> {
   }
 
   private async loadFromLocalStorage(props: string[]) {
-    let storeName =
-      this._opt.storageName || applicationId || this.constructor.name;
+    let storeName = this._opt.storageName || this.constructor.name;
 
     let data = await AsyncStorage.getItem(storeName);
-    data = !!data ? data : "{}";
+    let dataStr: any = !!data ? data : "{}";
 
     try {
-      const content = JSON.parse(data);
+      const content = JSON.parse(dataStr);
       this._loadJSON(content);
     } catch (e) {}
   }
 
   private saveToLocalStorage(obj: any) {
-    let storeName =
-      this._opt.storageName || applicationId || this.constructor.name;
-    saveStorage(storeName, obj);
+    let storeName = this._opt.storageName || this.constructor.name;
+    let str = JSON.stringify(obj);
+    AsyncStorage.setItem(storeName, str);
   }
 
   get _json() {
     const result: any = {};
     const self: any = this;
+    const except = Object.getOwnPropertyNames(Object.getPrototypeOf(self));
+
     for (let i of Object.getOwnPropertyNames(self)) {
+      if (except.indexOf(i) > -1) {
+        continue;
+      }
       if (
         i !== "constructor" &&
         i.indexOf("_") !== 0 &&
@@ -281,6 +291,7 @@ export abstract class Model<M extends Model = any> {
 
   _loadJSON(obj: any, mapping?: any) {
     let value: Model<M> = obj;
+    const except = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
 
     const applyValue = (
       key: string,
@@ -294,47 +305,59 @@ export abstract class Model<M extends Model = any> {
     };
 
     let i: keyof Model<M>;
-    for (i in value) {
-      let key: keyof Model<M> = i;
-      let valueMeta: any = undefined;
-
-      if (mapping) {
-        if (mapping[i]) {
-          if (Array.isArray(mapping[i])) {
-            if (mapping[i].length === 2) {
-              key = mapping[i][0];
-              valueMeta = mapping[i][1];
-            }
-          } else {
-            key = mapping[i];
-          }
-        } else if (this[i] === undefined) {
+    try {
+      for (i in value) {
+        let key: keyof Model<M> = i;
+        let valueMeta: any = undefined;
+        if (except.indexOf(key) > -1) {
           continue;
         }
-      }
 
-      if (typeof this[key] !== "object") {
-        runInAction(() => {
-          (this as any)[key] = applyValue(key, value[i], valueMeta);
-        });
-      } else {
-        if (this[key] instanceof Model) {
-          this[key]._loadJSON(applyValue(key, value[i], valueMeta));
-        } else if (this[key] instanceof HasManyClass) {
-          const c: HasManyClass<Model<M>, M> = this[key];
-          const result = value[i].map((e: any) => {
-            return c.create(e, valueMeta);
-          });
-
-          this[key].list = result;
-        } else if (typeof value[i] !== "function") {
+        if (mapping) {
+          if (mapping[i]) {
+            if (Array.isArray(mapping[i])) {
+              if (mapping[i].length === 2) {
+                key = mapping[i][0];
+                valueMeta = mapping[i][1];
+              }
+            } else {
+              key = mapping[i];
+            }
+          } else if (this[i] === undefined) {
+            continue;
+          }
+        }
+        if (typeof this[key] !== "object") {
           runInAction(() => {
             (this as any)[key] = applyValue(key, value[i], valueMeta);
           });
+        } else {
+          // if ((key as any) === "getList" || (key as any) === "list")
+          //   console.log(
+          //     key,
+          //     typeof this[key],
+          //     Object.getOwnPropertyDescriptors(this[key]),
+          //     Object.getPrototypeOf(this[key])
+          //   );
+          if (this[key] instanceof Model) {
+            this[key]._loadJSON(applyValue(key, value[i], valueMeta));
+          } else if (this[key] instanceof HasManyClass) {
+            const c: HasManyClass<Model<M>, M> = this[key];
+            const result = value[i].map((e: any) => {
+              return c.create(e, valueMeta);
+            });
+
+            this[key].list = result;
+          } else if (typeof value[i] !== "function") {
+            runInAction(() => {
+              (this as any)[key] = applyValue(key, value[i], valueMeta);
+            });
+          }
         }
       }
+    } catch (error) {
+      console.log(error);
     }
-
     return this;
   }
 

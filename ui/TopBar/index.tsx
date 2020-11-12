@@ -1,14 +1,13 @@
 import { useNavigation } from "@react-navigation/native";
-import set from "lodash.set";
 import get from "lodash.get";
 import React, { useEffect } from "react";
 import {
+  BackHandler,
   Platform,
   StyleSheet,
   TextStyle,
   ViewProps,
   ViewStyle,
-  BackHandler,
 } from "react-native";
 import Theme from "../../config/theme";
 import Button, { IButtonProps } from "../Button";
@@ -63,7 +62,6 @@ export default (props: ITopBarProps) => {
     padding: 8,
     flexShrink: 1,
   };
-  console.log(baseStyle);
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   const backButtonStyle: ViewStyle = {
     minHeight: 30,

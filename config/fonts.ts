@@ -15,5 +15,4 @@ function generateFont<T>(source: T): T {
 }
 
 const Fonts = generateFont(sourceFonts);
-
 export default Fonts;

@@ -1,9 +1,8 @@
-import set from "lodash.set";
 import get from "lodash.get";
+import { observer } from "mobx-react-lite";
 import React from "react";
 import { Platform, StyleSheet, ViewStyle } from "react-native";
 import View, { IViewProps } from "../View";
-import { observer } from "mobx-react-lite";
 
 export interface IContainerProps extends IViewProps {
   children?: any;

@@ -20,7 +20,7 @@ const fuzzyMatch = (strA: string, strB: string, fuzziness = 0) => {
   const maxIters = largest.length - smallest.length;
   const minMatches = smallest.length - fuzziness;
 
-  for (let i = 0; i < maxIters; i++) {
+  for (let i = 0; i <= maxIters; i++) {
     let matches = 0;
     for (let smIdx = 0; smIdx < smallest.length; smIdx++) {
       if (smallest[smIdx] === largest[smIdx + i]) {
