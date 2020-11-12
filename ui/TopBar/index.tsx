@@ -52,27 +52,24 @@ export default (props: ITopBarProps) => {
   const { goBack, canGoBack } = useNavigation();
   const shadowStyle = enableShadow !== false ? Theme.UIShadow : {};
   const baseStyle: ViewStyle = {
-    paddingTop: statusBarHeight,
+    paddingTop: 8 + statusBarHeight,
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 56 + statusBarHeight,
+    height: 56 + statusBarHeight,
     backgroundColor: Theme.UIColors.primary,
     zIndex: 9,
     margin: 0,
-    padding: 8,
-    flexShrink: 1,
+    paddingBottom: 8,
+    paddingHorizontal: 15,
   };
   const cstyle = StyleSheet.flatten([baseStyle, shadowStyle, style]);
   const backButtonStyle: ViewStyle = {
-    minHeight: 30,
-    minWidth: 30,
-    height: 30,
-    width: 30,
+    minHeight: 40,
+    minWidth: 35,
     padding: 0,
-    backgroundColor: undefined,
-    paddingLeft: 4,
-    paddingRight: 4,
-    marginRight: 12,
+    margin: 0,
+    paddingHorizontal: 4,
+    justifyContent: "flex-start",
     ...get(customProps, "backButton.style", {}),
     ...get(styles, "backButton", {}),
   };
@@ -82,7 +79,6 @@ export default (props: ITopBarProps) => {
     color: "white",
     overflow: "hidden",
     flexGrow: 1,
-    paddingHorizontal: 10,
     ...get(customProps, "title.style", {}),
     ...get(styles, "title", {}),
   };

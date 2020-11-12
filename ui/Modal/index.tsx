@@ -27,7 +27,12 @@ export default observer((props: ModalProps) => {
     get(props, "screenProps.style", {}),
   ]);
   return (
-    <Modal animationType="fade" transparent={true} {...props}>
+    <Modal
+      animationType="fade"
+      transparent={true}
+      statusBarTranslucent={true}
+      {...props}
+    >
       <Screen {...screenProps} style={cstyle}>
         {children}
       </Screen>

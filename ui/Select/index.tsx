@@ -208,11 +208,16 @@ const SelectComponent = observer((props: any) => {
     margin: 0,
     borderWidth: 0,
     flexGrow: 1,
-    height: 44,
+    height: 40,
+    minHeight: 40,
+    flexDirection: "row",
+    padding: 0,
+    alignItems: "center",
+    marginBottom: 0,
   };
   const csearchstyle = StyleSheet.flatten([
-    basesearchStyle,
     Theme.UIInput,
+    basesearchStyle,
     get(selectProps, "customProps.search.style", {}),
     get(selectProps, "styles.item.search", {}),
   ]);
@@ -227,13 +232,6 @@ const SelectComponent = observer((props: any) => {
     meta.search = value;
   });
   const topbarStyle = StyleSheet.flatten([
-    {
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 0,
-      paddingLeft: 8,
-      paddingRight: 15,
-    },
     get(selectProps, "styles.modal.topbar", {}),
   ]);
   const containerStyle = StyleSheet.flatten([
@@ -268,27 +266,44 @@ const SelectComponent = observer((props: any) => {
       visible={meta.openSelect}
       onRequestClose={handleReqClose}
       screenProps={{
-        topBar: (
-          <TopBar
-            backButton
-            {...get(selectProps, "customProps.modal.topbar", {})}
-            actionBackButton={handleReqClose}
-            style={topbarStyle}
-          >
-            <Input
-              autoFocus={true}
-              placeholder={get(selectProps, "placeholder", "")}
-              {...get(selectProps, "customProps.search", {})}
-              style={csearchstyle}
-              value={meta.search}
-              onChangeText={handleSearchInput}
-            />
-          </TopBar>
-        ),
         scrollEnabled: false,
         ...get(selectProps, "customProps.modal.screen", {}),
       }}
+      style={{
+        backgroundColor: "#fff",
+      }}
     >
+      <TopBar
+        backButton
+        {...get(selectProps, "customProps.modal.topbar", {})}
+        actionBackButton={handleReqClose}
+        style={topbarStyle}
+      >
+        <View style={csearchstyle}>
+          <Input
+            autoFocus={true}
+            placeholder={get(selectProps, "placeholder", "Search")}
+            {...get(selectProps, "customProps.search", {})}
+            value={meta.search}
+            onChangeText={handleSearchInput}
+            style={{
+              flex: 1,
+            }}
+          />
+          <Button
+            mode="clean"
+            style={{
+              margin: 0,
+              paddingHorizontal: 0,
+              minHeight: 35,
+              height: 35,
+            }}
+            onPress={action(() => handleSearchInput(""))}
+          >
+            <Icon name="ios-close-circle" />
+          </Button>
+        </View>
+      </TopBar>
       <FlatList
         {...get(selectProps, "customProps.modal.list", {})}
         flatListRef={refList}

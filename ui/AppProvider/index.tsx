@@ -1,3 +1,4 @@
+import service from "@src/service";
 import * as Font from "expo-font";
 import React, { ReactNode, useState } from "react";
 import { sourceFonts } from "../../config/fonts";
@@ -8,6 +9,7 @@ import Loading from "./Loading";
 
 interface IAppProvider {
   children: ReactNode;
+  service?: () => void;
 }
 
 export default (props: IAppProvider) => {
@@ -16,6 +18,7 @@ export default (props: IAppProvider) => {
   useAsyncEffect(async () => {
     await permissions();
     await Font.loadAsync(sourceFonts).catch((e) => console.log(e));
+    if (!!service) await service();
     setLoading(false);
   }, []);
 
