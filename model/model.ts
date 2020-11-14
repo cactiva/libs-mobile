@@ -261,7 +261,17 @@ export abstract class Model<M extends Model = any> {
               return e._json;
             });
           } else {
-            result[i] = toJS(self[i]);
+            if (Array.isArray(self[i])) {
+              let res = self[i].map((x: any) => {
+                if (x instanceof Model) {
+                  return x._json;
+                }
+                return x;
+              });
+              result[i] = toJS(res);
+            } else {
+              result[i] = toJS(self[i]);
+            }
           }
         } else {
           result[i] = self[i];

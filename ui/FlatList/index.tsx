@@ -7,8 +7,7 @@ export interface IFlatListProps extends FlatListProps<any> {
 export default (props: IFlatListProps) => {
   const { contentContainerStyle, style } = props;
   const baseStyle = {
-    flexGrow: 1,
-    flexShrink: 1,
+    flex: 1,
   };
   const basecontentContainerStyle = {
     padding: 5,

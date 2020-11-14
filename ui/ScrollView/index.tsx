@@ -8,10 +8,11 @@ export interface IContainerProps extends IViewProps {
   children?: any;
   scrollRef?: any;
   alert?: () => any;
+  keyboardAvoidingProps?: IViewProps;
 }
 
 export default observer((props: IContainerProps) => {
-  const { style, scrollRef, alert } = props;
+  const { style, scrollRef, alert, keyboardAvoidingProps } = props;
   const baseStyle: ViewStyle = {
     flexGrow: 1,
   };
@@ -24,11 +25,11 @@ export default observer((props: IContainerProps) => {
 
   return (
     <View
-      type={Platform.OS === "ios" ? "KeyboardAvoidingView" : "View"}
+      type={Platform.OS == "ios" ? "KeyboardAvoidingView" : "View"}
       style={{
-        flexGrow: 1,
         flexShrink: 1,
       }}
+      {...keyboardAvoidingProps}
     >
       <View
         style={{
@@ -45,10 +46,7 @@ export default observer((props: IContainerProps) => {
         <View
           type={"ScrollView"}
           {...props}
-          style={{
-            flexGrow: 1,
-            flexShrink: 1,
-          }}
+          style={cstyle}
           childRef={scrollRef}
           contentContainerStyle={cstyle}
         />

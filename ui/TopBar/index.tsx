@@ -1,5 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import get from "lodash.get";
+import { runInAction } from "mobx";
+import { useLocalObservable } from "mobx-react";
 import React, { useEffect } from "react";
 import {
   BackHandler,
@@ -49,6 +51,9 @@ export default (props: ITopBarProps) => {
     customProps,
     styles,
   } = props;
+  const meta = useLocalObservable(() => ({
+    exit: false,
+  }));
   const { goBack, canGoBack } = useNavigation();
   const shadowStyle = enableShadow !== false ? Theme.UIShadow : {};
   const baseStyle: ViewStyle = {
@@ -87,8 +92,13 @@ export default (props: ITopBarProps) => {
     : () => {
         if (!!canGoBack()) {
           goBack();
+          if (!!meta.exit) runInAction(() => (meta.exit = false));
         } else {
-          BackHandler.exitApp();
+          if (!!meta.exit) {
+            BackHandler.exitApp();
+          } else {
+            runInAction(() => (meta.exit = true));
+          }
         }
       };
 

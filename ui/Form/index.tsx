@@ -1,5 +1,5 @@
-import set from "lodash.set";
 import get from "lodash.get";
+import set from "lodash.set";
 import { action } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import React from "react";
@@ -119,13 +119,11 @@ export default observer((props: IFromProps) => {
     }
     checkValid(path, value);
   });
-  const validate = action((path: string) => {
+  const validate = (path: string): string[] => {
     let field = meta.field.find((x) => x.path === path);
-    if (!!field) {
-      return field.messages;
-    }
+    if (!!field) return field.messages;
     return [];
-  });
+  };
   const submit = action(() => {
     let field = meta.field;
     field.map((x) => {
