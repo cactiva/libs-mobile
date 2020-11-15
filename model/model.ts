@@ -342,13 +342,6 @@ export abstract class Model<M extends Model = any> {
             (this as any)[key] = applyValue(key, value[i], valueMeta);
           });
         } else {
-          // if ((key as any) === "getList" || (key as any) === "list")
-          //   console.log(
-          //     key,
-          //     typeof this[key],
-          //     Object.getOwnPropertyDescriptors(this[key]),
-          //     Object.getPrototypeOf(this[key])
-          //   );
           if (this[key] instanceof Model) {
             this[key]._loadJSON(applyValue(key, value[i], valueMeta));
           } else if (this[key] instanceof HasManyClass) {
