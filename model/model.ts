@@ -100,7 +100,7 @@ export abstract class Model<M extends Model = any> {
     return current;
   }
 
-  private _initMobx(self: any) {
+  private async _initMobx(self: any) {
     if (self._init) return;
     const obj = {} as any;
 
@@ -154,7 +154,7 @@ export abstract class Model<M extends Model = any> {
         // children model will be loaded from it's parent
         // so, we load only the parent
         // and it will extract it's value to it's children.
-        this.loadFromLocalStorage(props);
+        await this.loadFromLocalStorage(props);
       }
 
       props.forEach((e) => {

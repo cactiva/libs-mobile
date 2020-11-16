@@ -57,10 +57,10 @@ const Main = (props: ICodePush) => {
   };
 
   useEffect(() => {
-    if (props.mode === "production") {
-      init();
-    } else {
+    if (props.mode === "dev") {
       setLoading(false);
+    } else {
+      init();
     }
   }, []);
 
