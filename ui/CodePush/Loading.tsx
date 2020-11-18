@@ -31,7 +31,7 @@ export default (props: any) => {
           source={Theme.UISplashScreen}
           style={{
             width: dim.width,
-            height: dim.width / 2,
+            height: (2 / 3) * dim.height,
             marginBottom: 20,
           }}
           disableLoading
