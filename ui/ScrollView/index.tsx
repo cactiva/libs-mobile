@@ -28,6 +28,7 @@ export default observer((props: IContainerProps) => {
       type={Platform.OS == "ios" ? "KeyboardAvoidingView" : "View"}
       style={{
         flexShrink: 1,
+        flexGrow: 1,
       }}
       {...keyboardAvoidingProps}
     >
