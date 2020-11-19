@@ -58,8 +58,6 @@ export default (props: IButtonProps) => {
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 4,
-    minWidth: 44,
-    minHeight: 44,
     paddingHorizontal: 16,
     padding: 4,
     margin: 4,
