@@ -3,6 +3,7 @@ import {
   action,
   computed,
   IReactionDisposer,
+  isObservable,
   makeObservable,
   observable,
   reaction,
@@ -264,7 +265,10 @@ export abstract class Model<M extends Model = any> {
             if (Array.isArray(self[i])) {
               let res = self[i].map((x: any) => {
                 if (x instanceof Model) {
-                  return x._json;
+                  x = x._json;
+                }
+                if (isObservable(x)) {
+                  x = toJS(x);
                 }
                 return x;
               });

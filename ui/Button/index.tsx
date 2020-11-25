@@ -59,6 +59,7 @@ export default (props: IButtonProps) => {
     justifyContent: "center",
     borderRadius: 4,
     padding: 16,
+    paddingVertical: 8,
     margin: 4,
     ...shadowStyle,
     ...(mode === "outlined"
