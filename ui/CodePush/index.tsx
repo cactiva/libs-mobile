@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactElement, ReactNode, useEffect, useState } from "react";
 import { ViewProps } from "react-native";
 import codePush from "react-native-code-push";
 import codePushOptions from "../../config/code-push";
@@ -7,6 +7,7 @@ import Loading from "./Loading";
 interface ICodePush extends ViewProps {
   children: ReactNode;
   mode?: string;
+  loadingComponent?: (props: any) => ReactElement;
 }
 
 const Main = (props: ICodePush) => {
@@ -23,6 +24,9 @@ const Main = (props: ICodePush) => {
         switch (syncStatus) {
           case codePush.SyncStatus.SYNC_IN_PROGRESS:
             setSyncMessage("Loading...");
+            setTimeout(() => {
+              setLoading(false);
+            }, 15000);
             break;
           case codePush.SyncStatus.CHECKING_FOR_UPDATE:
             setSyncMessage("Checking for update...");
@@ -64,11 +68,15 @@ const Main = (props: ICodePush) => {
     }
   }, []);
 
-  if (!!loading) {
+  if (!!loading && !!props.loadingComponent) {
+    return props.loadingComponent({
+      progress,
+      syncMessage,
+    });
+  } else if (!!loading) {
     return <Loading progress={progress} syncMessage={syncMessage} />;
   }
 
   return props.children;
 };
-
 export default codePush(codePushOptions)(Main);

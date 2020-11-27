@@ -23,11 +23,11 @@ export default () => {
         <Image
           source={Theme.UISplashScreen}
           style={{
-            width: dim.width,
-            height: (2 / 3) * dim.height,
+            width: "100%",
+            height: dim.height,
             marginBottom: 20,
           }}
-          disableLoading
+          disableLoading={true}
         />
         <View
           style={{

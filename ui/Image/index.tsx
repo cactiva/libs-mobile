@@ -34,34 +34,17 @@ export interface IImageProps extends FastImageProps {
 }
 
 export default observer((props: IImageProps) => {
-  const { source, disableLoading, style }: any = props;
+  const { source, style }: any = props;
   const meta = useLocalObservable(() => ({
     show: false,
     imageUri: Theme.UIImageLoading,
     progress: 0,
   }));
-  const dim = Dimensions.get("window");
   const baseStyle: ImageStyle = {
     width: 300,
     height: 150,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
-  let width: any = 240;
-  if (!!cstyle.width) {
-    if (typeof cstyle.width === "string") {
-      let w: string = cstyle.width;
-      w = w.replace("%", "");
-      width = String((dim.width / parseInt(w)) * 0.7) + "%";
-    } else {
-      width = cstyle.width * 0.7;
-    }
-  }
-  const loadingStyle: ImageStyle = StyleSheet.flatten([
-    cstyle,
-    {
-      width,
-    },
-  ]);
 
   useEffect(
     action(() => {
@@ -82,24 +65,14 @@ export default observer((props: IImageProps) => {
 
   return (
     <>
-      <Thumbnail
-        {...props}
-        meta={meta}
-        cstyle={cstyle}
-        loadingStyle={loadingStyle}
-      />
-      <PreviewImage
-        {...props}
-        meta={meta}
-        cstyle={cstyle}
-        loadingStyle={loadingStyle}
-      />
+      <Thumbnail {...props} meta={meta} cstyle={cstyle} />
+      <PreviewImage {...props} meta={meta} cstyle={cstyle} />
     </>
   );
 });
 
 const Thumbnail = observer((props: any) => {
-  const { preview, meta, cstyle }: any = props;
+  const { preview, meta, cstyle, disableLoading }: any = props;
   const btnBaseStyle: ViewStyle = {
     padding: 0,
     margin: 0,
@@ -136,7 +109,9 @@ const Thumbnail = observer((props: any) => {
         }}
       >
         <FastImage
-          defaultSource={Theme.UIImageLoading}
+          defaultSource={
+            disableLoading === true ? undefined : Theme.UIImageLoading
+          }
           {...props}
           resizeMode={resizeMode}
           source={toJS(meta.imageUri)}

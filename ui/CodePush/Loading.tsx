@@ -30,11 +30,11 @@ export default (props: any) => {
         <Image
           source={Theme.UISplashScreen}
           style={{
-            width: dim.width,
-            height: (2 / 3) * dim.height,
+            width: "100%",
+            height: dim.height,
             marginBottom: 20,
           }}
-          disableLoading
+          disableLoading={true}
         />
         <View
           style={{
@@ -45,6 +45,7 @@ export default (props: any) => {
             justifyContent: "center",
             alignItems: "center",
             padding: 15,
+            flexDirection: "row",
           }}
         >
           <Spinner
@@ -56,6 +57,7 @@ export default (props: any) => {
           <Text
             style={{
               fontSize: 13,
+              marginLeft: 10,
             }}
           >
             {message}

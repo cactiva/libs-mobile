@@ -1,6 +1,6 @@
 import service from "@src/service";
 import * as Font from "expo-font";
-import React, { ReactNode, useState } from "react";
+import React, { ReactElement, ReactNode, useState } from "react";
 import { sourceFonts } from "../../config/fonts";
 import permissions from "../../config/permissions";
 import useAsyncEffect from "../../utils/use-async-effect";
@@ -10,6 +10,7 @@ import Loading from "./Loading";
 interface IAppProvider {
   children: ReactNode;
   service?: () => void;
+  loadingComponent?: ReactElement;
 }
 
 export default (props: IAppProvider) => {
@@ -22,7 +23,9 @@ export default (props: IAppProvider) => {
     setLoading(false);
   }, []);
 
-  if (loading) {
+  if (!!loading && !!props.loadingComponent) {
+    return props.loadingComponent;
+  } else if (!!loading) {
     return <Loading />;
   }
 

@@ -2,7 +2,7 @@ import get from "lodash.get";
 import set from "lodash.set";
 import { action } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
-import React from "react";
+import React, { ReactElement } from "react";
 import { ViewStyle } from "react-native";
 import Button, { IButtonProps } from "../Button";
 import Text from "../Text";
@@ -46,7 +46,10 @@ export interface IFromProps extends IViewProps {
   onError?: (fields: IField[]) => void;
   validate?: (data: any) => IError[];
   requiredMessage?: string;
-  renderSubmitComponent?: (submit: () => void) => void;
+  renderSubmitComponent?: (
+    submit: () => void,
+    canSubmit: boolean
+  ) => ReactElement;
   submitProps?: IButtonProps;
   disableSubmitComponent?: boolean;
 }
@@ -152,14 +155,14 @@ export default observer((props: IFromProps) => {
     <View style={style}>
       {children({ field, getValue, setValue, validate, remove, submit })}
       {typeof renderSubmitComponent === "function"
-        ? renderSubmitComponent(submit)
+        ? renderSubmitComponent(submit, canSubmit())
         : !disableSubmitComponent && (
             <Button
               style={{
                 marginTop: 15,
               }}
               onPress={submit}
-              disabled={canSubmit()}
+              disabled={!canSubmit()}
               {...submitProps}
             >
               <Text
