@@ -25,22 +25,26 @@ export default observer((props: IContainerProps) => {
 
   return (
     <View
-      type={Platform.OS == "ios" ? "KeyboardAvoidingView" : "View"}
+      // type={Platform.OS == "ios" ? "KeyboardAvoidingView" : "View"}
+      type={"KeyboardAvoidingView"}
+      behavior={Platform.OS == "ios" ? "padding" : "height"}
       style={{
-        flexShrink: 1,
         flexGrow: 1,
+        flexShrink: 1,
       }}
       {...keyboardAvoidingProps}
     >
-      <View
-        style={{
-          backgroundColor: "transparent",
-          position: "absolute",
-          zIndex: 99,
-        }}
-      >
-        {!!alert && alert()}
-      </View>
+      {!!alert && (
+        <View
+          style={{
+            backgroundColor: "transparent",
+            position: "absolute",
+            zIndex: 99,
+          }}
+        >
+          {alert()}
+        </View>
+      )}
       {get(props, "scrollEnabled", true) === false ? (
         <View {...props} style={cstyle} childRef={scrollRef} />
       ) : (

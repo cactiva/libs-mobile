@@ -308,7 +308,7 @@ const SelectComponent = observer((props: any) => {
         {...get(selectProps, "customProps.modal.list", {})}
         flatListRef={refList}
         data={data()}
-        renderItem={renderItem}
+        renderItem={get(selectProps, "renderItem", renderItem)}
         keyExtractor={(_: any, index: number) => String(index)}
         ItemSeparatorComponent={itemSperator}
         keyboardShouldPersistTaps={"handled"}

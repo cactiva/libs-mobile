@@ -120,6 +120,7 @@ export default (props: ITopBarProps) => {
         {leftAction}
         {backButton && (
           <Button
+            mode="clean"
             {...get(customProps, "backButton", {})}
             style={backButtonStyle}
             onPress={onPressBack}
