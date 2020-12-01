@@ -1,18 +1,27 @@
 import get from "lodash.get";
 import { observer } from "mobx-react-lite";
-import React from "react";
-import { Platform, StyleSheet, ViewStyle } from "react-native";
-import View, { IViewProps } from "../View";
+import React, { ReactNode } from "react";
+import {
+  KeyboardAvoidingView,
+  KeyboardAvoidingViewProps,
+  Platform,
+  ScrollView,
+  ScrollViewProps,
+  StyleSheet,
+  ViewStyle,
+} from "react-native";
+import View from "../View";
 
-export interface IContainerProps extends IViewProps {
-  children?: any;
-  scrollRef?: any;
+export interface IContainerProps extends ScrollViewProps {
+  children?: ReactNode;
   alert?: () => any;
-  keyboardAvoidingProps?: IViewProps;
+  keyboardAvoidingProps?: KeyboardAvoidingViewProps;
+  scrollRef?: any;
+  keyboardRef?: any;
 }
 
 export default observer((props: IContainerProps) => {
-  const { style, scrollRef, alert, keyboardAvoidingProps } = props;
+  const { style, scrollRef, alert, keyboardAvoidingProps, keyboardRef } = props;
   const baseStyle: ViewStyle = {
     flexGrow: 1,
   };
@@ -24,9 +33,10 @@ export default observer((props: IContainerProps) => {
   ]);
 
   return (
-    <View
+    <KeyboardAvoidingView
       // type={Platform.OS == "ios" ? "KeyboardAvoidingView" : "View"}
-      type={"KeyboardAvoidingView"}
+      ref={keyboardRef}
+      enabled={true}
       behavior={Platform.OS == "ios" ? "padding" : "height"}
       style={{
         flexGrow: 1,
@@ -48,14 +58,13 @@ export default observer((props: IContainerProps) => {
       {get(props, "scrollEnabled", true) === false ? (
         <View {...props} style={cstyle} childRef={scrollRef} />
       ) : (
-        <View
-          type={"ScrollView"}
+        <ScrollView
           {...props}
           style={cstyle}
-          childRef={scrollRef}
+          ref={scrollRef}
           contentContainerStyle={cstyle}
         />
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 });

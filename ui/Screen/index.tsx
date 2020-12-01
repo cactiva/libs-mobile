@@ -1,13 +1,19 @@
-import set from "lodash.set";
 import get from "lodash.get";
 import { observer } from "mobx-react-lite";
-import React from "react";
-import { Platform, StatusBar, StatusBarProps, StyleSheet } from "react-native";
+import React, { ReactNode } from "react";
+import {
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StatusBarProps,
+  StyleSheet,
+} from "react-native";
+import { SafeAreaViewProps } from "react-native-safe-area-context";
 import Theme from "../../config/theme";
-import View, { IViewProps } from "../View";
+import View from "../View";
 
-export interface IScreenProps extends IViewProps {
-  children?: any;
+export interface IScreenProps extends SafeAreaViewProps {
+  children?: ReactNode;
   scrollRef?: any;
   statusBar?: StatusBarProps;
 }
@@ -30,7 +36,7 @@ export default observer((props: IScreenProps) => {
     style,
   ]);
   return (
-    <View type={"SafeAreaView"} {...props} style={cstyle}>
+    <SafeAreaView {...props} style={cstyle}>
       <View
         style={{
           height: statusBarHeight,
@@ -50,6 +56,6 @@ export default observer((props: IScreenProps) => {
         />
       </View>
       {props.children}
-    </View>
+    </SafeAreaView>
   );
 });

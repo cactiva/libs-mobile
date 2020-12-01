@@ -1,5 +1,4 @@
 import axios, { AxiosRequestConfig } from "axios";
-import set from "lodash.set";
 import get from "lodash.get";
 
 export interface IAPI extends AxiosRequestConfig {

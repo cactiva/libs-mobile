@@ -1,27 +1,19 @@
-import React from "react";
+import { observer } from "mobx-react-lite";
+import React, { ReactNode } from "react";
 import {
-  Animated,
-  KeyboardAvoidingView,
-  KeyboardAvoidingViewProps,
   ScrollView,
   ScrollViewProps,
   StyleSheet,
   View,
-  ViewProps as OriViewProps,
   ViewProps,
 } from "react-native";
-import { SafeAreaView } from "react-native";
-import { observer } from "mobx-react-lite";
 import Theme from "../../config/theme";
 
-export interface IViewProps
-  extends OriViewProps,
-    ScrollViewProps,
-    KeyboardAvoidingViewProps {
-  type?: "View" | "SafeAreaView" | "ScrollView" | "KeyboardAvoidingView";
+export interface IViewProps extends ViewProps, ScrollViewProps {
+  type?: "View" | "ScrollView";
   shadow?: boolean;
   childRef?: any;
-  children?: any;
+  children?: ReactNode;
 }
 
 export default observer((props: IViewProps) => {
@@ -36,19 +28,6 @@ export default observer((props: IViewProps) => {
           {...props}
           ref={childRef}
           keyboardShouldPersistTaps={"handled"}
-          style={cstyle}
-        />
-      );
-    case "SafeAreaView":
-      return <SafeAreaView {...props} style={cstyle} ref={childRef} />;
-      break;
-    case "KeyboardAvoidingView":
-      return (
-        <KeyboardAvoidingView
-          behavior="padding"
-          enabled
-          {...props}
-          ref={childRef}
           style={cstyle}
         />
       );

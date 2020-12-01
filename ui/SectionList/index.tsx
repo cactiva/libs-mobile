@@ -1,10 +1,11 @@
+import { observer } from "mobx-react";
 import React from "react";
 import { SectionList, SectionListProps, StyleSheet } from "react-native";
 
 export interface ISectionListProps extends SectionListProps<any> {
   sectionListRef?: any;
 }
-export default (props: ISectionListProps) => {
+export default observer((props: ISectionListProps) => {
   const { contentContainerStyle, style } = props;
   const baseStyle = {
     flexGrow: 1,
@@ -32,4 +33,4 @@ export default (props: ISectionListProps) => {
       ref={props.sectionListRef}
     />
   );
-};
+});

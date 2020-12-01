@@ -23,12 +23,14 @@ export default (props: IInputProps) => {
   const originalType = useRef(type);
   const onChange = (e: any) => {
     let v;
-    switch (originalType.current) {
+    switch (type || originalType.current) {
       case "number":
-        v = parseInt(e || "0");
+        let b = e.replace(/[^0-9]/g, "");
+        v = b || "0";
         break;
       case "decimal":
-        v = parseFloat(e);
+        let c = e.replace(/[^0-9]/g, "");
+        v = parseInt(c || "0");
         break;
       case "currency":
         let a = e.replace(/[^0-9]/g, "");

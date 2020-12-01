@@ -1,8 +1,7 @@
-import set from "lodash.set";
 import get from "lodash.get";
 import { action, toJS } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Dimensions,
   ImageStyle,
@@ -34,10 +33,9 @@ export interface IImageProps extends FastImageProps {
 }
 
 export default observer((props: IImageProps) => {
-  const { source, style }: any = props;
+  const { style }: any = props;
   const meta = useLocalObservable(() => ({
     show: false,
-    imageUri: Theme.UIImageLoading,
     progress: 0,
   }));
   const baseStyle: ImageStyle = {
@@ -45,23 +43,6 @@ export default observer((props: IImageProps) => {
     height: 150,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
-
-  useEffect(
-    action(() => {
-      if (
-        typeof source === "number" ||
-        (typeof source == "object" && source.uri.indexOf("file://") > -1)
-      ) {
-        meta.imageUri = source;
-      } else {
-        meta.imageUri = {
-          priority: FastImage.priority.normal,
-          ...source,
-        };
-      }
-    }),
-    [source]
-  );
 
   return (
     <>
@@ -114,7 +95,6 @@ const Thumbnail = observer((props: any) => {
           }
           {...props}
           resizeMode={resizeMode}
-          source={toJS(meta.imageUri)}
           style={style}
         />
         <LoadingProgress {...props} mode={"thumbnail"} />
