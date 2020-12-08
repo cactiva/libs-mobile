@@ -244,15 +244,14 @@ const SelectComponent = observer((props: any) => {
     _.get(selectProps, "styles.modal.container", {}),
   ]);
   const refList = useRef(null);
-  const data = () => {
-    return items.filter((item) => {
-      if (!!meta.search)
-        return fuzzyMatch(meta.search.toLowerCase(), item.label.toLowerCase());
-      return true;
-    });
-  };
+  const data = items.filter((item) => {
+    if (!!meta.search)
+      return fuzzyMatch(meta.search.toLowerCase(), item.label.toLowerCase());
+    return true;
+  });
+
   const findIndex = () => {
-    return data().findIndex((x) => x.value === selectProps.value);
+    return data.findIndex((x) => x.value === selectProps.value);
   };
   const getItemLayout = (x, index) => {
     let st = _.get(selectProps, "styles.item.button", {});
@@ -268,17 +267,12 @@ const SelectComponent = observer((props: any) => {
     <Modal
       visible={meta.openSelect}
       onRequestClose={handleReqClose}
-      styles={{
-        screen: {
-          backgroundColor: "#fff",
-          ..._.get(selectProps, "styles.modal.screen", {}),
+      screenProps={_.get(selectProps, "customProps.modal.screen", {
+        statusBar: {
+          backgroundColor: Theme.StatusBarBackgroundColor,
+          barStyle: Theme.StatusBarStyle,
         },
-        statusbar: {
-          backgroundColor: Theme.UIColors.primary,
-          ..._.get(selectProps, "styles.modal.statusbar", {}),
-        },
-      }}
-      screenProps={_.get(selectProps, "customProps.modal.screen", {})}
+      })}
     >
       <TopBar
         backButton
@@ -303,7 +297,7 @@ const SelectComponent = observer((props: any) => {
         <FlatList
           {..._.get(selectProps, "customProps.modal.list", {})}
           flatListRef={refList}
-          data={data()}
+          data={data}
           renderItem={renderItem}
           keyExtractor={(_: any, index: number) => String(index)}
           ItemSeparatorComponent={itemSperator}

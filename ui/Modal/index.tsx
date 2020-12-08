@@ -1,25 +1,18 @@
-import Constants from "expo-constants";
+import _ from "lodash";
 import { observer } from "mobx-react-lite";
 import React from "react";
 import {
   Modal,
   ModalProps as ModalPropsOrigin,
-  Platform,
   StyleSheet,
   ViewStyle,
 } from "react-native";
 import Screen, { IScreenProps } from "../Screen";
-import _ from "lodash";
-import Theme from "@src/libs/theme";
 
 export interface ModalProps extends ModalPropsOrigin {
   style?: ViewStyle;
   children?: any;
   screenProps?: IScreenProps;
-  styles?: {
-    screen?: ViewStyle;
-    statusbar?: ViewStyle;
-  };
 }
 
 export default observer((props: ModalProps) => {
@@ -30,7 +23,6 @@ export default observer((props: ModalProps) => {
   const cstyle = StyleSheet.flatten([
     baseStyle,
     style,
-    _.get(props, "styles.screen", {}),
     _.get(props, "screenProps.style", {}),
   ]);
   return (

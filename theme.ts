@@ -46,7 +46,6 @@ const Theme = {
   UILabel: {},
   UIButton: {},
   LocalLang: "enUS",
-  StatusBarColor: "white",
   ...(overideTheme || {}),
 };
 
