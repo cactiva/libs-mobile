@@ -246,9 +246,7 @@ const SelectComponent = observer((props: any) => {
       return fuzzyMatch(meta.search.toLowerCase(), item.label.toLowerCase());
     return true;
   });
-  const findIndex = () => {
-    return data.findIndex((x: any) => x.value === selectProps.value);
-  };
+  const findIndex = data.findIndex((x: any) => x.value === selectProps.value);
   const getItemLayout = (x: any, index: number) => {
     let st = get(selectProps, "styles.item.button", {});
     let height = !!st.height ? st.height : 44;
@@ -314,7 +312,7 @@ const SelectComponent = observer((props: any) => {
         windowSize={12}
         initialNumToRender={20}
         maxToRenderPerBatch={24}
-        initialScrollIndex={findIndex()}
+        // initialScrollIndex={findIndex()}
         getItemLayout={getItemLayout}
       />
     </Modal>
