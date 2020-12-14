@@ -30,10 +30,8 @@ const Theme = Object.assign(
     UIImageError: require("../assets/images/error.png"),
     UISplashScreen: require("../assets/images/splash.png"),
     UIField: {
-      margin: 4,
-      minHeight: 30,
       minWidth: 10,
-      marginBottom: 10,
+      marginBottom: 15,
     },
     UIInput: {
       padding: 0,
@@ -42,7 +40,6 @@ const Theme = Object.assign(
       borderWidth: 1,
       borderColor: "#aaa",
       minWidth: 10,
-      marginBottom: 5,
       backgroundColor: "white",
     },
     UILabel: {},

@@ -1,5 +1,6 @@
 import Theme from "@libs/config/theme";
 import _ from "lodash";
+import { runInAction } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import React, { useRef } from "react";
 import { Dimensions, StyleSheet, ViewStyle } from "react-native";
@@ -24,7 +25,7 @@ export default observer((props: ICarouselProps) => {
     activeSlide: 0,
   }));
   const onSnapItem = (index: number) => {
-    meta.activeSlide = index;
+    runInAction(() => (meta.activeSlide = index));
     carouselProps.onSnapToItem && carouselProps.onSnapToItem(index);
   };
 

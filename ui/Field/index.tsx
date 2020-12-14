@@ -33,6 +33,7 @@ interface IFieldProps {
     label?: TextStyle;
     wrapper?: ViewStyle;
     input?: TextStyle;
+    field?: ViewStyle;
   };
   initialize?: IInitializeForm;
   hiddenField?: boolean;
@@ -57,7 +58,11 @@ export default observer((props: IFieldProps) => {
   const childprops = { ...get(props, "children.props", {}) };
   const [password, setPassword] = useState(true);
   const Component = props.children.type;
-  const fieldStyle = StyleSheet.flatten([Theme.UIField, style]);
+  const fieldStyle = StyleSheet.flatten([
+    Theme.UIField,
+    get(props, "styles.field"),
+    style,
+  ]);
   const defLabelStyle: TextStyle = {
     fontSize: Theme.UIFontSize,
     color: Theme.UIColors.primary,
@@ -107,6 +112,7 @@ export default observer((props: IFieldProps) => {
   ]);
   const baseInpStyle: any = {
     flexGrow: 1,
+    flexShrink: 1,
     height: 44,
   };
   if (

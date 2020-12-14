@@ -2,7 +2,17 @@ import * as Location from "expo-location";
 import { Platform } from "react-native";
 import { Constants, Permissions } from "react-native-unimodules";
 
-const getCurrentLocation = () => {
+export interface ILocation {
+  latitude: number;
+  longitude: number;
+  altitude: number | null;
+  accuracy: number | null;
+  altitudeAccuracy: number | null;
+  heading: number | null;
+  speed: number | null;
+}
+
+const getCurrentLocation = (): Promise<ILocation | null> => {
   return new Promise((resolve) => {
     if (Platform.OS === "android" && !Constants.isDevice) {
       alert(

@@ -241,15 +241,13 @@ const SelectComponent = observer((props: any) => {
     get(selectProps, "styles.modal.container", {}),
   ]);
   const refList = useRef(null);
-  const data = () => {
-    return items.filter((item: any) => {
-      if (!!meta.search)
-        return fuzzyMatch(meta.search.toLowerCase(), item.label.toLowerCase());
-      return true;
-    });
-  };
+  const data = items.filter((item: any) => {
+    if (!!meta.search)
+      return fuzzyMatch(meta.search.toLowerCase(), item.label.toLowerCase());
+    return true;
+  });
   const findIndex = () => {
-    return data().findIndex((x: any) => x.value === selectProps.value);
+    return data.findIndex((x: any) => x.value === selectProps.value);
   };
   const getItemLayout = (x: any, index: number) => {
     let st = get(selectProps, "styles.item.button", {});
@@ -307,7 +305,7 @@ const SelectComponent = observer((props: any) => {
       <FlatList
         {...get(selectProps, "customProps.modal.list", {})}
         flatListRef={refList}
-        data={data()}
+        data={data}
         renderItem={get(selectProps, "renderItem", renderItem)}
         keyExtractor={(_: any, index: number) => String(index)}
         ItemSeparatorComponent={itemSperator}

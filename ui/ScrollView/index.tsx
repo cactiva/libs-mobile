@@ -63,6 +63,7 @@ export default observer((props: IContainerProps) => {
           style={cstyle}
           ref={scrollRef}
           contentContainerStyle={cstyle}
+          keyboardShouldPersistTaps="handled"
         />
       )}
     </KeyboardAvoidingView>

@@ -45,14 +45,11 @@ export default observer((props: IScreenProps) => {
         }}
       >
         <StatusBar
-          backgroundColor={get(
-            statusBar,
-            "backgroundColor",
-            Theme.StatusBarBackgroundColor
-          )}
-          barStyle={get(statusBar, "barStyle", Theme.StatusBarStyle as any)}
+          backgroundColor={Theme.StatusBarBackgroundColor}
+          barStyle={Theme.StatusBarStyle as any}
           animated={true}
           translucent={true}
+          {...statusBar}
         />
       </View>
       {props.children}
