@@ -27,4 +27,4 @@ export { default as ImageBackground } from "./ImageBackground";
 export { default as ProgressBar } from "./ProgressBar";
 export { default as SectionList } from "./SectionList";
 export { default as BarCodeScanner } from "./BarCodeScanner";
-export { default as Carousel } from "./Carousel";
+export { default as Carousel, CarouselPagination } from "./Carousel";

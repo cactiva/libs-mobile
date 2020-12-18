@@ -1,4 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import get from "lodash.get";
 import { runInAction } from "mobx";
 import { useLocalObservable } from "mobx-react";
@@ -55,6 +55,7 @@ export default (props: ITopBarProps) => {
     exit: false,
   }));
   const { goBack, canGoBack } = useNavigation();
+  const isFocused = useIsFocused();
   const shadowStyle = enableShadow !== false ? Theme.UIShadow : {};
   const baseStyle: ViewStyle = {
     paddingTop: 8 + statusBarHeight,
@@ -106,13 +107,15 @@ export default (props: ITopBarProps) => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        onPressBack();
-        return true;
+        if (!!isFocused) {
+          onPressBack();
+          return true;
+        }
       }
     );
 
     return () => backHandler.remove();
-  }, []);
+  }, [isFocused]);
 
   return (
     <>

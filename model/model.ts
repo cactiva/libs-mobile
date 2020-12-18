@@ -1,4 +1,4 @@
-import debounce from "lodash.debounce";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   action,
   computed,
@@ -10,8 +10,6 @@ import {
   runInAction,
   toJS,
 } from "mobx";
-import { AsyncStorage } from "react-native";
-import { HasManyClass, HasManyOptions } from "./hasmany";
 
 export interface Type<T> extends Function {
   new (...args: any[]): T;
@@ -31,12 +29,11 @@ export interface IQuery<T> {
 export abstract class Model<M extends Model = any> {
   public _parent?: M;
   private _opt: ModelOptions = {};
-  // private static _primaryKey = "id";
-  // private static _tableName = "";
-  // private static _modelName = "";
-  private _init: boolean = false;
+  static __type = "model";
 
-  constructor(options?: ModelOptions) {}
+  constructor() {}
+
+  public _afterLoadStorage(data: Model) {}
 
   public static create<T extends Model>(
     this: { new (options: ModelOptions): T },
@@ -67,38 +64,6 @@ export abstract class Model<M extends Model = any> {
     obj._parent = parent;
 
     return obj;
-  }
-
-  public _hasMany<T extends Model<M>>(
-    modelCTor: typeof Model,
-    opt?: HasManyOptions<T, M>,
-    ext?: any
-  ): HasManyClass<T, M> {
-    const ctor = modelCTor;
-
-    let autoload = false;
-    const parentOpt = (this as any)._opt;
-    if (parentOpt.autoload !== undefined) {
-      if (!opt || (opt && opt.autoload === undefined)) {
-        autoload = parentOpt.autoload;
-      }
-    }
-
-    const current: any = new HasManyClass<T, M>(this as any, ctor as any, {
-      ...opt,
-      autoload,
-    });
-    for (let i in ext) {
-      if (current[i] === undefined) {
-        if (typeof ext[i] === "function") {
-          current[i] = (ext[i] as any).bind(current);
-        } else {
-          current[i] = ext[i];
-        }
-      }
-    }
-
-    return current;
   }
 
   private async _initMobx(self: any) {
@@ -156,6 +121,11 @@ export abstract class Model<M extends Model = any> {
         // so, we load only the parent
         // and it will extract it's value to it's children.
         await this.loadFromLocalStorage(props);
+
+        // Edit loaded data from local storage
+        if (!!this._afterLoadStorage) {
+          this._afterLoadStorage(this._json);
+        }
       }
 
       props.forEach((e) => {
@@ -248,34 +218,19 @@ export abstract class Model<M extends Model = any> {
           }
           result[i] = self[i]._json;
         } else if (typeof self[i] === "object") {
-          if ((this as any)[i] instanceof HasManyClass) {
-            result[i] = (this as any)[i].list.map((e: any, idx: number) => {
-              if (!(e instanceof Model)) {
-                throw new Error(
-                  `${i}.list[${idx}] is not a Model (current type: ${typeof e}). Please check your code where you change ${i}.list`
-                );
-              } else {
-                if (e.constructor === this.constructor) {
-                  return JSON.stringify(e);
-                }
+          if (Array.isArray(self[i])) {
+            let res = self[i].map((x: any) => {
+              if (x instanceof Model) {
+                x = x._json;
               }
-              return e._json;
+              if (isObservable(x)) {
+                x = toJS(x);
+              }
+              return x;
             });
+            result[i] = toJS(res);
           } else {
-            if (Array.isArray(self[i])) {
-              let res = self[i].map((x: any) => {
-                if (x instanceof Model) {
-                  x = x._json;
-                }
-                if (isObservable(x)) {
-                  x = toJS(x);
-                }
-                return x;
-              });
-              result[i] = toJS(res);
-            } else {
-              result[i] = toJS(self[i]);
-            }
+            result[i] = toJS(self[i]);
           }
         } else {
           result[i] = self[i];
@@ -283,24 +238,6 @@ export abstract class Model<M extends Model = any> {
       }
     }
     return result;
-  }
-
-  protected _beforeLoad?: (obj: any) => Promise<any>;
-  protected _afterLoad?: (obj: Model) => Promise<void>;
-
-  private async _load() {
-    //TODO: fetch actual data from server...
-    let value = {};
-
-    if (this._beforeLoad) {
-      value = await this._beforeLoad(value);
-    }
-
-    this._loadJSON(value);
-
-    if (this._afterLoad) {
-      await this._afterLoad(this);
-    }
   }
 
   _loadJSON(obj: any, mapping?: any) {
@@ -348,13 +285,6 @@ export abstract class Model<M extends Model = any> {
         } else {
           if (this[key] instanceof Model) {
             this[key]._loadJSON(applyValue(key, value[i], valueMeta));
-          } else if (this[key] instanceof HasManyClass) {
-            const c: HasManyClass<Model<M>, M> = this[key];
-            const result = value[i].map((e: any) => {
-              return c.create(e, valueMeta);
-            });
-
-            this[key].list = result;
           } else if (typeof value[i] !== "function") {
             runInAction(() => {
               (this as any)[key] = applyValue(key, value[i], valueMeta);
@@ -367,8 +297,6 @@ export abstract class Model<M extends Model = any> {
     }
     return this;
   }
-
-  static __type = "model";
 }
 
 const getType = (obj: any) => {
@@ -380,8 +308,3 @@ const getType = (obj: any) => {
   }
   return undefined;
 };
-
-const saveStorage = debounce((storeName, obj) => {
-  let str = JSON.stringify(obj);
-  AsyncStorage.setItem(storeName, str);
-}, 3000);

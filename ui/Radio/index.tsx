@@ -58,6 +58,7 @@ export default (props: IRadioProps) => {
     flexDirection: "row",
     alignItems: "center",
     shadowColor: Theme.UIColors.primary,
+    justifyContent: "flex-start",
   };
   const btnStyle =
     mode === "button"

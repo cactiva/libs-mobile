@@ -143,7 +143,9 @@ const DatePickerModal = (props: any) => {
   } = props;
   const currentValue = !!value ? new Date(value) : new Date();
   const [val, setVal] = useState(currentValue);
-  const [androidMode, setAndroidMode] = useState("date");
+  const [androidMode, setAndroidMode] = useState(
+    mode === "datetime" ? "date" : mode
+  );
   const dismiss = () => {
     setVisible(false);
     onBlur && onBlur();
@@ -156,7 +158,8 @@ const DatePickerModal = (props: any) => {
     if (Platform.OS === "android") {
       if (ev.type === "dismissed") {
         dismiss();
-        if (androidMode === "time") setAndroidMode("date");
+        if (androidMode === "time")
+          setAndroidMode(mode === "datetime" ? "date" : mode);
       } else {
         if (mode !== "datetime") {
           dismiss();

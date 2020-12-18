@@ -2,41 +2,42 @@ import Theme from "@libs/config/theme";
 import _ from "lodash";
 import { runInAction } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
-import React, { useRef } from "react";
+import React, { ReactElement, useRef } from "react";
 import { Dimensions, StyleSheet, ViewStyle } from "react-native";
 import Carousel, {
   CarouselProps as OriginCarouselProps,
   Pagination as PaginationOrigin,
-  PaginationProps as PaginationPropsOrigin,
+  PaginationProps as OriginPaginationProps,
 } from "react-native-snap-carousel";
 
 export interface ICarouselProps extends OriginCarouselProps<any> {
-  children?: any;
+  children?: (data: any, activeSlide: number) => ReactElement;
+  carouselRef?: any;
   style?: ViewStyle;
   data: any[];
+  enablePagination?: boolean;
+  paginationProps?: OriginPaginationProps;
 }
 
 export default observer((props: ICarouselProps) => {
-  const { children, data } = props;
+  const { children, data, carouselRef, paginationProps } = props;
   const carouselProps: any = { ...props };
-  const ref = useRef(null);
+  delete carouselProps.children;
+  delete carouselProps.enablePagination;
+  delete carouselProps.paginationProps;
+  delete carouselProps.carouselRef;
   const dim = Dimensions.get("window");
   const meta = useLocalObservable(() => ({
     activeSlide: 0,
   }));
   const onSnapItem = (index: number) => {
     runInAction(() => (meta.activeSlide = index));
-    carouselProps.onSnapToItem && carouselProps.onSnapToItem(index);
   };
-
-  // useEffect(() => {
-  //   meta.dataLength = data.length;
-  // }, [data]);
 
   return (
     <>
       <Carousel
-        ref={ref}
+        ref={carouselRef}
         itemWidth={dim.width - 50}
         sliderWidth={dim.width}
         layout={"default"}
@@ -46,30 +47,28 @@ export default observer((props: ICarouselProps) => {
         {...carouselProps}
         onSnapToItem={onSnapItem}
       />
-      {!!children &&
-        (Array.isArray(children) ? (
-          children.map((child, key) => {
-            return <RenderChild key={String(key)} child={child} meta={meta} />;
-          })
-        ) : (
-          <RenderChild child={children} meta={meta} length={data.length} />
-        ))}
+
+      <RenderPagination
+        data={data}
+        child={children}
+        meta={meta}
+        paginationProps={paginationProps}
+      />
     </>
   );
 });
 
-export const Pagination = observer((props: Partial<PaginationPropsOrigin>) => {
-  const baseContainerStyle = StyleSheet.flatten([
-    {
-      paddingHorizontal: 0,
-      paddingVertical: 0,
-    },
-    _.get(props, "containerStyle", {}),
-  ]);
+const RenderPagination = observer((props: any) => {
+  const { child, meta, data, paginationProps } = props;
+
+  if (!!child) {
+    return child(data, meta.activeSlide);
+  }
+
   return (
     <PaginationOrigin
-      dotsLength={0}
-      activeDotIndex={0}
+      dotsLength={data.length}
+      activeDotIndex={meta.activeSlide}
       dotStyle={{
         height: 8,
         width: 8,
@@ -82,38 +81,39 @@ export const Pagination = observer((props: Partial<PaginationPropsOrigin>) => {
       }}
       inactiveDotOpacity={0.3}
       inactiveDotScale={1}
-      {...props}
-      containerStyle={baseContainerStyle}
+      {...paginationProps}
     />
   );
 });
 
-const RenderChild = observer(({ child, meta, length }: any) => {
-  if (child.type === Pagination) {
-    let cprops = {
-      dotsLength: length || 0,
-      activeDotIndex: meta.activeSlide,
-    };
-    const Component = child.type;
-    return <Component {...child.props} {...cprops} />;
-  } else if (!child || !child.type || !child.props) {
-    return child;
-  } else {
-    const Component = child.type;
-    const children = child.props.children;
+export const CarouselPagination = observer(
+  (props: Partial<OriginPaginationProps>) => {
+    const baseContainerStyle = StyleSheet.flatten([
+      {
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+      },
+      _.get(props, "containerStyle", {}),
+    ]);
     return (
-      <Component {...child.props}>
-        {!!children &&
-          (Array.isArray(children) ? (
-            children.map((child, key) => {
-              return (
-                <RenderChild key={String(key)} child={child} meta={meta} />
-              );
-            })
-          ) : (
-            <RenderChild child={children} meta={meta} />
-          ))}
-      </Component>
+      <PaginationOrigin
+        dotsLength={0}
+        activeDotIndex={0}
+        dotStyle={{
+          height: 8,
+          width: 8,
+          borderRadius: 20,
+          backgroundColor: Theme.UIColors.primary,
+        }}
+        dotContainerStyle={{
+          marginLeft: 3,
+          marginRight: 3,
+        }}
+        inactiveDotOpacity={0.3}
+        inactiveDotScale={1}
+        {...props}
+        containerStyle={baseContainerStyle}
+      />
     );
   }
-});
+);
