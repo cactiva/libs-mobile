@@ -1,6 +1,6 @@
 import { Model } from "../model/model";
 
-export class Storage<T = any> extends Model<T> {
+export class Storage<T extends Model = any> extends Model<T> {
   hasCameraPermission = false;
   hasImagePickPermission = false;
   camera = {

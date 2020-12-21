@@ -59,7 +59,7 @@ export default (props: IDateTimeProps) => {
 
   const dateString = (val: any) => {
     if (!!val) {
-      let date = new Date(val);
+      let date = typeof val === "string" ? new Date(val) : val;
       if (mode === "date") {
         return dateFormat(date, "d MMMM yyyy");
       } else if (mode === "time") {
