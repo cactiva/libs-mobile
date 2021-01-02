@@ -1,7 +1,6 @@
 import { Camera, CameraProps } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import set from "lodash.set";
 import get from "lodash.get";
 import { action, toJS } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
@@ -18,9 +17,9 @@ import Theme from "../../config/theme";
 import Button from "../Button";
 import Icon, { IIconProps } from "../Icon";
 import Image from "../Image";
+import libsStorage from "../libsStorage";
 import Modal from "../Modal";
 import Spinner from "../Spinner";
-import libsStorage from "../libsStorage";
 import Text from "../Text";
 import View from "../View";
 
@@ -110,7 +109,7 @@ export default observer((props: ICameraProps) => {
       });
     });
   };
-  const height = (style && style.height) || 120;
+  const height = style ? style.height : 120;
   const baseStyle: any = {
     ...Theme.UIInput,
     height: height,
