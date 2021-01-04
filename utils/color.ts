@@ -25,3 +25,12 @@ export const shadeColor = (color: string, amt: number) => {
 
   return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
 };
+
+export const randomColor = () => {
+  let letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
