@@ -1,10 +1,10 @@
-import * as Font from "expo-font";
 import React, { ReactElement, ReactNode, useState } from "react";
 import { sourceFonts } from "../../config/fonts";
 import permissions from "../../config/permissions";
 import useAsyncEffect from "../../utils/use-async-effect";
 import View from "../View";
 import Loading from "./Loading";
+import { loadAsync } from "expo-font";
 
 interface IAppProvider {
   children: ReactNode;
@@ -16,7 +16,7 @@ export default (props: IAppProvider) => {
 
   useAsyncEffect(async () => {
     await permissions();
-    await Font.loadAsync(sourceFonts).catch((e) => console.log(e));
+    await loadAsync(sourceFonts).catch((e) => console.log(e));
     setLoading(false);
   }, []);
 

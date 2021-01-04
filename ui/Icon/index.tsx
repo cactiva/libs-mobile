@@ -25,12 +25,12 @@ export interface IIconProps {
 }
 export default (props: IIconProps) => {
   const { source, style, size } = props;
-  const Icon: any = (IconSource as any)[source || "Ionicons"];
+  const CompIcon: any = (IconSource as any)[source || "Ionicons"];
   const baseStyle = {
     margin: 4,
   };
   const cstyle = StyleSheet.flatten([baseStyle, style]);
   const csize = size || 20;
 
-  return <Icon {...props} size={csize} style={cstyle} />;
+  return <CompIcon {...props} size={csize} style={cstyle} />;
 };
