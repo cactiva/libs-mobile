@@ -2,7 +2,7 @@ import { Camera, CameraProps } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import get from "lodash.get";
-import { action, runInAction, toJS } from "mobx";
+import { runInAction, toJS } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import {
