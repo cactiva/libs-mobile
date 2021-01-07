@@ -7,7 +7,7 @@ let permissionsRequest = [
 ] as any;
 
 const permissions = async () => {
-  return await Permissions.getAsync(...permissionsRequest);
+  Permissions.getAsync(...permissionsRequest);
 };
 
 export default permissions;

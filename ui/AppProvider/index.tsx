@@ -15,7 +15,7 @@ export default (props: IAppProvider) => {
   const [loading, setLoading] = useState(true);
 
   useAsyncEffect(async () => {
-    await permissions();
+    permissions();
     await loadAsync(sourceFonts).catch((e) => console.log(e));
     setLoading(false);
   }, []);

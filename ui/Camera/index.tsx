@@ -2,7 +2,7 @@ import { Camera, CameraProps } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import get from "lodash.get";
-import { action, toJS } from "mobx";
+import { action, runInAction, toJS } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import React, { useEffect, useRef } from "react";
 import {
@@ -98,12 +98,12 @@ export default observer((props: ICameraProps) => {
           Permissions.askAsync(key);
         } else {
           if (key == Permissions.CAMERA && !libsStorage.hasCameraPermission) {
-            libsStorage.hasCameraPermission = true;
+            runInAction(() => (libsStorage.hasCameraPermission = true));
           } else if (
             key == Permissions.CAMERA_ROLL &&
             !libsStorage.hasImagePickPermission
           ) {
-            libsStorage.hasImagePickPermission = true;
+            runInAction(() => (libsStorage.hasImagePickPermission = true));
           }
         }
       });
@@ -119,23 +119,23 @@ export default observer((props: ICameraProps) => {
     ...style,
   };
 
-  const onPress = action(() => {
+  const onPress = () => {
     if (
       (Platform.OS == "android" && !!libsStorage.hasCameraPermission) ||
       (Platform.OS == "ios" &&
         !!libsStorage.hasCameraPermission &&
         !!libsStorage.hasImagePickPermission)
     ) {
-      meta.isShown = true;
+      runInAction(() => (meta.isShown = true));
     } else {
       requestPermission();
     }
-  });
+  };
 
   useEffect(() => {
     requestPermission();
     if (!value) {
-      action(() => (meta.snap = true));
+      runInAction(() => (meta.snap = true));
     }
   }, []);
 
@@ -216,12 +216,12 @@ const CameraPicker = observer((props: any) => {
   const { value, onCapture, compress, meta } = props;
   const camera = useRef(null as any);
   const backgroundColor = new Animated.Value(0);
-  const imageSnap = action(() => {
+  const imageSnap = () => {
     try {
       if (!!value && !meta.snap) {
-        meta.snap = true;
+        runInAction(() => (meta.snap = true));
       } else if (!!camera.current) {
-        meta.loading = true;
+        runInAction(() => (meta.loading = true));
         Animated.timing(backgroundColor, {
           toValue: 100,
           duration: 1000,
@@ -245,7 +245,7 @@ const CameraPicker = observer((props: any) => {
             if (typeof onCapture == "function") {
               onCapture(uri);
             }
-            meta.tempValue = uri;
+            runInAction(() => (meta.tempValue = uri));
           })
           .catch((e: any) => {
             let msg = e.message;
@@ -264,13 +264,13 @@ const CameraPicker = observer((props: any) => {
       alert(msg);
       onRequestClose();
     }
-  });
-  const imagePicker = action(async () => {
+  };
+  const imagePicker = async () => {
     try {
       if (!!value && !meta.snap) {
-        meta.snap = true;
+        runInAction(() => (meta.snap = true));
       } else {
-        meta.loading = true;
+        runInAction(() => (meta.loading = true));
         ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.All,
           allowsEditing: true,
@@ -279,7 +279,7 @@ const CameraPicker = observer((props: any) => {
           .then((res) => {
             if (res.cancelled === false) {
               onRequestClose();
-              meta.tempValue = res.uri;
+              runInAction(() => (meta.tempValue = res.uri));
               if (typeof onCapture == "function") {
                 onCapture(res.uri);
               }
@@ -302,13 +302,15 @@ const CameraPicker = observer((props: any) => {
       alert(msg);
       onRequestClose();
     }
-  });
+  };
 
-  const onRequestClose = action(() => {
-    meta.isShown = false;
-    meta.snap = false;
-    meta.loading = false;
-  });
+  const onRequestClose = () => {
+    runInAction(() => {
+      meta.isShown = false;
+      meta.snap = false;
+      meta.loading = false;
+    });
+  };
 
   const cameraProps = {
     onMountError: (e: any) => {
@@ -329,7 +331,7 @@ const CameraPicker = observer((props: any) => {
       ...get(props, "cameraProps", {}),
       ...get(libsStorage, "camera", {}),
     };
-    libsStorage.camera = camProps;
+    runInAction(() => (libsStorage.camera = camProps));
   }, []);
 
   const bg = backgroundColor.interpolate({
@@ -390,15 +392,17 @@ const CameraPicker = observer((props: any) => {
 
 const RatioButton = observer(({ cameraTools }: any) => {
   let ratio = get(cameraTools, "ratio", true);
-  const handleRatio = action(() => {
-    if (libsStorage.camera.ratio === "1:1") {
-      libsStorage.camera.ratio = "4:3";
-    } else if (libsStorage.camera.ratio === "4:3") {
-      libsStorage.camera.ratio = "16:9";
-    } else {
-      libsStorage.camera.ratio = "1:1";
-    }
-  });
+  const handleRatio = () => {
+    runInAction(() => {
+      if (libsStorage.camera.ratio === "1:1") {
+        libsStorage.camera.ratio = "4:3";
+      } else if (libsStorage.camera.ratio === "4:3") {
+        libsStorage.camera.ratio = "16:9";
+      } else {
+        libsStorage.camera.ratio = "1:1";
+      }
+    });
+  };
   if (!ratio) return null;
   return (
     <Button
@@ -425,15 +429,17 @@ const RatioButton = observer(({ cameraTools }: any) => {
 
 const FlashButton = observer(({ cameraTools }: any) => {
   let flash = get(cameraTools, "flash", true);
-  const handleFlash = action(() => {
-    if (libsStorage.camera.flashMode === "auto") {
-      libsStorage.camera.flashMode = "on";
-    } else if (libsStorage.camera.flashMode === "on") {
-      libsStorage.camera.flashMode = "off";
-    } else {
-      libsStorage.camera.flashMode = "auto";
-    }
-  });
+  const handleFlash = () => {
+    runInAction(() => {
+      if (libsStorage.camera.flashMode === "auto") {
+        libsStorage.camera.flashMode = "on";
+      } else if (libsStorage.camera.flashMode === "on") {
+        libsStorage.camera.flashMode = "off";
+      } else {
+        libsStorage.camera.flashMode = "auto";
+      }
+    });
+  };
   if (!flash) return null;
   return (
     <Button
@@ -533,10 +539,12 @@ const ReverseButton = observer(({ cameraTools, handleReverse, meta }: any) => {
 const CameraToolsBottom = observer((props: any) => {
   const { imagePicker, cameraTools, meta } = props;
   const handleReverse = () => {
-    libsStorage.camera.type =
-      libsStorage.camera.type === Camera.Constants.Type.back
-        ? Camera.Constants.Type.front
-        : Camera.Constants.Type.back;
+    runInAction(() => {
+      libsStorage.camera.type =
+        libsStorage.camera.type === Camera.Constants.Type.back
+          ? Camera.Constants.Type.front
+          : Camera.Constants.Type.back;
+    });
   };
   return (
     <View
