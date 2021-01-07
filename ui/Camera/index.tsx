@@ -19,6 +19,7 @@ import Icon, { IIconProps } from "../Icon";
 import Image from "../Image";
 import libsStorage from "../libsStorage";
 import Modal from "../Modal";
+import { statusBarHeight } from "../Screen";
 import Spinner from "../Spinner";
 import Text from "../Text";
 import View from "../View";
@@ -97,14 +98,16 @@ export default observer((props: ICameraProps) => {
         if (res.permissions[key].status !== "granted") {
           Permissions.askAsync(key);
         } else {
-          if (key == Permissions.CAMERA && !libsStorage.hasCameraPermission) {
-            runInAction(() => (libsStorage.hasCameraPermission = true));
-          } else if (
-            key == Permissions.CAMERA_ROLL &&
-            !libsStorage.hasImagePickPermission
-          ) {
-            runInAction(() => (libsStorage.hasImagePickPermission = true));
-          }
+          runInAction(() => {
+            if (key == Permissions.CAMERA && !libsStorage.hasCameraPermission) {
+              libsStorage.hasCameraPermission = true;
+            } else if (
+              key == Permissions.CAMERA &&
+              !libsStorage.hasImagePickPermission
+            ) {
+              libsStorage.hasImagePickPermission = true;
+            }
+          });
         }
       });
     });
@@ -153,7 +156,6 @@ export default observer((props: ICameraProps) => {
       />
     );
   }
-
   return (
     <>
       <Button
@@ -218,7 +220,7 @@ const CameraPicker = observer((props: any) => {
   const backgroundColor = new Animated.Value(0);
   const imageSnap = () => {
     try {
-      if (!!value && !meta.snap) {
+      if ((!!value || !!meta.tempValue) && !meta.snap) {
         runInAction(() => (meta.snap = true));
       } else if (!!camera.current) {
         runInAction(() => (meta.loading = true));
@@ -246,6 +248,7 @@ const CameraPicker = observer((props: any) => {
               onCapture(uri);
             }
             runInAction(() => (meta.tempValue = uri));
+            runInAction(() => (meta.snap = false));
           })
           .catch((e: any) => {
             let msg = e.message;
@@ -267,7 +270,7 @@ const CameraPicker = observer((props: any) => {
   };
   const imagePicker = async () => {
     try {
-      if (!!value && !meta.snap) {
+      if ((!!value || !!meta.tempValue) && !meta.snap) {
         runInAction(() => (meta.snap = true));
       } else {
         runInAction(() => (meta.loading = true));
@@ -283,6 +286,7 @@ const CameraPicker = observer((props: any) => {
               if (typeof onCapture == "function") {
                 onCapture(res.uri);
               }
+              runInAction(() => (meta.snap = false));
             }
           })
           .catch((error) => {
@@ -352,12 +356,12 @@ const CameraPicker = observer((props: any) => {
         style={{
           flexDirection: "row",
           paddingHorizontal: 15,
-          maxHeight: 44,
           zIndex: 9,
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
+          paddingTop: statusBarHeight,
           backgroundColor: "rgba(0,0,0,1)",
         }}
       >
@@ -526,12 +530,7 @@ const ReverseButton = observer(({ cameraTools, handleReverse, meta }: any) => {
         alignSelf: "flex-end",
       }}
     >
-      <Icon
-        source="Ionicons"
-        name="ios-reverse-camera"
-        color="white"
-        size={45}
-      />
+      <Icon source="Ionicons" name="camera-reverse" color="white" size={45} />
     </Button>
   );
 });
@@ -601,8 +600,8 @@ const CameraAction = observer((props: any) => {
         borderStyle: "solid",
         borderRadius: 100,
         alignSelf: "center",
-        padding: 0,
         paddingHorizontal: 0,
+        paddingVertical: 0,
         position: "absolute",
         margin: 0,
       }}
@@ -644,6 +643,7 @@ const CameraView = observer((props: any) => {
   const source = {
     uri: meta.tempValue,
   };
+
   return (
     <View
       style={{
