@@ -104,17 +104,15 @@ export default (props: ITopBarProps) => {
       };
 
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        if (!!isFocused) {
-          onPressBack();
-          return true;
-        }
-      }
-    );
+    let backHandler: any;
+    if (!!isFocused) {
+      backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+        onPressBack();
+        return true;
+      });
+    }
 
-    return () => backHandler.remove();
+    return () => !!backHandler && backHandler.remove();
   }, [isFocused]);
 
   return (

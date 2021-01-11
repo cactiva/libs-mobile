@@ -2,7 +2,7 @@ import set from "lodash.set";
 import get from "lodash.get";
 import { action, toJS } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
-import React, { useRef } from "react";
+import React, { ReactElement, useRef } from "react";
 import { StyleSheet, TextStyle, ViewProps, ViewStyle } from "react-native";
 import Theme from "../../config/theme";
 import { shadeColor } from "../../utils/color";
@@ -304,7 +304,7 @@ const SelectComponent = observer((props: any) => {
         {...get(selectProps, "customProps.modal.list", {})}
         flatListRef={refList}
         data={data}
-        renderItem={get(selectProps, "renderItem", renderItem)}
+        renderItem={renderItem}
         keyExtractor={(_: any, index: number) => String(index)}
         ItemSeparatorComponent={itemSperator}
         keyboardShouldPersistTaps={"handled"}
@@ -333,7 +333,6 @@ const RenderItem = (props: any) => {
     borderRadius: 0,
     margin: 0,
     paddingHorizontal: 10,
-    height: 44,
     ...get(selectProps, "styles.item.button", {}),
   };
   const selectedStyle =
@@ -352,6 +351,12 @@ const RenderItem = (props: any) => {
     selectProps.onSelect && selectProps.onSelect(item);
     meta.openSelect = false;
   });
+
+  const valuePath = get(selectProps, "valuePath", "value");
+  const originItem = selectProps.items.find(
+    (x: any) => x[valuePath] === item.value
+  );
+
   return (
     <Button
       mode="clean"
@@ -359,12 +364,16 @@ const RenderItem = (props: any) => {
       onPress={handleSelect}
       style={cstyle}
     >
-      <Text
-        {...get(selectProps, "customProps.item.label", {})}
-        style={clabelstyle}
-      >
-        {item.label}
-      </Text>
+      {!!selectProps.renderItem ? (
+        selectProps.renderItem(originItem)
+      ) : (
+        <Text
+          {...get(selectProps, "customProps.item.label", {})}
+          style={clabelstyle}
+        >
+          {item.label}
+        </Text>
+      )}
     </Button>
   );
 };
