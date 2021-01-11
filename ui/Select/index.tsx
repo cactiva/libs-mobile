@@ -333,6 +333,7 @@ const RenderItem = (props: any) => {
     borderRadius: 0,
     margin: 0,
     paddingHorizontal: 10,
+    minHeight: 44,
     ...get(selectProps, "styles.item.button", {}),
   };
   const selectedStyle =
