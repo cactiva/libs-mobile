@@ -25,13 +25,13 @@ export default (e: IAPI) => {
       } else {
         if (res.data) onError(res.data);
         else onError(res);
-        resolve();
+        // resolve();
       }
     } catch (e) {
       if (onError) {
         if (e.response && e.response.data) onError(e.response.data);
         else onError(e.response);
-        resolve();
+        // resolve();
       } else {
         if (e.response && e.response.data) resolve(e.response.data);
         else resolve(e.response);
