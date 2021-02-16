@@ -113,7 +113,7 @@ export default observer((props: IFieldProps) => {
   const baseInpStyle: any = {
     flexGrow: 1,
     flexShrink: 1,
-    height: 44,
+    minHeight: 44,
   };
   if (
     Component === Camera ||

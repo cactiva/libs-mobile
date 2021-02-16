@@ -51,6 +51,7 @@ export default (props: IInputProps) => {
     fontFamily: Theme.UIFontFamily,
     color: Theme.UIColors.text,
     paddingHorizontal: 10,
+    height: 44,
   };
   const cstyle = StyleSheet.flatten([
     baseStyle,

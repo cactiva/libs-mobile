@@ -31,6 +31,7 @@ const Theme = Object.assign(
     UISplashScreen: require("../assets/images/splash.png"),
     UIField: {
       minWidth: 10,
+      flexShrink: 1,
       marginBottom: 15,
     },
     UIInput: {

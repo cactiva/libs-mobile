@@ -64,6 +64,7 @@ export interface ISelectProps {
   onSelect?: (item: any) => void;
   onChange?: (value: any) => void;
   renderItem?: (item: any) => void;
+  renderLabel?: (item: any) => void;
   labelPath?: any;
   valuePath?: any;
   editable?: boolean;
@@ -104,7 +105,7 @@ export const formatedItems = (props: ISelectProps | any) => {
 };
 
 export default observer((props: ISelectProps) => {
-  const { style, editable, value, placeholder } = props;
+  const { style, editable, value, placeholder, renderLabel, valuePath } = props;
   const meta = useLocalObservable(() => ({
     openSelect: false,
     search: "",
@@ -147,7 +148,9 @@ export default observer((props: ISelectProps) => {
   });
   const items = formatedItems(props);
   const selectedItem = items.find((x) => x.value === value) || {};
-
+  const originSelectedItem = props.items.find(
+    (x: any) => x[valuePath] === value
+  );
   return (
     <>
       <Button
@@ -157,14 +160,18 @@ export default observer((props: ISelectProps) => {
         disabled={editable === false}
         onPress={handleSelect}
       >
-        <Text
-          ellipsizeMode={"tail"}
-          numberOfLines={1}
-          {...get(props, "customProps.label", {})}
-          style={clabelstyle}
-        >
-          {get(selectedItem, "label", placeholder || "")}
-        </Text>
+        {!!originSelectedItem && !!renderLabel ? (
+          renderLabel(originSelectedItem)
+        ) : (
+          <Text
+            ellipsizeMode={"tail"}
+            numberOfLines={1}
+            {...get(props, "customProps.label", {})}
+            style={clabelstyle}
+          >
+            {get(selectedItem, "label", placeholder || "")}
+          </Text>
+        )}
         <Icon
           name={"ios-arrow-down"}
           size={18}
@@ -257,6 +264,7 @@ const SelectComponent = observer((props: any) => {
       index: index,
     };
   };
+
   return (
     <Modal
       visible={meta.openSelect}
@@ -309,11 +317,8 @@ const SelectComponent = observer((props: any) => {
         ItemSeparatorComponent={itemSperator}
         keyboardShouldPersistTaps={"handled"}
         style={cstyle}
-        windowSize={12}
-        initialNumToRender={20}
-        maxToRenderPerBatch={24}
         // initialScrollIndex={findIndex()}
-        getItemLayout={getItemLayout}
+        // getItemLayout={getItemLayout}
       />
     </Modal>
   );
