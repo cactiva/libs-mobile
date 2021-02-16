@@ -74,7 +74,7 @@ export default observer((props: IFromProps) => {
       path,
       label,
       required,
-      status: true,
+      status: !!getValue(path),
       messages: [],
     });
   });
