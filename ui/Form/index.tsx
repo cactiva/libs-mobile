@@ -1,6 +1,6 @@
 import get from "lodash.get";
 import set from "lodash.set";
-import { action } from "mobx";
+import { action, toJS } from "mobx";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import React, { ReactElement } from "react";
 import { ViewStyle } from "react-native";
@@ -74,7 +74,7 @@ export default observer((props: IFromProps) => {
       path,
       label,
       required,
-      status: !!getValue(path),
+      status: !!required ? !!getValue(path) : true,
       messages: [],
     });
   });

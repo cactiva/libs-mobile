@@ -20,9 +20,9 @@ export default (props: IFlatListProps) => {
   ]);
   return (
     <FlatList
-      windowSize={8}
-      initialNumToRender={12}
-      maxToRenderPerBatch={16}
+      windowSize={12}
+      initialNumToRender={20}
+      maxToRenderPerBatch={24}
       {...props}
       style={cstyle}
       contentContainerStyle={ccontentContainerStyle}
